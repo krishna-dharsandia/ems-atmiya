@@ -1,0 +1,82 @@
+generator client {
+  provider = "prisma-client-js"
+  output   = "../app/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        String    @id @default(uuid())
+  email     String    @unique
+  name      String
+  role      Role
+  students  Student[]
+  admins    Admin[]
+  masters   Master[]
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+}
+
+model Department {
+  id       String    @id @default(uuid())
+  name     String
+  faculty  String
+  students Student[]
+  programs Program[]
+  Admin    Admin[]
+}
+
+model Program {
+  id           String     @id @default(uuid())
+  name         String
+  departmentId String
+  department   Department @relation(fields: [departmentId], references: [id])
+  students     Student[]
+  admins       Admin[]
+}
+
+model Student {
+  id                 String     @id @default(uuid())
+  userId             String
+  user               User       @relation(fields: [userId], references: [id])
+  departmentId       String
+  department         Department @relation(fields: [departmentId], references: [id])
+  programId          String
+  program            Program    @relation(fields: [programId], references: [id])
+  currentSemester    Int
+  currentYear        Int
+  registrationNumber String     @unique
+  dateOfBirth        DateTime
+  createdAt          DateTime   @default(now())
+  updatedAt          DateTime   @updatedAt
+}
+
+model Admin {
+  id           String     @id @default(uuid())
+  userId       String
+  user         User       @relation(fields: [userId], references: [id])
+  departmentId String
+  department   Department @relation(fields: [departmentId], references: [id])
+  programId    String
+  Program      Program    @relation(fields: [programId], references: [id])
+  position     String
+  createdAt    DateTime   @default(now())
+  updatedAt    DateTime   @updatedAt
+}
+
+model Master {
+  id        String   @id @default(uuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id])
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+enum Role {
+  STUDENT
+  ADMIN
+  MASTER
+}
