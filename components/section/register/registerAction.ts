@@ -2,7 +2,8 @@
 
 import { registerStudentSchema, RegisterStudentSchema } from "@/schemas/registerStudentSchema";
 import { createClient } from "@/utils/supabase/server";
-import { PrismaClient } from "@prisma/client";
+import { PrismaClient, User } from "@prisma/client";
+import { AuthError } from "@supabase/supabase-js";
 
 export async function registerStudent(data: RegisterStudentSchema, captchaToken: string) {
   const validatedData = registerStudentSchema.safeParse(data);
@@ -22,7 +23,7 @@ export async function registerStudent(data: RegisterStudentSchema, captchaToken:
         role: "STUDENT",
         onboarding_complete: false,
       },
-      emailRedirectTo: "https://localhost:3000/onboarding",
+      emailRedirectTo: "http://localhost:3000/onboarding",
       captchaToken,
     },
   });
@@ -32,9 +33,9 @@ export async function registerStudent(data: RegisterStudentSchema, captchaToken:
   }
 
   const prisma = new PrismaClient();
-
+  let user: User;
   try {
-    await prisma.user.create({
+    user = await prisma.user.create({
       data: {
         supabaseId: userData.user.id,
         email,

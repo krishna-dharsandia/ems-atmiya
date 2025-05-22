@@ -34,19 +34,19 @@ model Program {
   id           String     @id @default(uuid())
   name         String
   departmentId String
-  department   Department @relation(fields: [departmentId], references: [id])
+  department   Department @relation(fields: [departmentId], references: [id], onDelete: Cascade)
   students     Student[]
   admins       Admin[]
 }
 
 model Student {
   id                 String      @id @default(uuid())
-  userId             String
-  user               User        @relation(fields: [userId], references: [supabaseId])
+  userId             String      @unique
+  user               User        @relation(fields: [userId], references: [supabaseId], onDelete: Cascade)
   departmentId       String?
-  department         Department? @relation(fields: [departmentId], references: [id])
+  department         Department? @relation(fields: [departmentId], references: [id], onDelete: Cascade)
   programId          String?
-  program            Program?    @relation(fields: [programId], references: [id])
+  program            Program?    @relation(fields: [programId], references: [id], onDelete: Cascade)
   currentSemester    Int?
   currentYear        Int?
   registrationNumber String?     @unique
@@ -57,12 +57,12 @@ model Student {
 
 model Admin {
   id           String      @id @default(uuid())
-  userId       String
-  user         User        @relation(fields: [userId], references: [supabaseId])
+  userId       String      @unique
+  user         User        @relation(fields: [userId], references: [supabaseId], onDelete: Cascade)
   departmentId String?
-  department   Department? @relation(fields: [departmentId], references: [id])
+  department   Department? @relation(fields: [departmentId], references: [id], onDelete: Cascade)
   programId    String?
-  program      Program?    @relation(fields: [programId], references: [id])
+  program      Program?    @relation(fields: [programId], references: [id], onDelete: Cascade)
   position     String
   createdAt    DateTime    @default(now())
   updatedAt    DateTime    @updatedAt
@@ -70,8 +70,8 @@ model Admin {
 
 model Master {
   id        String   @id @default(uuid())
-  userId    String
-  user      User     @relation(fields: [userId], references: [supabaseId])
+  userId    String   @unique
+  user      User     @relation(fields: [userId], references: [supabaseId], onDelete: Cascade)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }

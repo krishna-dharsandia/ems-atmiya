@@ -34,7 +34,7 @@ export default function NavigationBar() {
         {user ? (
           <div className="flex space-x-4">
             <a href="/profile">Profile</a>
-            <Button type="button" onClick={handleSignout}>
+            <Button type="button" onClick={handleSignout} className="cursor-pointer">
               Signout
             </Button>
           </div>
