@@ -9,6 +9,7 @@ import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { registerStudent } from "./registerAction";
 import { Button } from "@/components/ui/button";
+import { registerWithGoogleAction } from "./registerWithGoogleAction";
 
 export default function RegisterForm() {
   const [captchaToken, setCaptchaToken] = useState("");
@@ -29,6 +30,16 @@ export default function RegisterForm() {
       toast.error(response.error);
     } else {
       toast.success("Registration successful! Please check your email for verification.");
+    }
+  }
+
+  async function handleContinueWithGoogle() {
+    const response = await registerWithGoogleAction();
+
+    if (response.error) {
+      toast.error(response.error);
+    } else {
+      toast.success("Redirecting to Google...");
     }
   }
 
@@ -105,6 +116,8 @@ export default function RegisterForm() {
           </Button>
         </form>
       </Form>
+
+      <Button onClick={handleContinueWithGoogle}>Continue with Google</Button>
     </>
   );
 }

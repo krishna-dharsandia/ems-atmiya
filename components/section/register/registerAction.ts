@@ -2,8 +2,6 @@
 
 import { registerStudentSchema, RegisterStudentSchema } from "@/schemas/registerStudentSchema";
 import { createClient } from "@/utils/supabase/server";
-import { PrismaClient, User } from "@prisma/client";
-import { AuthError } from "@supabase/supabase-js";
 
 export async function registerStudent(data: RegisterStudentSchema, captchaToken: string) {
   const validatedData = registerStudentSchema.safeParse(data);
@@ -22,6 +20,7 @@ export async function registerStudent(data: RegisterStudentSchema, captchaToken:
       data: {
         role: "STUDENT",
         onboarding_complete: false,
+        full_name: `${firstName} ${lastName}`,
       },
       emailRedirectTo: "http://localhost:3000/onboarding",
       captchaToken,
@@ -32,26 +31,5 @@ export async function registerStudent(data: RegisterStudentSchema, captchaToken:
     return { error: signUpError ? signUpError.message : "Failed to register user with Supabase" };
   }
 
-  const prisma = new PrismaClient();
-  let user: User;
-  try {
-    user = await prisma.user.create({
-      data: {
-        supabaseId: userData.user.id,
-        email,
-        firstName,
-        lastName,
-        role: "STUDENT",
-        students: {
-          create: {},
-        },
-      },
-    });
-
-    return { success: true };
-  } catch {
-    return { error: "Failed to create user in database" };
-  } finally {
-    await prisma.$disconnect();
-  }
+  return { success: true };
 }

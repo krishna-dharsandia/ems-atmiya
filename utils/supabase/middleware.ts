@@ -1,7 +1,7 @@
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 
-const PUBLIC_ROUTES = ["/", "/login", "/register", "/privacy-policy", "/terms-conditions", "/onboarding", "/auth/confirm"];
+const PUBLIC_ROUTES = ["/", "/login", "/register", "/privacy-policy", "/terms-conditions", "/onboarding", "/auth/confirm", "/auth/callback", "/auth/webhook"];
 
 function isPublicRoute(pathname: string) {
   if (pathname.startsWith("/api/")) return true;
