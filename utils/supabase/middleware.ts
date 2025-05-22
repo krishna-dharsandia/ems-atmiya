@@ -2,7 +2,7 @@ import { createServerClient } from '@supabase/ssr'
 import { NextResponse, type NextRequest } from 'next/server'
 
 const PUBLIC_ROUTES = [
-  '/', '/login', '/register', "/privacy-policy", "/terms-conditions",
+  '/', '/login', '/register', "/privacy-policy", "/terms-conditions", '/onboarding', "/auth/confirm"
 ];
 
 function isPublicRoute(pathname: string) {
@@ -12,6 +12,9 @@ function isPublicRoute(pathname: string) {
 }
 
 export async function updateSession(request: NextRequest) {
+  console.log("Pathname:", request.nextUrl.pathname);
+  console.log("Is public route:", isPublicRoute(request.nextUrl.pathname));
+
   let supabaseResponse = NextResponse.next({
     request,
   })
@@ -55,6 +58,21 @@ export async function updateSession(request: NextRequest) {
   if (!user) {
     const url = request.nextUrl.clone();
     url.pathname = '/login';
+    return NextResponse.redirect(url);
+  }
+
+  // Onboarding logic
+  const onboardingComplete = user.user_metadata.onboarding_complete;
+  const isOnboardingPage = request.nextUrl.pathname.startsWith('/onboarding');
+
+  if (!onboardingComplete && !isOnboardingPage) {
+    const url = request.nextUrl.clone();
+    url.pathname = '/onboarding';
+    return NextResponse.redirect(url);
+  }
+  if (onboardingComplete && isOnboardingPage) {
+    const url = request.nextUrl.clone();
+    url.pathname = '/';
     return NextResponse.redirect(url);
   }
 
