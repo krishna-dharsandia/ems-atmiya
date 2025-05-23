@@ -1,7 +1,9 @@
+import OneTapComponent from "@/components/global/OnTapGoogle";
+
 export default function Page() {
   return (
     <div>
-      <p>Hello World</p>
+      <OneTapComponent />
     </div>
   );
 }

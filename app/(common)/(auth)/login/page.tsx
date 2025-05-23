@@ -1,7 +1,10 @@
+import OneTapComponent from "@/components/global/OnTapGoogle";
+
 export default function Page() {
   return (
     <div>
-      <p>Login Page</p>
+      <h1 className="text-3xl font-bold">Login</h1>
+      <OneTapComponent />
     </div>
   );
 }
