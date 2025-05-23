@@ -1,7 +1,7 @@
 "use client";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import { RegisterStudentSchema, registerStudentSchema } from "@/schemas/registerStudentSchema";
+import { RegisterStudentSchema, registerStudentSchema } from "@/schemas/registerSchema";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Turnstile } from "@marsidev/react-turnstile";
 import { useState } from "react";

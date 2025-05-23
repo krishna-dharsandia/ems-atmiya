@@ -1,10 +1,11 @@
 import OneTapComponent from "@/components/global/OnTapGoogle";
+import LoginForm from "@/components/section/login/LoginForm";
 
 export default function Page() {
   return (
     <div>
-      <h1 className="text-3xl font-bold">Login</h1>
       <OneTapComponent />
+      <LoginForm />
     </div>
   );
 }

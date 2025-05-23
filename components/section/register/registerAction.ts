@@ -1,6 +1,6 @@
 "use server";
 
-import { registerStudentSchema, RegisterStudentSchema } from "@/schemas/registerStudentSchema";
+import { registerStudentSchema, RegisterStudentSchema } from "@/schemas/registerSchema";
 import { createClient } from "@/utils/supabase/server";
 
 export async function registerStudent(data: RegisterStudentSchema, captchaToken: string) {
