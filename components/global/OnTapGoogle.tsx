@@ -38,13 +38,12 @@ const OneTapComponent = () => {
           return;
         }
 
-        /* global google */
         window.google.accounts.id.initialize({
           client_id: process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID!,
           callback: async (response: CredentialResponse) => {
             try {
               // send id token returned in response.credential to supabase
-              const { data, error } = await supabase.auth.signInWithIdToken({
+              const { error } = await supabase.auth.signInWithIdToken({
                 provider: "google",
                 token: response.credential,
                 nonce,
@@ -67,7 +66,7 @@ const OneTapComponent = () => {
     };
     initializeGoogleOneTap();
     return () => window.removeEventListener("load", initializeGoogleOneTap);
-  }, []);
+  });
 
   return (
     <>
