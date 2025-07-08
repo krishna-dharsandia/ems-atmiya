@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import "./globals.css";
 import { Toaster } from "@/components/ui/sonner";
-import NavigationBar from "@/components/global/NavigationBar";
+import NavigationBar from "@/components/global/navigation-bar/NavigationBar";
 
 export const metadata: Metadata = {
   title: "Event Management System",
