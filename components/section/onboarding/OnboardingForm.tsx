@@ -72,6 +72,7 @@ export default function OnboardingForm() {
                   ))}
                 </SelectContent>
               </Select>
+              <FormDescription>If your department is not listed, please select the closest match.</FormDescription>
               <FormMessage />
             </FormItem>
           )}
@@ -98,6 +99,7 @@ export default function OnboardingForm() {
                   )}
                 </SelectContent>
               </Select>
+              <FormDescription>If your program is not listed, please select the closest match.</FormDescription>
               <FormMessage />
             </FormItem>
           )}
@@ -109,7 +111,12 @@ export default function OnboardingForm() {
             <FormItem>
               <FormLabel>Current Semester</FormLabel>
               <FormControl>
-                <Input type="number" placeholder="Current Semester" value={field.value === undefined || field.value === null ? "" : String(field.value)} onChange={(e) => field.onChange(e.target.value === "" ? undefined : Number(e.target.value))} />
+                <Input
+                  type="number"
+                  placeholder="Current Semester"
+                  value={field.value === undefined || field.value === null ? "" : String(field.value)}
+                  onChange={(e) => field.onChange(e.target.value === "" ? undefined : Number(e.target.value))}
+                />
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -122,7 +129,12 @@ export default function OnboardingForm() {
             <FormItem>
               <FormLabel>Current Year</FormLabel>
               <FormControl>
-                <Input type="number" placeholder="Current Year" value={field.value === undefined || field.value === null ? "" : String(field.value)} onChange={(e) => field.onChange(e.target.value === "" ? undefined : Number(e.target.value))} />
+                <Input
+                  type="number"
+                  placeholder="Current Year"
+                  value={field.value === undefined || field.value === null ? "" : String(field.value)}
+                  onChange={(e) => field.onChange(e.target.value === "" ? undefined : Number(e.target.value))}
+                />
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -137,6 +149,7 @@ export default function OnboardingForm() {
               <FormControl>
                 <Input placeholder="Registration Number" {...field} value={field.value ?? ""} />
               </FormControl>
+              <FormDescription>Enter your school or college ID card number. If you do not have a registration number, use your institution's ID card number.</FormDescription>
               <FormMessage />
             </FormItem>
           )}
@@ -166,7 +179,7 @@ export default function OnboardingForm() {
           )}
         />
         <Button type="submit" disabled={form.formState.isSubmitting}>
-          Onboard Student
+          Complete Onboarding
         </Button>
       </form>
     </Form>

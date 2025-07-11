@@ -6,7 +6,7 @@ import { useEffect, useState } from "react";
 import { User } from "@supabase/supabase-js";
 import { NavMenu } from "./nav-menu";
 import { NavigationSheet } from "./navigation-sheet";
-import { useRouter } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { getDashboardPath } from "@/utils/functions/getDashboardPath";
 import { GalleryVerticalEnd } from "lucide-react";
 import { PUBLIC_ROUTES } from "@/utils/supabase/middleware";
@@ -15,6 +15,7 @@ export default function NavigationBar() {
   const [user, setUser] = useState<User | null>(null);
   const [showNav, setShowNav] = useState(false);
   const supabase = createClient();
+  const pathname = usePathname();
   const router = useRouter();
 
   function isPublicRoute(pathname: string) {
@@ -28,12 +29,8 @@ export default function NavigationBar() {
     }
     main();
 
-    // Check if current route is public
-    if (typeof window !== "undefined") {
-      const pathname = window.location.pathname;
-      setShowNav(isPublicRoute(pathname));
-    }
-  }, []);
+    setShowNav(isPublicRoute(pathname));
+  }, [pathname]);
 
   async function handleSignout() {
     const { error } = await supabase.auth.signOut();
