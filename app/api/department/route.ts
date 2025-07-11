@@ -23,5 +23,7 @@ export async function GET() {
   } catch (error) {
     console.error("Error fetching departments:", error);
     return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
+  } finally {
+    await prisma.$disconnect();
   }
 }

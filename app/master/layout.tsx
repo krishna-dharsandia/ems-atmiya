@@ -6,6 +6,7 @@ import { Breadcrumb, BreadcrumbList } from "@/components/ui/breadcrumb";
 import { BreadcrumbsItems } from "@/components/global/breadcrumbs/BreadcrumbsItems";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { PlusCircle } from "lucide-react";
+import FormDialogContainer from "@/components/global/form-dialog/FormDialogContainer";
 
 export default function Layout({ children }: { children: React.ReactNode }) {
   return (
@@ -35,6 +36,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
           </DropdownMenu>
         </header>
         <div className="flex flex-1 flex-col gap-4 p-4">{children}</div>
+        <FormDialogContainer />
       </SidebarInset>
     </SidebarProvider>
   );
