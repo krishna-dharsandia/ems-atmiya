@@ -8,17 +8,20 @@ datasource db {
 }
 
 model User {
-  id         String    @id @default(uuid())
-  supabaseId String    @unique
-  email      String    @unique
-  firstName  String
-  lastName   String
-  role       Role
-  students   Student[]
-  admins     Admin[]
-  masters    Master[]
-  createdAt  DateTime  @default(now())
-  updatedAt  DateTime  @updatedAt
+  id                 String              @id @default(uuid())
+  supabaseId         String              @unique
+  email              String              @unique
+  firstName          String
+  lastName           String
+  role               Role
+  students           Student[]
+  admins             Admin[]
+  masters            Master[]
+  createdAt          DateTime            @default(now())
+  updatedAt          DateTime            @updatedAt
+  events             Event[]
+  eventRegistrations EventRegistration[]
+  eventFeedbacks     EventFeedback[]
 }
 
 model Department {
@@ -74,6 +77,95 @@ model Master {
   user      User     @relation(fields: [userId], references: [supabaseId], onDelete: Cascade)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+}
+
+model Event {
+  id                         String              @id @default(uuid())
+  slug                       String              @unique
+  name                       String
+  description                String
+  key_highlights             String[]
+  note                       String?
+  poster_url                 String
+  mode                       EventMode
+  address                    String?
+  start_date                 DateTime
+  end_date                   DateTime?
+  start_time                 DateTime
+  end_time                   DateTime?
+  event_type                 EventType
+  status                     EventStatus
+  registration_required      Boolean
+  registration_link          String?
+  registration_limit         Int?
+  recording_link             String?
+  feedback_form_link         String?
+  tags                       String[]
+  organizer_name             String
+  organizer_contact          String?
+  is_paid                    Boolean             @default(false)
+  ticket_price               Int?
+  current_registration_count Int                 @default(0)
+  feedback_score             Float?
+  createdById                String
+  created_by                 User                @relation(fields: [createdById], references: [supabaseId], onDelete: Cascade)
+  created_at                 DateTime            @default(now())
+  updated_at                 DateTime            @updatedAt
+  speakers                   EventSpeaker[]
+  registrations              EventRegistration[]
+  feedbacks                  EventFeedback[]
+}
+
+model EventSpeaker {
+  id        String   @id @default(uuid())
+  name      String
+  bio       String?
+  photo_url String?
+  eventId   String
+  event     Event    @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model EventRegistration {
+  id        String   @id @default(uuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [supabaseId], onDelete: Cascade)
+  eventId   String
+  event     Event    @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model EventFeedback {
+  id        String   @id @default(uuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [supabaseId], onDelete: Cascade)
+  eventId   String
+  event     Event    @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  rating    Int      @default(0)
+  comment   String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+enum EventMode {
+  ONLINE
+  OFFLINE
+}
+
+enum EventType {
+  SESSION
+  WORKSHOP
+  WEBINAR
+  OTHER
+}
+
+enum EventStatus {
+  UPCOMING
+  COMPLETED
+  CANCELLED
+  OTHER
 }
 
 enum Role {
