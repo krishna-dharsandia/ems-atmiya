@@ -4,9 +4,9 @@ import { AppSidebar } from "@/components/global/sidebar/Sidebar";
 import { masterSidebarLinks } from "@/components/section/master/sidebar/links";
 import { Breadcrumb, BreadcrumbList } from "@/components/ui/breadcrumb";
 import { BreadcrumbsItems } from "@/components/global/breadcrumbs/BreadcrumbsItems";
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
-import { PlusCircle } from "lucide-react";
 import FormDialogContainer from "@/components/global/form-dialog/FormDialogContainer";
+import { ModeToggle } from "@/components/global/mode-toggle/ModelToggler";
+import QuickActionToggle from "@/components/global/quick-action-toggle/QuickActionToggle";
 
 export default function Layout({ children }: { children: React.ReactNode }) {
   return (
@@ -23,17 +23,10 @@ export default function Layout({ children }: { children: React.ReactNode }) {
               </BreadcrumbList>
             </Breadcrumb>
           </div>
-          <DropdownMenu>
-            <DropdownMenuTrigger>
-              <PlusCircle size={20} />
-            </DropdownMenuTrigger>
-            <DropdownMenuContent className="w-(--radix-dropdown-menu-trigger-width) min-w-30 rounded-lg" side="bottom" align="end" sideOffset={4}>
-              <DropdownMenuItem>Events</DropdownMenuItem>
-              <DropdownMenuItem>Students</DropdownMenuItem>
-              <DropdownMenuItem>Admins</DropdownMenuItem>
-              <DropdownMenuItem>Masters</DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
+          <div className="flex items-center gap-2">
+            <ModeToggle />
+            <QuickActionToggle />
+          </div>
         </header>
         <div className="flex flex-1 flex-col gap-4 p-4">{children}</div>
         <FormDialogContainer />
