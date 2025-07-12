@@ -8,12 +8,12 @@ export default function Page() {
   const setCurrentBreadcrumbs = useSetAtom(sidebarBreadcrumbs);
 
   useEffect(() => {
-    setCurrentBreadcrumbs([{ label: "Dashboard", href: "/student" }]);
+    setCurrentBreadcrumbs([{ label: "Dashboard", href: "/admin" }]);
   });
 
   return (
     <div className="">
-      <h1 className="text-2xl font-bold mb-4">Student</h1>
+      <h1 className="text-2xl font-bold mb-4">Admin</h1>
     </div>
   );
 }
