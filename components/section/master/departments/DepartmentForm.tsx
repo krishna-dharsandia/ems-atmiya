@@ -5,8 +5,12 @@ import { z } from "zod";
 import { Form, FormField, FormItem, FormLabel, FormControl, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import { toast } from "sonner";
+import { useTransition } from "react";
+import { createDepartment } from "./createDepartmentAction";
 
 export function DepartmentForm() {
+  const [loading, startTransition] = useTransition();
   const form = useForm<z.infer<typeof departmentSchema>>({
     resolver: zodResolver(departmentSchema),
     defaultValues: {
@@ -15,7 +19,18 @@ export function DepartmentForm() {
     },
   });
 
-  async function onSubmit(data: DepartmentSchema) {}
+  async function onSubmit(data: DepartmentSchema) {
+    startTransition(async () => {
+      const response = await createDepartment(data);
+
+      if (response.success) {
+        toast.success("Program created successfully!");
+        form.reset();
+      } else {
+        toast.error(response.error);
+      }
+    });
+  }
 
   return (
     <Form {...form}>
@@ -23,6 +38,7 @@ export function DepartmentForm() {
         <FormField
           control={form.control}
           name="name"
+          disabled={loading}
           render={({ field }) => (
             <FormItem>
               <FormLabel>Department Name</FormLabel>
@@ -36,6 +52,7 @@ export function DepartmentForm() {
         <FormField
           control={form.control}
           name="faculty"
+          disabled={loading}
           render={({ field }) => (
             <FormItem>
               <FormLabel>Faculty</FormLabel>
@@ -46,7 +63,9 @@ export function DepartmentForm() {
             </FormItem>
           )}
         />
-        <Button type="submit">Create Department</Button>
+        <Button type="submit" disabled={loading}>
+          {!loading ? "Create Department" : "Creating Department..."}
+        </Button>
       </form>
     </Form>
   );

@@ -1,9 +1,11 @@
 "use client";
 
+import destroyProgram from "@/components/section/master/programs/deleteProgramAction";
 import { Button } from "@/components/ui/button";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { ColumnDef } from "@tanstack/react-table";
 import { ArrowUpDown, MoreHorizontal, Pencil, Trash2 } from "lucide-react";
+import { toast } from "sonner";
 
 export type Programs = {
   id: string;
@@ -42,6 +44,15 @@ export const columns: ColumnDef<Programs>[] = [
     cell: ({ row }) => {
       const payment = row.original;
 
+      async function handleDelete() {
+        const response = await destroyProgram(payment.id);
+        if (response.error) {
+          toast.error(response.error);
+        } else {
+          toast.success("Department deleted successfully");
+        }
+      }
+
       return (
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
@@ -55,7 +66,7 @@ export const columns: ColumnDef<Programs>[] = [
               <Pencil />
               Edit
             </DropdownMenuItem>
-            <DropdownMenuItem className="text-red-500" onClick={() => alert(`Delete payment with ID: ${payment.id}`)}>
+            <DropdownMenuItem className="text-red-500" onClick={handleDelete}>
               <Trash2 color="red" />
               Delete
             </DropdownMenuItem>
