@@ -53,7 +53,7 @@ export default function QuickActionToggle() {
 
   return (
     <DropdownMenu>
-      <DropdownMenuTrigger>
+      <DropdownMenuTrigger asChild>
         <Button size={"icon"}>
           <PlusCircle className="h-[1.2rem] w-[1.2rem] scale-100 rotate-0" />
           <span className="sr-only">Quick Actions</span>
