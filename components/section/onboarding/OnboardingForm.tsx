@@ -14,6 +14,7 @@ import { useDepartment } from "@/hooks/useDepartment";
 import { onboardingStudent } from "./onboardingAction";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 
 export default function OnboardingForm() {
   const { departments, isError, isLoading } = useDepartment();
@@ -26,7 +27,7 @@ export default function OnboardingForm() {
       currentSemester: 1,
       currentYear: 1,
       registrationNumber: "",
-      dateOfBirth: new Date(),
+      dateOfBirth: undefined,
     },
   });
 
@@ -50,138 +51,157 @@ export default function OnboardingForm() {
   }
 
   return (
-    <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="container mx-auto flex flex-col gap-4">
-        <FormField
-          control={form.control}
-          name="departmentId"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Department</FormLabel>
-              <Select onValueChange={field.onChange} defaultValue={field.value}>
-                <FormControl>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select a department" />
-                  </SelectTrigger>
-                </FormControl>
-                <SelectContent>
-                  {departments.map((department) => (
-                    <SelectItem key={department.id} value={department.id}>
-                      {department.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-              <FormDescription>If your department is not listed, please select the closest match.</FormDescription>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-        <FormField
-          control={form.control}
-          name="programId"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Program</FormLabel>
-              <Select onValueChange={field.onChange} defaultValue={field.value}>
-                <FormControl>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select a program" />
-                  </SelectTrigger>
-                </FormControl>
-                <SelectContent>
-                  {departments.map((department) =>
-                    department.programs?.map((program) => (
-                      <SelectItem key={program.id} value={program.id}>
-                        {program.name}
-                      </SelectItem>
-                    ))
+    <div className={"flex flex-col gap-6"}>
+      <Card>
+        <CardHeader className="text-center">
+          <CardTitle className="text-xl">Complete Your Onboarding</CardTitle>
+          <CardDescription>Please fill out the form below to complete your onboarding process.</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="grid gap-6">
+            <Form {...form}>
+              <form onSubmit={form.handleSubmit(onSubmit)} className="container mx-auto flex flex-col gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <FormField
+                    control={form.control}
+                    name="currentSemester"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Current Semester</FormLabel>
+                        <FormControl>
+                          <Input
+                            type="number"
+                            placeholder="Current Semester"
+                            value={field.value === undefined || field.value === null ? "" : String(field.value)}
+                            onChange={(e) => field.onChange(e.target.value === "" ? undefined : Number(e.target.value))}
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={form.control}
+                    name="currentYear"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Current Year</FormLabel>
+                        <FormControl>
+                          <Input
+                            type="number"
+                            placeholder="Current Year"
+                            value={field.value === undefined || field.value === null ? "" : String(field.value)}
+                            onChange={(e) => field.onChange(e.target.value === "" ? undefined : Number(e.target.value))}
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <FormField
+                    control={form.control}
+                    name="registrationNumber"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Registration Number</FormLabel>
+                        <FormControl>
+                          <Input placeholder="Registration Number" {...field} value={field.value ?? ""} />
+                        </FormControl>
+                        <FormDescription>Enter your school or college ID card number. If you do not have a registration number, use your institution's ID card number.</FormDescription>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={form.control}
+                    name="dateOfBirth"
+                    render={({ field }) => (
+                      <FormItem className="flex flex-col">
+                        <FormLabel>Date of birth</FormLabel>
+                        <Popover>
+                          <PopoverTrigger asChild>
+                            <FormControl>
+                              <Button variant={"outline"} className={cn("pl-3 text-left font-normal", !field.value && "text-muted-foreground")}>
+                                {field.value ? field.value.toLocaleDateString("en-IN", { day: "2-digit", month: "2-digit", year: "numeric" }) : <span>Pick a date</span>}
+                                <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
+                              </Button>
+                            </FormControl>
+                          </PopoverTrigger>
+                          <PopoverContent className="w-auto p-0" align="start">
+                            <Calendar mode="single" selected={field.value} onSelect={field.onChange} disabled={(date) => date > new Date() || date < new Date("1900-01-01")} initialFocus />
+                          </PopoverContent>
+                        </Popover>
+                        <FormDescription>Your date of birth is used to calculate your age.</FormDescription>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </div>
+
+                <FormField
+                  control={form.control}
+                  name="departmentId"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Department</FormLabel>
+                      <Select onValueChange={field.onChange} defaultValue={field.value}>
+                        <FormControl>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Select a department" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          {departments.map((department) => (
+                            <SelectItem key={department.id} value={department.id}>
+                              {department.name}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      <FormDescription>If your department is not listed, please select the closest match.</FormDescription>
+                      <FormMessage />
+                    </FormItem>
                   )}
-                </SelectContent>
-              </Select>
-              <FormDescription>If your program is not listed, please select the closest match.</FormDescription>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-        <FormField
-          control={form.control}
-          name="currentSemester"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Current Semester</FormLabel>
-              <FormControl>
-                <Input
-                  type="number"
-                  placeholder="Current Semester"
-                  value={field.value === undefined || field.value === null ? "" : String(field.value)}
-                  onChange={(e) => field.onChange(e.target.value === "" ? undefined : Number(e.target.value))}
                 />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-        <FormField
-          control={form.control}
-          name="currentYear"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Current Year</FormLabel>
-              <FormControl>
-                <Input
-                  type="number"
-                  placeholder="Current Year"
-                  value={field.value === undefined || field.value === null ? "" : String(field.value)}
-                  onChange={(e) => field.onChange(e.target.value === "" ? undefined : Number(e.target.value))}
+                <FormField
+                  control={form.control}
+                  name="programId"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Program</FormLabel>
+                      <Select onValueChange={field.onChange} defaultValue={field.value}>
+                        <FormControl>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Select a program" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          {departments.map((department) =>
+                            department.programs?.map((program) => (
+                              <SelectItem key={program.id} value={program.id}>
+                                {program.name}
+                              </SelectItem>
+                            ))
+                          )}
+                        </SelectContent>
+                      </Select>
+                      <FormDescription>If your program is not listed, please select the closest match.</FormDescription>
+                      <FormMessage />
+                    </FormItem>
+                  )}
                 />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-        <FormField
-          control={form.control}
-          name="registrationNumber"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Registration Number</FormLabel>
-              <FormControl>
-                <Input placeholder="Registration Number" {...field} value={field.value ?? ""} />
-              </FormControl>
-              <FormDescription>Enter your school or college ID card number. If you do not have a registration number, use your institution's ID card number.</FormDescription>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-        <FormField
-          control={form.control}
-          name="dateOfBirth"
-          render={({ field }) => (
-            <FormItem className="flex flex-col">
-              <FormLabel>Date of birth</FormLabel>
-              <Popover>
-                <PopoverTrigger asChild>
-                  <FormControl>
-                    <Button variant={"outline"} className={cn("w-[240px] pl-3 text-left font-normal", !field.value && "text-muted-foreground")}>
-                      {field.value ? field.value.toString() : <span>Pick a date</span>}
-                      <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
-                    </Button>
-                  </FormControl>
-                </PopoverTrigger>
-                <PopoverContent className="w-auto p-0" align="start">
-                  <Calendar mode="single" selected={field.value} onSelect={field.onChange} disabled={(date) => date > new Date() || date < new Date("1900-01-01")} initialFocus />
-                </PopoverContent>
-              </Popover>
-              <FormDescription>Your date of birth is used to calculate your age.</FormDescription>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-        <Button type="submit" disabled={form.formState.isSubmitting}>
-          Complete Onboarding
-        </Button>
-      </form>
-    </Form>
+
+                <Button type="submit" disabled={form.formState.isSubmitting}>
+                  Complete Onboarding
+                </Button>
+              </form>
+            </Form>
+          </div>
+        </CardContent>
+      </Card>
+    </div>
   );
 }

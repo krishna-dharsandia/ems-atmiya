@@ -7,7 +7,6 @@ export async function POST(request: NextRequest) {
   const searchParams = url.searchParams;
 
   const token = searchParams.get("token");
-  console.log("Received webhook body:", body);
 
   if (token !== process.env.WEBHOOK_SECRET) {
     return NextResponse.json({ error: "Invalid token" }, { status: 403 });
@@ -18,6 +17,11 @@ export async function POST(request: NextRequest) {
   switch (body.type) {
     case "INSERT": {
       const { id, email, raw_user_meta_data } = body.record;
+
+      if (raw_user_meta_data.role !== "STUDENT") {
+        return NextResponse.json({ error: "Invalid role" }, { status: 200 });
+      }
+
       try {
         await prisma.user.create({
           data: {
