@@ -1,0 +1,516 @@
+"use client";
+
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Separator } from "@/components/ui/separator";
+import { Skeleton } from "@/components/ui/skeleton";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Calendar, Clock, MapPin, Share2, Tag, Ticket, Users, Star, ExternalLink, CheckCircle, AlertCircle, User, Mail, Globe, Instagram } from "lucide-react";
+import Image from "next/image";
+import Link from "next/link";
+import { fetcher } from "@/fetcher";
+import useSWR from "swr";
+import type { Event } from "@prisma/client";
+import { createClient } from "@/utils/supabase/client";
+import { format } from "date-fns";
+import { useParams } from "next/navigation";
+import { useState } from "react";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { FacebookIcon, FacebookShareButton, TwitterShareButton, TwitterIcon, WhatsappShareButton, WhatsappIcon, LinkedinShareButton, LinkedinIcon, EmailShareButton, EmailIcon } from "react-share";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
+
+type EventWithSpeakers = Event & {
+  speakers?: {
+    id: string;
+    name: string;
+    bio?: string | null;
+    photo_url?: string | null;
+  }[];
+} & {
+  created_by: {
+    id: string;
+    firstName: string;
+    lastName: string;
+    email: string;
+  };
+};
+
+function LoadingSkeleton() {
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-white">
+      <div className="container mx-auto px-4 py-8 pt-32">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+          <div className="lg:col-span-2 space-y-8">
+            <Skeleton className="h-96 w-full rounded-2xl" />
+            <div className="space-y-4">
+              <Skeleton className="h-8 w-3/4" />
+              <Skeleton className="h-4 w-full" />
+              <Skeleton className="h-4 w-2/3" />
+            </div>
+          </div>
+          <div>
+            <Skeleton className="h-80 w-full rounded-2xl" />
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function ErrorState({ message }: { message: string }) {
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-white flex items-center justify-center">
+      <Card className="max-w-md mx-auto">
+        <CardContent className="pt-6 text-center">
+          <AlertCircle className="h-12 w-12 text-red-500 mx-auto mb-4" />
+          <h3 className="text-lg font-semibold mb-2">Unable to Load Event</h3>
+          <p className="text-muted-foreground">{message}</p>
+        </CardContent>
+      </Card>
+    </div>
+  );
+}
+
+export default function Page() {
+  const params = useParams();
+  const id = params.id;
+  const [open, setOpen] = useState(false);
+
+  const { data: event, error, isLoading } = useSWR<EventWithSpeakers>(`/api/events/${id}`, fetcher);
+
+  const supabase = createClient();
+
+  const handleShare = async () => {
+    setOpen((prev) => !prev);
+  };
+
+  if (error) {
+    return <ErrorState message="Failed to load event details. Please try again later." />;
+  }
+
+  if (isLoading || !event) {
+    return <LoadingSkeleton />;
+  }
+
+  const {
+    data: { publicUrl },
+  } = supabase.storage.from("event-posters").getPublicUrl(event.poster_url);
+
+  const getStatusColor = (status: string) => {
+    switch (status.toLowerCase()) {
+      case "active":
+        return "bg-green-100 text-green-800 border-green-200";
+      case "completed":
+        return "bg-blue-100 text-blue-800 border-blue-200";
+      case "cancelled":
+        return "bg-red-100 text-red-800 border-red-200";
+      default:
+        return "bg-gray-100 text-gray-800 border-gray-200";
+    }
+  };
+
+  const getModeColor = (mode: string) => {
+    switch (mode.toLowerCase()) {
+      case "online":
+        return "bg-purple-100 text-purple-800 border-purple-200";
+      case "offline":
+        return "bg-orange-100 text-orange-800 border-orange-200";
+      case "hybrid":
+        return "bg-indigo-100 text-indigo-800 border-indigo-200";
+      default:
+        return "bg-gray-100 text-gray-800 border-gray-200";
+    }
+  };
+
+  return (
+    <>
+      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-slate-50">
+        {/* Hero Section */}
+        <div className="relative">
+          <div className="absolute inset-0 bg-gradient-to-r from-black/60 via-black/40 to-black/60 z-10" />
+          <div className="relative h-[70vh] overflow-hidden">
+            <Image src={publicUrl || "/placeholder.svg"} alt={event.name} fill className="object-cover" priority />
+          </div>
+          <div className="absolute inset-0 z-20 flex items-end">
+            <div className="container mx-auto px-4 pb-16">
+              <div className="max-w-4xl">
+                <div className="flex flex-wrap gap-3 mb-6">
+                  <Badge className={`${getStatusColor(event.status)} font-medium px-3 py-1`}>{event.status}</Badge>
+                  <Badge className={`${getModeColor(event.mode)} font-medium px-3 py-1`}>{event.mode}</Badge>
+                  <Badge variant="secondary" className="bg-white/20 text-white border-white/30 font-medium px-3 py-1">
+                    {event.event_type}
+                  </Badge>
+                </div>
+
+                <h1 className="text-4xl md:text-6xl font-bold text-white mb-6 leading-tight">{event.name}</h1>
+
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6 text-white">
+                  <div className="flex items-center gap-3">
+                    <div className="p-2 bg-white/20 rounded-lg backdrop-blur-sm">
+                      <Calendar className="h-5 w-5" />
+                    </div>
+                    <div>
+                      <p className="text-sm opacity-90">Date</p>
+                      <p className="font-semibold">
+                        {event.end_date ? `${format(new Date(event.start_date), "MMM dd")} - ${format(new Date(event.end_date), "MMM dd, yyyy")}` : format(new Date(event.start_date), "MMM dd, yyyy")}
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center gap-3">
+                    <div className="p-2 bg-white/20 rounded-lg backdrop-blur-sm">
+                      <Clock className="h-5 w-5" />
+                    </div>
+                    <div>
+                      <p className="text-sm opacity-90">Time</p>
+                      <p className="font-semibold">
+                        {event.end_time ? `${format(new Date(event.start_time), "hh:mm a")} - ${format(new Date(event.end_time), "hh:mm a")}` : format(new Date(event.start_time), "hh:mm a")}
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center gap-3">
+                    <div className="p-2 bg-white/20 rounded-lg backdrop-blur-sm">
+                      <MapPin className="h-5 w-5" />
+                    </div>
+                    <div>
+                      <p className="text-sm opacity-90">Location</p>
+                      <p className="font-semibold">{event.address}</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Main Content */}
+        <div className="container mx-auto px-4 py-12">
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            {/* Left Column - Main Content */}
+            <div className="lg:col-span-2 space-y-8">
+              {/* About Section */}
+              <Card className="border-0 shadow-lg bg-white/80 backdrop-blur-sm">
+                <CardHeader>
+                  <CardTitle className="text-2xl font-bold">About This Event</CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-6">
+                  <p className="text-lg leading-relaxed text-muted-foreground">{event.description}</p>
+
+                  {event.key_highlights && event.key_highlights.length > 0 && (
+                    <div>
+                      <h3 className="text-lg font-semibold mb-3 flex items-center gap-2">
+                        <Star className="h-5 w-5 text-yellow-500" />
+                        Key Highlights
+                      </h3>
+                      <ul className="space-y-2">
+                        {event.key_highlights.map((highlight, idx) => (
+                          <li key={idx} className="flex items-start gap-3">
+                            <CheckCircle className="h-5 w-5 text-green-500 mt-0.5 flex-shrink-0" />
+                            <span className="text-muted-foreground">{highlight}</span>
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
+
+                  {event.note && (
+                    <div className="p-4 bg-blue-50 border border-blue-200 rounded-lg">
+                      <p className="text-blue-800">
+                        <strong>Note:</strong> {event.note}
+                      </p>
+                    </div>
+                  )}
+
+                  <div className="flex flex-wrap gap-2">
+                    {event.tags.map((tag) => (
+                      <Badge key={tag} variant="secondary" className="px-3 py-1">
+                        <Tag className="mr-1 h-3 w-3" />
+                        {tag}
+                      </Badge>
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* Speakers Section */}
+              {event.speakers && event.speakers.length > 0 && (
+                <Card className="border-0 shadow-lg bg-white/80 backdrop-blur-sm">
+                  <CardHeader>
+                    <CardTitle className="text-2xl font-bold flex items-center gap-2">
+                      <Users className="h-6 w-6" />
+                      Featured Speakers
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                      {event.speakers.map((speaker) => {
+                        let speakerPublicUrl = "";
+                        if (speaker.photo_url) {
+                          const {
+                            data: { publicUrl },
+                          } = supabase.storage.from("event-speakers").getPublicUrl(speaker.photo_url);
+                          speakerPublicUrl = publicUrl;
+                        }
+
+                        return (
+                          <div key={speaker.id} className="flex gap-4 p-4 rounded-xl bg-gradient-to-r from-slate-50 to-white border">
+                            <Avatar className="h-16 w-16">
+                              <AvatarImage src={speakerPublicUrl || "/placeholder.svg"} alt={speaker.name} />
+                              <AvatarFallback className="bg-primary text-primary-foreground text-lg">
+                                {speaker.name
+                                  .split(" ")
+                                  .map((n) => n[0])
+                                  .join("")}
+                              </AvatarFallback>
+                            </Avatar>
+                            <div className="flex-1">
+                              <h4 className="font-semibold text-lg">{speaker.name}</h4>
+                              {speaker.bio && <p className="text-muted-foreground text-sm mt-1 leading-relaxed">{speaker.bio}</p>}
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </CardContent>
+                </Card>
+              )}
+
+              {/* Registration & Feedback */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <Card className="border-0 shadow-lg bg-white/80 backdrop-blur-sm">
+                  <CardHeader>
+                    <CardTitle className="text-xl font-bold">Registration Details</CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    <div className="flex items-center justify-between">
+                      <span className="text-muted-foreground">Required</span>
+                      <Badge variant={event.registration_required ? "default" : "secondary"}>{event.registration_required ? "Yes" : "No"}</Badge>
+                    </div>
+
+                    {event.registration_link && (
+                      <Link href={event.registration_link} target="_blank" rel="noopener" className="flex items-center gap-2 text-primary hover:underline">
+                        <ExternalLink className="h-4 w-4" />
+                        Register Here
+                      </Link>
+                    )}
+
+                    {event.registration_limit && (
+                      <div className="flex items-center justify-between">
+                        <span className="text-muted-foreground">Limit</span>
+                        <span className="font-semibold">{event.registration_limit}</span>
+                      </div>
+                    )}
+
+                    <div className="flex items-center justify-between">
+                      <span className="text-muted-foreground">Current Registrations</span>
+                      <span className="font-semibold">{event.current_registration_count}</span>
+                    </div>
+                  </CardContent>
+                </Card>
+
+                <Card className="border-0 shadow-lg bg-white/80 backdrop-blur-sm">
+                  <CardHeader>
+                    <CardTitle className="text-xl font-bold">Event Feedback</CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    {event.feedback_form_link && (
+                      <Link href={event.feedback_form_link} target="_blank" rel="noopener" className="flex items-center gap-2 text-primary hover:underline">
+                        <ExternalLink className="h-4 w-4" />
+                        Give Feedback
+                      </Link>
+                    )}
+
+                    <div className="flex items-center justify-between">
+                      <span className="text-muted-foreground">Score</span>
+                      <span className="font-semibold">{event.feedback_score ?? "N/A"}</span>
+                    </div>
+
+                    {event.recording_link && (
+                      <Link href={event.recording_link} target="_blank" rel="noopener" className="flex items-center gap-2 text-primary hover:underline">
+                        <ExternalLink className="h-4 w-4" />
+                        Watch Recording
+                      </Link>
+                    )}
+                  </CardContent>
+                </Card>
+              </div>
+
+              {/* Organizer Info */}
+              <Card className="border-0 shadow-lg bg-white/80 backdrop-blur-sm">
+                <CardHeader>
+                  <CardTitle className="text-xl font-bold flex items-center gap-2">
+                    <User className="h-5 w-5" />
+                    Event Organizer
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div className="space-y-3">
+                      <div>
+                        <p className="text-sm text-muted-foreground">Organizer</p>
+                        <p className="font-semibold text-lg">{event.organizer_name}</p>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <Mail className="h-4 w-4 text-muted-foreground" />
+                        <span className="text-muted-foreground">{event.organizer_contact}</span>
+                      </div>
+                    </div>
+                    <div className="space-y-3 text-sm">
+                      <div>
+                        <p className="text-muted-foreground">Created by</p>
+                        <p className="font-medium">{`${event.created_by.firstName} ${event.created_by.lastName}`}</p>
+                      </div>
+                      <div>
+                        <p className="text-muted-foreground">Created</p>
+                        <p className="font-medium">{format(new Date(event.created_at), "MMM dd, yyyy")}</p>
+                      </div>
+                      <div>
+                        <p className="text-muted-foreground">Last updated</p>
+                        <p className="font-medium">{format(new Date(event.updated_at), "MMM dd, yyyy")}</p>
+                      </div>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+
+            {/* Right Column - Ticket Info */}
+            <div className="lg:col-span-1">
+              <div className="sticky top-8">
+                <Card className="border-0 shadow-xl bg-white/90 backdrop-blur-sm">
+                  <CardContent className="p-8">
+                    <div className="text-center mb-6">
+                      <div className="text-4xl font-bold text-primary mb-2">{event.ticket_price ? `₹${event.ticket_price}` : "Free"}</div>
+                      <p className="text-muted-foreground">per ticket</p>
+                    </div>
+
+                    <div className="space-y-4 mb-6 flex flex-col gap-0.5">
+                      <Link href={`/events/${event.id}/register`}>
+                        <Button size="lg" className="w-full text-lg font-semibold h-12">
+                          <Ticket className="mr-2 h-5 w-5" />
+                          Get Tickets
+                        </Button>
+                      </Link>
+
+                      <Button variant="outline" size="lg" className="w-full h-12 bg-transparent" onClick={handleShare}>
+                        <Share2 className="mr-2 h-4 w-4" />
+                        Share Event
+                      </Button>
+                    </div>
+
+                    <Separator className="my-6" />
+
+                    <div className="space-y-4">
+                      <h3 className="font-semibold text-lg">Event Details</h3>
+
+                      <div className="space-y-4 text-sm">
+                        <div className="flex items-start gap-3">
+                          <Calendar className="h-4 w-4 text-primary mt-0.5 flex-shrink-0" />
+                          <div>
+                            <p className="font-medium">Date</p>
+                            <p className="text-muted-foreground">
+                              {event.end_date
+                                ? `${format(new Date(event.start_date), "MMM dd")} - ${format(new Date(event.end_date), "MMM dd, yyyy")}`
+                                : format(new Date(event.start_date), "MMM dd, yyyy")}
+                            </p>
+                          </div>
+                        </div>
+
+                        <div className="flex items-start gap-3">
+                          <Clock className="h-4 w-4 text-primary mt-0.5 flex-shrink-0" />
+                          <div>
+                            <p className="font-medium">Time</p>
+                            <p className="text-muted-foreground">
+                              {event.end_time ? `${format(new Date(event.start_time), "hh:mm a")} - ${format(new Date(event.end_time), "hh:mm a")}` : format(new Date(event.start_time), "hh:mm a")}
+                            </p>
+                          </div>
+                        </div>
+
+                        <div className="flex items-start gap-3">
+                          <MapPin className="h-4 w-4 text-primary mt-0.5 flex-shrink-0" />
+                          <div>
+                            <p className="font-medium">Location</p>
+                            <p className="text-muted-foreground">{event.address}</p>
+                          </div>
+                        </div>
+
+                        <div className="flex items-start gap-3">
+                          <Globe className="h-4 w-4 text-primary mt-0.5 flex-shrink-0" />
+                          <div>
+                            <p className="font-medium">Mode</p>
+                            <Badge className={`${getModeColor(event.mode)} text-xs`}>{event.mode}</Badge>
+                          </div>
+                        </div>
+
+                        <div className="flex items-start gap-3">
+                          <Users className="h-4 w-4 text-primary mt-0.5 flex-shrink-0" />
+                          <div>
+                            <p className="font-medium">Organizer</p>
+                            <p className="text-muted-foreground">{event.organizer_name}</p>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <Dialog open={open} onOpenChange={setOpen}>
+        <DialogContent className="max-w-sm m-2">
+          <DialogHeader>
+            <DialogTitle>Share Event</DialogTitle>
+            <DialogDescription>Share this event with your friends and colleagues via email or social media.</DialogDescription>
+          </DialogHeader>
+          <div className="flex justify-around mt-4">
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <FacebookShareButton url={window.location.href} hashtag="#atmiyauniversity">
+                  <Button variant="outline" size={"icon"}>
+                    <FacebookIcon borderRadius={18} />
+                  </Button>
+                </FacebookShareButton>
+              </TooltipTrigger>
+              <TooltipContent>Share on Facebook</TooltipContent>
+            </Tooltip>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <TwitterShareButton url={window.location.href} title={event.name} hashtags={["atmiyauniversity"]}>
+                  <Button variant="outline" size={"icon"}>
+                    <TwitterIcon borderRadius={18} />
+                  </Button>
+                </TwitterShareButton>
+              </TooltipTrigger>
+              <TooltipContent>Share on Twitter</TooltipContent>
+            </Tooltip>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <LinkedinShareButton url={window.location.href} title={event.name} summary={event.description}>
+                  <Button variant="outline" size={"icon"}>
+                    <LinkedinIcon borderRadius={18} />
+                  </Button>
+                </LinkedinShareButton>
+              </TooltipTrigger>
+              <TooltipContent>Share on LinkedIn</TooltipContent>
+            </Tooltip>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <EmailShareButton url={window.location.href} subject={event.name} body={event.description}>
+                  <Button variant="outline" size={"icon"}>
+                    <EmailIcon borderRadius={18} />
+                  </Button>
+                </EmailShareButton>
+              </TooltipTrigger>
+              <TooltipContent>Share via Email</TooltipContent>
+            </Tooltip>
+          </div>
+        </DialogContent>
+      </Dialog>
+    </>
+  );
+}

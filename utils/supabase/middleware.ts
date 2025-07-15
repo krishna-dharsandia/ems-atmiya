@@ -4,6 +4,7 @@ import { getDashboardPath } from "../functions/getDashboardPath";
 
 export const PUBLIC_ROUTES = [
   "/",
+  "/events",
   "/register",
   "/onboarding",
   "/login",

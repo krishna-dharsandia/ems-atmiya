@@ -50,6 +50,7 @@
     "react-day-picker": "8.10.1",
     "react-dom": "^19.0.0",
     "react-hook-form": "^7.56.4",
+    "react-share": "^5.2.2",
     "recharts": "2.15.4",
     "sonner": "^2.0.3",
     "swr": "^2.3.3",
