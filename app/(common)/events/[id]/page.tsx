@@ -6,7 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Calendar, Clock, MapPin, Share2, Tag, Ticket, Users, Star, ExternalLink, CheckCircle, AlertCircle, User, Mail, Globe, Instagram } from "lucide-react";
+import { Calendar, Clock, MapPin, Share2, Tag, Ticket, Users, Star, ExternalLink, CheckCircle, AlertCircle, User, Mail, Globe, Instagram, Circle } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import { fetcher } from "@/fetcher";
@@ -19,6 +19,8 @@ import { useState } from "react";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { FacebookIcon, FacebookShareButton, TwitterShareButton, TwitterIcon, WhatsappShareButton, WhatsappIcon, LinkedinShareButton, LinkedinIcon, EmailShareButton, EmailIcon } from "react-share";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
+import { registerInEventAction } from "@/components/section/events/registerInEventAction";
+import { toast } from "sonner";
 
 type EventWithSpeakers = Event & {
   speakers?: {
@@ -74,9 +76,25 @@ function ErrorState({ message }: { message: string }) {
 
 export default function Page() {
   const params = useParams();
-  const id = params.id;
+  const id = params.id as string;
   const [open, setOpen] = useState(false);
+  const [confirmOpen, setConfirmOpen] = useState(false);
+  const [loading, setLoading] = useState(false);
 
+  const handleGetTicket = async () => {
+    setLoading(true);
+    try {
+      const response = await registerInEventAction(id);
+      if (response.success) {
+        toast.success("Successfully registered for the event!");
+      } else {
+        toast.error(response.error);
+      }
+      setConfirmOpen(false);
+    } finally {
+      setLoading(false);
+    }
+  };
   const { data: event, error, isLoading } = useSWR<EventWithSpeakers>(`/api/events/${id}`, fetcher);
 
   const supabase = createClient();
@@ -387,12 +405,10 @@ export default function Page() {
                     </div>
 
                     <div className="space-y-4 mb-6 flex flex-col gap-0.5">
-                      <Link href={`/events/${event.id}/register`}>
-                        <Button size="lg" className="w-full text-lg font-semibold h-12">
-                          <Ticket className="mr-2 h-5 w-5" />
-                          Get Tickets
-                        </Button>
-                      </Link>
+                      <Button size="lg" className="w-full text-lg font-semibold h-12" onClick={() => setConfirmOpen(true)}>
+                        <Ticket className="mr-2 h-5 w-5" />
+                        Get Tickets
+                      </Button>
 
                       <Button variant="outline" size="lg" className="w-full h-12 bg-transparent" onClick={handleShare}>
                         <Share2 className="mr-2 h-4 w-4" />
@@ -462,12 +478,13 @@ export default function Page() {
       </div>
 
       <Dialog open={open} onOpenChange={setOpen}>
-        <DialogContent className="max-w-sm m-2">
+        <DialogContent className="max-w-sm m-2 bg-white/30 backdrop-blur-lg border border-white/40 shadow-lg rounded-xl">
           <DialogHeader>
             <DialogTitle>Share Event</DialogTitle>
             <DialogDescription>Share this event with your friends and colleagues via email or social media.</DialogDescription>
           </DialogHeader>
           <div className="flex justify-around mt-4">
+            {/* ...existing code for share buttons... */}
             <Tooltip>
               <TooltipTrigger asChild>
                 <FacebookShareButton url={window.location.href} hashtag="#atmiyauniversity">
@@ -508,6 +525,31 @@ export default function Page() {
               </TooltipTrigger>
               <TooltipContent>Share via Email</TooltipContent>
             </Tooltip>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Confirm Get Ticket Dialog */}
+      <Dialog open={confirmOpen} onOpenChange={loading ? undefined : setConfirmOpen}>
+        <DialogContent className="max-w-sm m-2 bg-white/30 backdrop-blur-lg border border-white/40 shadow-lg rounded-xl">
+          <DialogHeader>
+            <DialogTitle>Confirm Ticket</DialogTitle>
+            <DialogDescription>Are you sure you want to get a ticket for this event?</DialogDescription>
+          </DialogHeader>
+          <div className="flex justify-end gap-2 mt-4">
+            <Button variant="outline" onClick={() => setConfirmOpen(false)} disabled={loading}>
+              Cancel
+            </Button>
+            <Button onClick={handleGetTicket} disabled={loading}>
+              {loading ? (
+                <span className="flex items-center gap-2">
+                  <Circle className="animate-spin h-4 w-4 text-white" />
+                  Processing...
+                </span>
+              ) : (
+                "Confirm"
+              )}
+            </Button>
           </div>
         </DialogContent>
       </Dialog>
