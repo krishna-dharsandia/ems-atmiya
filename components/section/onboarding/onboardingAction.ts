@@ -22,7 +22,7 @@ export async function onboardingStudent(data: OnboardingStudentSchema) {
   }
 
   try {
-    await prisma.student.updateMany({
+    await prisma.student.update({
       where: {
         userId: user.id,
       },
