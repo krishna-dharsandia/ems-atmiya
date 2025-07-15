@@ -8,6 +8,7 @@ import { ColumnDef } from "@tanstack/react-table";
 import { format } from "date-fns";
 import { ArrowUpDown, MoreHorizontal, Pencil, Trash2 } from "lucide-react";
 import { toast } from "sonner";
+import { deleteEventAction } from "./actions";
 
 export type Event = {
   id: string;
@@ -163,7 +164,12 @@ export const columns: ColumnDef<Event>[] = [
       const event = row.original;
 
       async function handleDelete() {
-        toast.success("Event deleted successfully");
+        const response = await deleteEventAction(event.id);
+        if (response.error) {
+          toast.error(`Failed to delete event: ${response.error}`);
+        } else {
+          toast.success("Event deleted successfully");
+        }
       }
 
       return (

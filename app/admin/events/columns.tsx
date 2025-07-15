@@ -1,5 +1,6 @@
 "use client";
 
+import { deleteEventAction } from "@/app/master/events/actions";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
@@ -163,7 +164,12 @@ export const columns: ColumnDef<Event>[] = [
       const event = row.original;
 
       async function handleDelete() {
-        toast.success("Event deleted successfully");
+        const response = await deleteEventAction(event.id);
+        if (response.error) {
+          toast.error(`Failed to delete event: ${response.error}`);
+        } else {
+          toast.success("Event deleted successfully");
+        }
       }
 
       return (
