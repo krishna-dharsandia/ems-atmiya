@@ -217,6 +217,14 @@ export default function EventForm() {
       } else {
         toast.success("Event created successfully!");
         form.reset();
+        setPosterFile(null);
+        setPosterPreview("");
+        setSpeakerFiles({});
+        setSpeakerPreviews({});
+        setSpeakers([{ name: "", bio: "", photo_url: "" }]);
+        setKeyHighlights([""]);
+        setTags([]);
+        setNewTag("");
         setCurrentStep(1);
       }
     } catch (error) {
