@@ -1,10 +1,7 @@
 "use client";
 
 import useSWR from "swr";
-import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart";
-import { PieChart, Pie, BarChart, Bar, XAxis, Cell, CartesianGrid } from "recharts";
-import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from "@/components/ui/card";
-import { ChartArea, TrendingUp } from "lucide-react";
+import { ChartArea } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { fetcher } from "@/fetcher";
 import { useSetAtom } from "jotai";
@@ -94,15 +91,15 @@ export default function MasterOverview() {
   }
 
   return (
-    <>
-      <div className="flex items-start justify-between">
+    <div>
+      <div className="flex items-start justify-between mb-4">
         <Heading title={`Welcome Back - ${user?.user_metadata.full_name}`} description="Platform-wide insights and analytics for the entire system." />
         <Button className="mb-4">
           <ChartArea className="mr-2 h-4 w-4" /> More Insights
         </Button>
       </div>
 
-      <Separator />
+      <Separator className="mb-8" />
 
       {!isLoading && data ? (
         <div className="w-full space-y-8">
@@ -116,6 +113,6 @@ export default function MasterOverview() {
           <Skeleton className="h-96 w-full" />
         </div>
       )}
-    </>
+    </div>
   );
 }
