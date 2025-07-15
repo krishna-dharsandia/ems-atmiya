@@ -1,7 +1,31 @@
+"use client";
+
 import LoginForm from "@/components/section/login/LoginForm";
+import { getDashboardPath } from "@/utils/functions/getDashboardPath";
+import { createClient } from "@/utils/supabase/client";
 import { GalleryVerticalEnd } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { useEffect } from "react";
 
 export default function LoginPage() {
+  const supabase = createClient();
+  const router = useRouter();
+
+  useEffect(() => {
+    async function check() {
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+
+      if (user) {
+        router.push(getDashboardPath(user.user_metadata.role));
+        return;
+      }
+    }
+
+    check();
+  });
+
   return (
     <div className="bg-muted flex min-h-svh flex-col items-center justify-center gap-6 p-6 md:p-10">
       <div className="flex w-full max-w-sm flex-col gap-6">
