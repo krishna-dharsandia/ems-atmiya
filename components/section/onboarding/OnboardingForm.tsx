@@ -7,7 +7,7 @@ import { useForm } from "react-hook-form";
 import { Button } from "@/components/ui/button";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { cn } from "@/lib/utils";
-import { CalendarIcon } from "lucide-react";
+import { CalendarIcon, HelpCircle } from "lucide-react";
 import { Calendar } from "@/components/ui/calendar";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useDepartment } from "@/hooks/useDepartment";
@@ -106,11 +106,18 @@ export default function OnboardingForm() {
                     name="registrationNumber"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Registration Number</FormLabel>
+                        <div className="flex items-center gap-2">
+                          <FormLabel>Registration No.</FormLabel>
+                          <Popover>
+                            <PopoverTrigger asChild>
+                              <HelpCircle className="h-4 w-4 text-muted-foreground" />
+                            </PopoverTrigger>
+                            <PopoverContent>Enter your school or college ID card number. If you do not have a registration number, use your institution's ID card number</PopoverContent>
+                          </Popover>
+                        </div>
                         <FormControl>
                           <Input placeholder="Registration Number" {...field} value={field.value ?? ""} />
                         </FormControl>
-                        <FormDescription>Enter your school or college ID card number. If you do not have a registration number, use your institution's ID card number.</FormDescription>
                         <FormMessage />
                       </FormItem>
                     )}
@@ -120,7 +127,15 @@ export default function OnboardingForm() {
                     name="dateOfBirth"
                     render={({ field }) => (
                       <FormItem className="flex flex-col">
-                        <FormLabel>Date of birth</FormLabel>
+                        <div className="flex items-center gap-2">
+                          <FormLabel>Date of birth</FormLabel>
+                          <Popover>
+                            <PopoverTrigger asChild>
+                              <HelpCircle className="h-4 w-4 text-muted-foreground" />
+                            </PopoverTrigger>
+                            <PopoverContent>Your date of birth is used to calculate your age.</PopoverContent>
+                          </Popover>
+                        </div>
                         <Popover>
                           <PopoverTrigger asChild>
                             <FormControl>
@@ -134,7 +149,6 @@ export default function OnboardingForm() {
                             <Calendar mode="single" selected={field.value} onSelect={field.onChange} disabled={(date) => date > new Date() || date < new Date("1900-01-01")} initialFocus />
                           </PopoverContent>
                         </Popover>
-                        <FormDescription>Your date of birth is used to calculate your age.</FormDescription>
                         <FormMessage />
                       </FormItem>
                     )}
@@ -146,7 +160,15 @@ export default function OnboardingForm() {
                   name="departmentId"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Department</FormLabel>
+                      <div className="flex items-center gap-2">
+                        <FormLabel>Department</FormLabel>
+                        <Popover>
+                          <PopoverTrigger asChild>
+                            <HelpCircle className="h-4 w-4 text-muted-foreground" />
+                          </PopoverTrigger>
+                          <PopoverContent>Select your department. If your department is not listed, please select the closest match.</PopoverContent>
+                        </Popover>
+                      </div>
                       <Select onValueChange={field.onChange} defaultValue={field.value}>
                         <FormControl>
                           <SelectTrigger>
@@ -161,7 +183,6 @@ export default function OnboardingForm() {
                           ))}
                         </SelectContent>
                       </Select>
-                      <FormDescription>If your department is not listed, please select the closest match.</FormDescription>
                       <FormMessage />
                     </FormItem>
                   )}
@@ -171,7 +192,15 @@ export default function OnboardingForm() {
                   name="programId"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Program</FormLabel>
+                      <div className="flex items-center gap-2">
+                        <FormLabel>Program</FormLabel>
+                        <Popover>
+                          <PopoverTrigger asChild>
+                            <HelpCircle className="h-4 w-4 text-muted-foreground" />
+                          </PopoverTrigger>
+                          <PopoverContent>Select your program. If your program is not listed, please select the closest match.</PopoverContent>
+                        </Popover>
+                      </div>
                       <Select onValueChange={field.onChange} defaultValue={field.value}>
                         <FormControl>
                           <SelectTrigger>
@@ -188,7 +217,6 @@ export default function OnboardingForm() {
                           )}
                         </SelectContent>
                       </Select>
-                      <FormDescription>If your program is not listed, please select the closest match.</FormDescription>
                       <FormMessage />
                     </FormItem>
                   )}
