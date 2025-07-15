@@ -1,12 +1,15 @@
 "use client";
 
 import useSWR from "swr";
-import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart";
-import { PieChart, Pie, BarChart, Bar, XAxis, Cell, CartesianGrid } from "recharts";
-import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from "@/components/ui/card";
-import { TrendingUp } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { fetcher } from "@/fetcher";
+import { useSetAtom } from "jotai";
+import { sidebarBreadcrumbs } from "@/store/sidebar";
+import { useEffect } from "react";
+import { KeyMetrics } from "../../components/section/admin/overview/KeyMetrics";
+import { DistributionCharts } from "../../components/section/admin/overview/DistributionCharts";
+import { EventCharts } from "../../components/section/admin/overview/EventCharts";
+import { RecentActivity } from "../../components/section/admin/overview/RecentActivity";
 
 type AdminOverviewData = {
   totalStudents: number;
@@ -48,261 +51,21 @@ type AdminOverviewData = {
 
 export default function AdminOverview() {
   const { data, error } = useSWR<AdminOverviewData>("/api/admin/overview", fetcher);
+  const setCurrentBreadcrumbs = useSetAtom(sidebarBreadcrumbs);
+
+  useEffect(() => {
+    setCurrentBreadcrumbs([{ label: "Dashboard", href: "/admin" }]);
+  });
 
   if (error) return <div className="p-8">Error loading data</div>;
   if (!data) return <Skeleton className="h-96 w-full" />;
 
   return (
     <div className="p-8 space-y-8">
-      <h1 className="text-3xl font-bold mb-6">Admin Overview</h1>
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-6 mb-8">
-        <Card>
-          <CardHeader>
-            <CardTitle>Total Students</CardTitle>
-            <CardDescription>Registered students</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <span className="text-3xl font-bold text-primary">{data.totalStudents}</span>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader>
-            <CardTitle>Total Events</CardTitle>
-            <CardDescription>Events created</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <span className="text-3xl font-bold text-primary">{data.totalEvents}</span>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader>
-            <CardTitle>Total Feedback</CardTitle>
-            <CardDescription>Feedback received</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <span className="text-3xl font-bold text-primary">{data.totalFeedback}</span>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader>
-            <CardTitle>Total Registrations</CardTitle>
-            <CardDescription>Event registrations</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <span className="text-3xl font-bold text-primary">{data.totalRegistrations}</span>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader>
-            <CardTitle>Total Admins</CardTitle>
-            <CardDescription>Admins in system</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <span className="text-3xl font-bold text-primary">{data.totalAdmins}</span>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader>
-            <CardTitle>Departments</CardTitle>
-            <CardDescription>Active departments</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <span className="text-3xl font-bold text-primary">{data.totalDepartments}</span>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader>
-            <CardTitle>Programs</CardTitle>
-            <CardDescription>Active programs</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <span className="text-3xl font-bold text-primary">{data.totalPrograms}</span>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader>
-            <CardTitle>Avg. Event Rating</CardTitle>
-            <CardDescription>Average feedback score</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <span className="text-3xl font-bold text-primary">{data.avgEventRating.toFixed(2)}</span>
-          </CardContent>
-        </Card>
-      </div>
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-8">
-        {/* Students by Department Pie Chart */}
-        <Card className="flex flex-col">
-          <CardHeader className="items-center pb-0">
-            <CardTitle>Students by Department</CardTitle>
-            <CardDescription>Distribution of students</CardDescription>
-          </CardHeader>
-          <CardContent className="flex-1 pb-0">
-            <ChartContainer config={{}} className="mx-auto aspect-square max-h-[250px]">
-              <PieChart>
-                <ChartTooltip cursor={false} content={<ChartTooltipContent hideLabel />} />
-                <Pie data={data.departmentStats.map((dep) => ({ name: dep.name, value: dep.count }))} dataKey="value" nameKey="name" cx="50%" cy="50%" outerRadius={100} label>
-                  {data.departmentStats.map((dep, idx) => (
-                    <Cell key={dep.name} fill={`var(--chart-${(idx % 5) + 1})`} />
-                  ))}
-                </Pie>
-              </PieChart>
-            </ChartContainer>
-          </CardContent>
-          <CardFooter className="flex-col gap-2 text-sm">
-            <div className="flex items-center gap-2 leading-none font-medium">
-              Trending up by 2.1% this month <TrendingUp className="h-4 w-4" />
-            </div>
-            <div className="text-muted-foreground leading-none">Showing student distribution by department</div>
-          </CardFooter>
-        </Card>
-
-        {/* Students by Program Bar Chart (shadcn style) */}
-        <Card>
-          <CardHeader>
-            <CardTitle>Students by Program</CardTitle>
-            <CardDescription>Distribution of students</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <ChartContainer
-              config={{
-                students: {
-                  label: "Students",
-                  color: "var(--chart-1)",
-                },
-              }}
-            >
-              <BarChart data={data.programStats.map((prog) => ({ program: prog.name, students: prog.count }))}>
-                <CartesianGrid vertical={false} />
-                <XAxis dataKey="program" tickLine={false} tickMargin={10} axisLine={false} tickFormatter={(value) => value.slice(0, 10)} />
-                <ChartTooltip cursor={false} content={<ChartTooltipContent hideLabel />} />
-                <Bar dataKey="students" fill="var(--chart-1)" radius={8} />
-              </BarChart>
-            </ChartContainer>
-          </CardContent>
-          <CardFooter className="flex-col gap-2 text-sm">
-            <div className="flex gap-2 leading-none font-medium">
-              Trending up by 1.7% this month <TrendingUp className="h-4 w-4" />
-            </div>
-            <div className="text-muted-foreground leading-none">Showing student distribution by program</div>
-          </CardFooter>
-        </Card>
-      </div>
-
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-8">
-        {/* Upcoming vs Completed Events Bar Chart (shadcn style) */}
-        <Card>
-          <CardHeader>
-            <CardTitle>Upcoming vs Completed Events</CardTitle>
-            <CardDescription>Event status overview</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <ChartContainer
-              config={{
-                upcoming: {
-                  label: "Upcoming",
-                  color: "var(--chart-1)",
-                },
-                completed: {
-                  label: "Completed",
-                  color: "var(--chart-2)",
-                },
-              }}
-            >
-              <BarChart
-                data={[
-                  { status: "Upcoming", upcoming: data.upcomingEvents },
-                  { status: "Completed", completed: data.completedEvents },
-                ]}
-              >
-                <CartesianGrid vertical={false} />
-                <XAxis dataKey="status" tickLine={false} tickMargin={10} axisLine={false} tickFormatter={(value) => value} />
-                <ChartTooltip cursor={false} content={<ChartTooltipContent hideLabel />} />
-                <Bar dataKey="upcoming" fill="var(--chart-1)" radius={8} />
-                <Bar dataKey="completed" fill="var(--chart-2)" radius={8} />
-              </BarChart>
-            </ChartContainer>
-          </CardContent>
-          <CardFooter className="flex-col gap-2 text-sm">
-            <div className="flex gap-2 leading-none font-medium">
-              +12 events completed <TrendingUp className="h-4 w-4" />
-            </div>
-            <div className="text-muted-foreground leading-none">Event status for the current period</div>
-          </CardFooter>
-        </Card>
-
-        {/* Top Events by Registration Bar Chart (shadcn style) */}
-        <Card>
-          <CardHeader>
-            <CardTitle>Top Events by Registration</CardTitle>
-            <CardDescription>Most popular events</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <ChartContainer
-              config={{
-                registrations: {
-                  label: "Registrations",
-                  color: "var(--chart-1)",
-                },
-              }}
-            >
-              <BarChart data={data.topEvents.map((ev) => ({ event: ev.name, registrations: ev.current_registration_count }))}>
-                <CartesianGrid vertical={false} />
-                <XAxis dataKey="event" tickLine={false} tickMargin={10} axisLine={false} tickFormatter={(value) => value.slice(0, 10)} />
-                <ChartTooltip cursor={false} content={<ChartTooltipContent hideLabel />} />
-                <Bar dataKey="registrations" fill="var(--chart-1)" radius={8} />
-              </BarChart>
-            </ChartContainer>
-          </CardContent>
-          <CardFooter className="flex-col gap-2 text-sm">
-            <div className="flex gap-2 leading-none font-medium">
-              Most registered events <TrendingUp className="h-4 w-4" />
-            </div>
-            <div className="text-muted-foreground leading-none">Showing top events by registration count</div>
-          </CardFooter>
-        </Card>
-      </div>
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-8">
-        <div>
-          <h2 className="text-xl font-semibold mb-4">Recent Events</h2>
-          <ul className="space-y-2">
-            {data.recentEvents.map((ev) => (
-              <li key={ev.id} className="p-3 rounded bg-muted">
-                <span className="font-medium">{ev.name}</span> — {ev.status} — {new Date(ev.start_date).toLocaleDateString()}
-                <br />
-                Registrations: {ev.current_registration_count}
-              </li>
-            ))}
-          </ul>
-        </div>
-        <div>
-          <h2 className="text-xl font-semibold mb-4">Recent Registrations</h2>
-          <ul className="space-y-2">
-            {data.recentRegistrations.map((reg) => (
-              <li key={reg.id} className="p-3 rounded bg-muted">
-                <span className="font-medium">
-                  {reg.user.firstName} {reg.user.lastName}
-                </span>{" "}
-                registered for <span className="font-medium">{reg.event.name}</span> on {new Date(reg.createdAt).toLocaleDateString()}
-              </li>
-            ))}
-          </ul>
-        </div>
-      </div>
-      <div>
-        <h2 className="text-xl font-semibold mb-4">Recent Feedback</h2>
-        <ul className="space-y-2">
-          {data.recentFeedback.map((fb) => (
-            <li key={fb.id} className="p-3 rounded bg-muted">
-              <span className="font-medium">
-                {fb.user.firstName} {fb.user.lastName}
-              </span>{" "}
-              rated <span className="font-medium">{fb.event.name}</span>: <span className="font-bold">{fb.rating}</span>
-              <br />
-              <span className="italic">{fb.comment}</span> <span className="text-xs text-muted-foreground">({new Date(fb.createdAt).toLocaleDateString()})</span>
-            </li>
-          ))}
-        </ul>
-      </div>
+      <KeyMetrics data={data} />
+      <DistributionCharts departmentStats={data.departmentStats} programStats={data.programStats} />
+      <EventCharts upcomingEvents={data.upcomingEvents} completedEvents={data.completedEvents} topEvents={data.topEvents} />
+      <RecentActivity recentEvents={data.recentEvents} recentRegistrations={data.recentRegistrations} recentFeedback={data.recentFeedback} />
     </div>
   );
 }
