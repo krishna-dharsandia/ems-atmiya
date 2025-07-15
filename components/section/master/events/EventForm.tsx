@@ -44,6 +44,7 @@ import { createClient } from "@/utils/supabase/client";
 import { toast } from "sonner";
 import { createEventAction } from "./createEventAction";
 import { v4 } from "uuid";
+import Image from "next/image";
 
 const FORM_STEPS = [
   {
@@ -655,7 +656,7 @@ export default function EventForm() {
                                 <div className="space-y-2">
                                   <h4 className="font-medium">Event Slug</h4>
                                   <p className="text-sm text-muted-foreground">
-                                    A URL-friendly identifier for your event. Use lowercase letters, numbers, and hyphens only. Example: "ai-workshop-2024"
+                                    A URL-friendly identifier for your event. Use lowercase letters, numbers, and hyphens only. Example: &quot;ai-workshop-2024&quot;
                                   </p>
                                 </div>
                               </PopoverContent>
@@ -753,8 +754,8 @@ export default function EventForm() {
                             <div className="mt-4">
                               <Label className="text-sm text-muted-foreground">Preview</Label>
                               <div className="mt-2 border rounded-lg p-4 bg-muted/30">
-                                <img
-                                  src={posterPreview || field.value}
+                                <Image
+                                  src={posterPreview || field.value || ""}
                                   alt="Poster preview"
                                   className="max-w-full h-48 object-cover rounded-md mx-auto"
                                   onError={() => {
@@ -1069,7 +1070,7 @@ export default function EventForm() {
                         {/* Speaker Name */}
                         <FormField
                           control={form.control}
-                          name={`speakers.${index}.name` as any}
+                          name={`speakers.${index}.name`}
                           render={({ field }) => (
                             <FormItem>
                               <FormLabel>Speaker Name</FormLabel>
@@ -1091,7 +1092,7 @@ export default function EventForm() {
                         {/* Speaker Photo */}
                         <FormField
                           control={form.control}
-                          name={`speakers.${index}.photo_url` as any}
+                          name={`speakers.${index}.photo_url`}
                           render={({ field }) => (
                             <FormItem>
                               <FormLabel className="flex items-center gap-2">
@@ -1144,7 +1145,7 @@ export default function EventForm() {
                         {/* Speaker Bio */}
                         <FormField
                           control={form.control}
-                          name={`speakers.${index}.bio` as any}
+                          name={`speakers.${index}.bio`}
                           render={({ field }) => (
                             <FormItem>
                               <FormLabel>Speaker Bio (Optional)</FormLabel>
@@ -1159,7 +1160,7 @@ export default function EventForm() {
                                   rows={3}
                                 />
                               </FormControl>
-                              <FormDescription>Add speaker's background, expertise, and credentials</FormDescription>
+                              <FormDescription>Add speaker&apos;s background, expertise, and credentials</FormDescription>
                               <FormMessage />
                             </FormItem>
                           )}
@@ -1215,7 +1216,7 @@ export default function EventForm() {
                   {speakers.length === 0 && (
                     <div className="text-center py-8 text-muted-foreground">
                       <UserIcon className="h-12 w-12 mx-auto mb-4 opacity-50" />
-                      <p>No speakers added yet. Click "Add Speaker" to get started.</p>
+                      <p>No speakers added yet. Click &quot;Add Speaker&quot; to get started.</p>
                     </div>
                   )}
                 </div>

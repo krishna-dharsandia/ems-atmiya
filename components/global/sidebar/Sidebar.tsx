@@ -18,6 +18,7 @@ import { usePathname } from "next/navigation";
 import { createClient } from "@/utils/supabase/client";
 import { useEffect, useState } from "react";
 import { User } from "@supabase/supabase-js";
+import Link from "next/link";
 
 interface AppSidebarProps {
   role: string;
@@ -54,12 +55,12 @@ export function AppSidebar({ role, links }: AppSidebarProps) {
       <SidebarHeader>
         <SidebarMenu>
           <SidebarMenuItem>
-            <a href="/" className="flex items-center gap-2 self-center font-medium p-2">
+            <Link href="/" className="flex items-center gap-2 self-center font-medium p-2">
               <div className="bg-primary text-primary-foreground flex size-6 items-center justify-center rounded-md">
                 <GalleryVerticalEnd className="size-4" />
               </div>
               EMS
-            </a>
+            </Link>
           </SidebarMenuItem>
         </SidebarMenu>
       </SidebarHeader>

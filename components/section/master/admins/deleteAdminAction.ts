@@ -18,6 +18,7 @@ export default async function destroyAdmin(id: string) {
     });
     return { success: true };
   } catch (error) {
+    console.error("Error deleting admin:", error);
     return { error: "Failed to delete admin" };
   } finally {
     await prisma.$disconnect();

@@ -1,5 +1,5 @@
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
-import { CalendarCheck2, MessageSquare, Star, BookOpen } from "lucide-react";
+import { CalendarCheck2, MessageSquare, BookOpen } from "lucide-react";
 
 interface Props {
   data: {

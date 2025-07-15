@@ -61,6 +61,7 @@ export async function createAdminAction(data: AdminSchema, captchaToken: string)
     });
     return { success: true };
   } catch (error) {
+    console.error("Database error:", error);
     return { error: "Internal Server Error" };
   } finally {
     await prisma.$disconnect();

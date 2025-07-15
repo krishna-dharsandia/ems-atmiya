@@ -29,9 +29,7 @@ export async function GET() {
     return NextResponse.json({ error: "Admin not found" }, { status: 404 });
   }
 
-  // Create filter based on admin's department/program
   const departmentFilter = currentAdmin.departmentId ? { departmentId: currentAdmin.departmentId } : {};
-  const programFilter = currentAdmin.programId ? { programId: currentAdmin.programId } : {};
 
   const totalStudents = await prisma.student.count({ where: departmentFilter });
   const totalEvents = await prisma.event.count();

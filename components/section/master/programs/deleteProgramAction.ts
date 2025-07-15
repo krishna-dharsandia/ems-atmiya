@@ -20,6 +20,7 @@ export default async function destroyProgram(id: string) {
     });
     return { success: true };
   } catch (error) {
+    console.error("Error deleting program:", error);
     return { error: "Failed to delete program" };
   } finally {
     await prisma.$disconnect();

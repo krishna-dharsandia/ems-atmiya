@@ -22,7 +22,7 @@ export async function registerInEventAction(eventId: string) {
       },
     });
     return { error: "Already registered in this event" };
-  } catch (error) {
+  } catch {
     try {
       await prisma.event.update({
         where: { id: eventId },
@@ -39,6 +39,7 @@ export async function registerInEventAction(eventId: string) {
       });
       return { success: true };
     } catch (error) {
+      console.error("Error registering in event:", error);
       return { error: "Failed to register in event" };
     } finally {
       await prisma.$disconnect();

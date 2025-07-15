@@ -60,6 +60,7 @@ export async function createStudentAction(data: StudentSchema, captchaToken: str
     });
     return { success: true };
   } catch (error) {
+    console.error("Error creating student in Prisma:", error);
     return { error: "Failed to create student" };
   } finally {
     await prisma.$disconnect();

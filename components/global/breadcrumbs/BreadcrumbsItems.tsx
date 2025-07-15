@@ -1,13 +1,13 @@
 "use client";
 
-import { useAtom } from "jotai";
+import { useAtomValue } from "jotai";
 import React from "react";
 
 import { BreadcrumbItem, BreadcrumbLink, BreadcrumbSeparator } from "@/components/ui/breadcrumb";
 import { sidebarBreadcrumbs } from "@/store/sidebar";
 
 export function BreadcrumbsItems() {
-  const [currentBreadcrumbs, setCurrentBreadcrumbs] = useAtom(sidebarBreadcrumbs);
+  const currentBreadcrumbs = useAtomValue(sidebarBreadcrumbs);
 
   return (
     <>

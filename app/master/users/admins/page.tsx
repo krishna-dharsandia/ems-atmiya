@@ -12,10 +12,10 @@ import { createAdminDialogAtom } from "@/store/form-dialog";
 import { Heading } from "@/components/global/heading/Heading";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
-import { columns } from "./columns";
+import { Admin, columns } from "./columns";
 
 export default function Page() {
-  const { data, isLoading, error } = useSWR<any[]>("/api/admin", fetcher);
+  const { data, isLoading, error } = useSWR<Admin[]>("/api/admin", fetcher);
   const setCurrentBreadcrumbs = useSetAtom(sidebarBreadcrumbs);
   const setCreateDialog = useSetAtom(createAdminDialogAtom);
 

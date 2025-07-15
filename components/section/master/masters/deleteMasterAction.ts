@@ -18,6 +18,7 @@ export default async function destroyMaster(id: string) {
     });
     return { success: true };
   } catch (error) {
+    console.error("Database error:", error);
     return { error: "Failed to delete master" };
   } finally {
     await prisma.$disconnect();

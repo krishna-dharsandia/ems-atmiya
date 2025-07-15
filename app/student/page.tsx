@@ -14,6 +14,24 @@ import { StudentRecentActivity } from "@/components/section/student/overview/Rec
 import { StudentCompletedEvents } from "@/components/section/student/overview/CompletedEvents";
 import { ChartArea } from "lucide-react";
 
+interface Event {
+  event: {
+    id: string;
+    name: string;
+    start_date: string;
+    end_date?: string;
+    event_type: string;
+    mode: string;
+  };
+}
+interface Feedback {
+  id: string;
+  rating: number;
+  comment: string;
+  event: { name: string };
+  createdAt: string;
+}
+
 type StudentOverviewData = {
   student: {
     firstName: string;
@@ -25,9 +43,9 @@ type StudentOverviewData = {
   };
   totalEventsAttended: number;
   feedbackGiven: number;
-  upcomingEvents: any[];
-  completedEvents: any[];
-  recentFeedback: any[];
+  upcomingEvents: Event[];
+  completedEvents: Event[];
+  recentFeedback: Feedback[];
 };
 
 export default function StudentDashboard() {

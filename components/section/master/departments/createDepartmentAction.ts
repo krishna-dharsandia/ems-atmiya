@@ -29,6 +29,7 @@ export async function createDepartment(data: DepartmentSchema) {
     });
     return { success: true };
   } catch (error) {
+    console.error("Error creating department:", error);
     return { error: "Internal Server Error" };
   } finally {
     await prisma.$disconnect();

@@ -40,6 +40,7 @@ export async function createEventAction(data: FormattedEventSchema) {
 
     return { success: true };
   } catch (error) {
+    console.error("Error creating event:", error);
     return { error: "Failed to create event" };
   } finally {
     await prisma.$disconnect();

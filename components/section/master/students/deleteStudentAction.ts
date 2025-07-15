@@ -18,6 +18,7 @@ export default async function destroyStudent(id: string) {
     });
     return { success: true };
   } catch (error) {
+    console.error("Error deleting student:", error);
     return { error: "Failed to delete student" };
   } finally {
     await prisma.$disconnect();

@@ -29,6 +29,7 @@ export async function createProgram(data: ProgramSchema) {
     });
     return { success: true };
   } catch (error) {
+    console.error("Error creating program:", error);
     return { error: "Internal Server Error" };
   } finally {
     await prisma.$disconnect();

@@ -24,7 +24,7 @@ interface Props {
   recentFeedback: Feedback[];
 }
 
-export function StudentRecentActivity({ upcomingEvents, completedEvents, recentFeedback }: Props) {
+export function StudentRecentActivity({ upcomingEvents, recentFeedback }: Props) {
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-8">
       <Card>

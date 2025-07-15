@@ -1,5 +1,5 @@
 "use client";
-import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { onboardingStudentSchema, OnboardingStudentSchema } from "@/schemas/onboardingStudentSchema";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -112,7 +112,7 @@ export default function OnboardingForm() {
                             <PopoverTrigger asChild>
                               <HelpCircle className="h-4 w-4 text-muted-foreground" />
                             </PopoverTrigger>
-                            <PopoverContent>Enter your school or college ID card number. If you do not have a registration number, use your institution's ID card number</PopoverContent>
+                            <PopoverContent>Enter your school or college ID card number. If you do not have a registration number, use your institution&apos;s ID card number</PopoverContent>
                           </Popover>
                         </div>
                         <FormControl>

@@ -31,6 +31,7 @@ export async function GET(_request: NextRequest, { params }: { params: Promise<{
 
     return NextResponse.json(events);
   } catch (error) {
+    console.error("Error fetching event:", error);
     return NextResponse.json("Failed to fetch events", { status: 500 });
   } finally {
     await prisma.$disconnect();

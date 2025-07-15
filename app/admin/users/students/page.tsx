@@ -12,10 +12,10 @@ import { createStudentDialogAtom } from "@/store/form-dialog";
 import { Heading } from "@/components/global/heading/Heading";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
-import { columns } from "./columns";
+import { columns, Student } from "./columns";
 
 export default function Page() {
-  const { data, isLoading, error } = useSWR<any[]>("/api/student", fetcher);
+  const { data, isLoading, error } = useSWR<Student[]>("/api/student", fetcher);
   const setCurrentBreadcrumbs = useSetAtom(sidebarBreadcrumbs);
   const setCreateDialog = useSetAtom(createStudentDialogAtom);
 

@@ -10,6 +10,7 @@ import { usePathname, useRouter } from "next/navigation";
 import { getDashboardPath } from "@/utils/functions/getDashboardPath";
 import { GalleryVerticalEnd } from "lucide-react";
 import { PUBLIC_ROUTES } from "@/utils/supabase/middleware";
+import Link from "next/link";
 
 export default function NavigationBar() {
   const [user, setUser] = useState<User | null>(null);
@@ -46,12 +47,12 @@ export default function NavigationBar() {
   return (
     <nav className="z-50 fixed top-6 inset-x-4 h-16 bg-background/60 backdrop-blur-lg border dark:border-slate-700/70 max-w-screen-xl mx-auto rounded-full">
       <div className="h-full flex items-center justify-between mx-auto px-4">
-        <a href="/" className="flex items-center gap-2 self-center font-medium">
+        <Link href="/" className="flex items-center gap-2 self-center font-medium">
           <div className="bg-primary text-primary-foreground flex size-6 items-center justify-center rounded-md">
             <GalleryVerticalEnd className="size-4" />
           </div>
           EMS
-        </a>
+        </Link>
 
         {/* Desktop Menu */}
         <NavMenu className="hidden md:block" />

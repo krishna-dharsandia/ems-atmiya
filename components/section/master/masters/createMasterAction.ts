@@ -52,6 +52,7 @@ export async function createMasterAction(data: MasterSchema, captchaToken: strin
     });
     return { success: true };
   } catch (error) {
+    console.error("Database error:", error);
     return { error: "Internal Server Error" };
   } finally {
     await prisma.$disconnect();

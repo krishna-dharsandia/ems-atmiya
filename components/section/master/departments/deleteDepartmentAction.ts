@@ -20,6 +20,7 @@ export default async function destroyDepartment(id: string) {
     });
     return { success: true };
   } catch (error) {
+    console.error("Error deleting department:", error);
     return { error: "Failed to delete department" };
   } finally {
     await prisma.$disconnect();

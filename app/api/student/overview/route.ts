@@ -2,12 +2,11 @@ import { NextResponse } from "next/server";
 import { createClient } from "@/utils/supabase/server";
 import { PrismaClient } from "@prisma/client";
 
-export async function GET(req: Request) {
-  // Get supabase user
-
+export async function GET() {
   const supabase = await createClient();
   const { data, error: userError } = await supabase.auth.getUser();
   const user = data?.user;
+
   if (userError || !user) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
@@ -66,17 +65,6 @@ export async function GET(req: Request) {
     take: 5,
   });
 
-  // Event type distribution
-  const eventTypeStats = await prisma.eventRegistration.groupBy({
-    by: ["eventId"],
-    where: { userId: user.id },
-    _count: { eventId: true },
-  });
-  // For chart, you may need to join with event type
-
-  // Participation over time (by month)
-  // ...implement as needed...
-
   return NextResponse.json({
     student: {
       firstName: student.user.firstName,
@@ -91,6 +79,5 @@ export async function GET(req: Request) {
     upcomingEvents,
     completedEvents,
     recentFeedback,
-    // eventTypeStats, // TODO: format for chart
   });
 }

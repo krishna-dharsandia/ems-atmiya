@@ -6,7 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Calendar, Clock, MapPin, Share2, Tag, Ticket, Users, Star, ExternalLink, CheckCircle, AlertCircle, User, Mail, Globe, Instagram, Circle } from "lucide-react";
+import { Calendar, Clock, MapPin, Share2, Tag, Ticket, Users, Star, ExternalLink, CheckCircle, AlertCircle, User, Mail, Globe, Circle } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import { fetcher } from "@/fetcher";
@@ -524,6 +524,16 @@ export default function Page() {
                 </EmailShareButton>
               </TooltipTrigger>
               <TooltipContent>Share via Email</TooltipContent>
+            </Tooltip>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <WhatsappShareButton url={window.location.href} title={event.name}>
+                  <Button variant="outline" size={"icon"}>
+                    <WhatsappIcon borderRadius={18} />
+                  </Button>
+                </WhatsappShareButton>
+              </TooltipTrigger>
+              <TooltipContent>Share via Whatsapp</TooltipContent>
             </Tooltip>
           </div>
         </DialogContent>
