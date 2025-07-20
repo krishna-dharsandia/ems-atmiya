@@ -9,6 +9,9 @@ export async function registerWithGoogleAction() {
   const { data, error } = await supabase.auth.signInWithOAuth({
     provider: "google",
     options: {
+      queryParams: { access_type: 'offline', prompt: 'consent' },
+      scopes:
+        'openid https://www.googleapis.com/auth/userinfo.profile https://www.googleapis.com/auth/userinfo.email',
       redirectTo: `${process.env.BASE_URL}/auth/callback`,
     },
   });

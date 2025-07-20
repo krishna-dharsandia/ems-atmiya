@@ -158,8 +158,17 @@
   * {
     @apply border-border outline-ring/50;
   }
+
   body {
     @apply bg-background text-foreground;
     letter-spacing: var(--tracking-normal);
   }
+}
+
+
+.hide-password-toggle::-ms-reveal,
+.hide-password-toggle::-ms-clear {
+  visibility: hidden;
+  pointer-events: none;
+  display: none;
 }

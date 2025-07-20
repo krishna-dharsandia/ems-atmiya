@@ -22,7 +22,7 @@ export async function registerStudent(data: RegisterStudentSchema, captchaToken:
         onboarding_complete: false,
         full_name: `${firstName} ${lastName}`,
       },
-      emailRedirectTo: "http://localhost:3000/onboarding",
+      emailRedirectTo: `${process.env.BASE_URL}/onboarding`,
       captchaToken,
     },
   });

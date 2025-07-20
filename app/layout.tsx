@@ -1,7 +1,6 @@
 import type { Metadata } from "next";
 import "./globals.css";
 import { Toaster } from "@/components/ui/sonner";
-import NavigationBar from "@/components/global/navigation-bar/NavigationBar";
 import { Providers } from "@/components/global/Providers";
 
 export const metadata: Metadata = {
@@ -18,7 +17,6 @@ export default function RootLayout({
     <html lang="en" suppressHydrationWarning>
       <body>
         <Providers>
-          <NavigationBar />
           <Toaster />
           {children}
         </Providers>
