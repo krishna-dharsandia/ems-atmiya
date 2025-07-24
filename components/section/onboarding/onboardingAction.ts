@@ -10,7 +10,7 @@ export async function onboardingStudent(data: OnboardingStudentSchema) {
     return { error: "Onboarding data is invalid" };
   }
 
-  const { departmentId, programId, currentSemester, currentYear, dateOfBirth, registrationNumber } = validatedData.data;
+  const { departmentId, programId, currentSemester, currentYear, registrationNumber } = validatedData.data;
   const prisma = new PrismaClient();
   const supabase = await createClient();
   const {
@@ -31,7 +31,6 @@ export async function onboardingStudent(data: OnboardingStudentSchema) {
         programId,
         currentSemester,
         currentYear,
-        dateOfBirth: new Date(dateOfBirth),
         registrationNumber,
       },
     });

@@ -2,31 +2,10 @@
 
 import Image from "next/image";
 import RegisterForm from "@/components/section/register/RegisterForm";
-import { getDashboardPath } from "@/utils/functions/getDashboardPath";
-import { createClient } from "@/utils/supabase/client";
 import { GalleryVerticalEnd } from "lucide-react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
-import { useEffect } from "react";
 
-export default function LoginPage() {
-  const supabase = createClient();
-  const router = useRouter();
-
-  useEffect(() => {
-    async function check() {
-      const {
-        data: { user },
-      } = await supabase.auth.getUser();
-
-      if (user) {
-        router.push(getDashboardPath(user.user_metadata.role));
-        return;
-      }
-    }
-
-    check();
-  });
+export default function RegisterPage() {
 
   return (
     <div className="bg-muted flex min-h-svh flex-row items-stretch justify-center p-0 md:p-0">

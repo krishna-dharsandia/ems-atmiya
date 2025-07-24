@@ -22,20 +22,33 @@ export async function POST(request: NextRequest) {
         return NextResponse.json({ error: "Invalid role" }, { status: 200 });
       }
 
+      const fullName = raw_user_meta_data?.full_name || "";
+      const nameParts = fullName.trim().split(/\s+/); // Split on any whitespace
+      const firstName = nameParts[0] || "";
+      const lastName = nameParts.length > 1 ? nameParts.slice(1).join(" ") : "";
+
+      if (!id || !email) {
+        console.error("Missing required fields:", { id, email });
+        return NextResponse.json({ error: "Missing required fields" }, { status: 400 });
+      }
+
       try {
-        await prisma.user.create({
+        const result = await prisma.user.create({
           data: {
             supabaseId: id,
             email: email,
-            firstName: raw_user_meta_data.full_name.split(" ")[0],
-            lastName: raw_user_meta_data.full_name.split(" ")[1],
+            firstName: firstName,
+            lastName: lastName,
             role: "STUDENT",
             students: {
               create: {},
             },
           },
+          include: {
+            students: true,
+          }
         });
-
+        console.log("Successfully created user and student:", result);
         return NextResponse.json({ success: true }, { status: 200 });
       } catch (error) {
         console.error("Error processing webhook:", error);
@@ -48,6 +61,10 @@ export async function POST(request: NextRequest) {
 
     case "DELETE": {
       const { id } = body.old_record;
+
+      if (!id) {
+        return NextResponse.json({ error: "Missing user ID" }, { status: 400 });
+      }
       try {
         await prisma.user.delete({
           where: {

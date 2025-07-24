@@ -6,7 +6,6 @@ export const PUBLIC_ROUTES = [
   "/",
   "/events",
   "/register",
-  "/onboarding",
   "/login",
   "/reset-password",
   "/update-password",
@@ -17,8 +16,15 @@ export const PUBLIC_ROUTES = [
   "/auth/webhook",
 ];
 
+// Routes that only authenticated users should NOT access
+const AUTH_ROUTES = ["/login", "/register"];
+
 function isPublicRoute(pathname: string) {
   return pathname.startsWith("/api/") || PUBLIC_ROUTES.some((route) => pathname === route || pathname.startsWith(route + "/"));
+}
+
+function isAuthRoute(pathname: string) {
+  return AUTH_ROUTES.includes(pathname);
 }
 
 function redirectTo(path: string, request: NextRequest) {
@@ -29,35 +35,79 @@ function redirectTo(path: string, request: NextRequest) {
 
 export async function updateSession(request: NextRequest) {
   const response = NextResponse.next({ request });
+  const currentPath = request.nextUrl.pathname;
 
-  const supabase = createServerClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!, {
-    cookies: {
-      getAll: () => request.cookies.getAll(),
-      setAll: (cookiesToSet) => {
-        cookiesToSet.forEach(({ name, value, options }) => response.cookies.set(name, value, options));
+  const supabase = createServerClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!, 
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!, 
+    {
+      cookies: {
+        getAll: () => request.cookies.getAll(),
+        setAll: (cookiesToSet) => {
+          cookiesToSet.forEach(({ name, value, options }) => 
+            response.cookies.set(name, value, options)
+          );
+        },
       },
-    },
-  });
+    }
+  );
 
-  if (isPublicRoute(request.nextUrl.pathname)) {
+  // Always allow access to API routes and certain public routes
+  if (currentPath.startsWith("/api/") || currentPath === "/" || currentPath === "/events") {
     return response;
   }
 
   const {
     data: { user },
   } = await supabase.auth.getUser();
-  if (!user) return redirectTo("/login", request);
 
-  const onboardingComplete = user.user_metadata.onboarding_complete;
-  const currentPath = request.nextUrl.pathname;
-  const dashboardPath = getDashboardPath(user.user_metadata.role);
+  // Handle authenticated users
+  if (user) {
+    const onboardingComplete = user.user_metadata?.onboarding_complete;
+    const dashboardPath = getDashboardPath(user.user_metadata?.role);
 
-  if (!onboardingComplete && currentPath !== "/onboarding") {
-    return redirectTo("/onboarding", request);
+    // If user is authenticated and tries to access login/register, redirect to dashboard
+    if (isAuthRoute(currentPath)) {
+      console.log("Authenticated user trying to access auth route, redirecting to dashboard");
+      return redirectTo(dashboardPath, request);
+    }
+
+    // If onboarding is not complete, redirect to onboarding (except if already on onboarding)
+    if (!onboardingComplete && currentPath !== "/onboarding") {
+      console.log("Onboarding not complete, redirecting to onboarding");
+      return redirectTo("/onboarding", request);
+    }
+
+    // If onboarding is complete and user is on onboarding page, redirect to dashboard
+    if (onboardingComplete && currentPath === "/onboarding") {
+      console.log("Onboarding complete, redirecting from onboarding to dashboard");
+      return redirectTo(dashboardPath, request);
+    }
+
+    // Allow access to public routes even when authenticated
+    if (isPublicRoute(currentPath)) {
+      return response;
+    }
+
+    // If trying to access protected route that doesn't match their dashboard path
+    if (onboardingComplete && !currentPath.startsWith(dashboardPath)) {
+      console.log("User accessing wrong dashboard path, redirecting to correct dashboard");
+      return redirectTo(dashboardPath, request);
+    }
+
+    return response;
   }
 
-  if (!currentPath.startsWith(dashboardPath)) {
-    return redirectTo(dashboardPath, request);
+  // Handle unauthenticated users
+  if (!user) {
+    // Allow access to all public routes including login/register
+    if (isPublicRoute(currentPath)) {
+      return response;
+    }
+
+    // Redirect to login for protected routes
+    console.log("User not authenticated, redirecting to login");
+    return redirectTo("/login", request);
   }
 
   return response;
