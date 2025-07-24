@@ -19,7 +19,7 @@ import Link from "next/link";
 export default function RegisterForm() {
   const [captchaToken, setCaptchaToken] = useState("");
   const [googleLoading, setGoogleLoading] = useState(false); // Add loading state
-
+  const [showPasswordRequirements, setShowPasswordRequirements] = useState(true);
   const [showPassword, setShowPassword] = useState(false)
   const form = useForm({
     resolver: zodResolver(registerStudentSchema),
@@ -43,13 +43,16 @@ export default function RegisterForm() {
       toast.error("Please fill in all required fields");
       return;
     }
-    
+
     const response = await registerStudent(data, captchaToken);
 
     if (response.error) {
       toast.error(response.error);
     } else {
       toast.success("Registration successful! Please check your email for verification.");
+      form.reset();
+      setCaptchaToken("");
+      setShowPasswordRequirements(false);
     }
   }
 
@@ -110,7 +113,6 @@ export default function RegisterForm() {
               <form onSubmit={form.handleSubmit(onSubmit)} className="container mx-auto flex flex-col gap-4">
                 <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                   <FormField
-                    disabled={form.formState.isSubmitting}
                     control={form.control}
                     name="firstName"
                     render={({ field }) => (
@@ -124,7 +126,6 @@ export default function RegisterForm() {
                     )}
                   />
                   <FormField
-                    disabled={form.formState.isSubmitting}
                     control={form.control}
                     name="lastName"
                     render={({ field }) => (
@@ -139,7 +140,6 @@ export default function RegisterForm() {
                   />
                 </div>
                 <FormField
-                  disabled={form.formState.isSubmitting}
                   control={form.control}
                   name="email"
                   render={({ field }) => (
@@ -154,7 +154,6 @@ export default function RegisterForm() {
                 />
 
                 <FormField
-                  disabled={form.formState.isSubmitting}
                   control={form.control}
                   name="password"
                   render={({ field }) => {
@@ -164,24 +163,36 @@ export default function RegisterForm() {
                       { regex: /[0-9]/, text: "At least 1 number" },
                       { regex: /[a-z]/, text: "At least 1 lowercase letter" },
                       { regex: /[A-Z]/, text: "At least 1 uppercase letter" },
+                      { regex: /[^A-Za-z0-9]/, text: "At least 1 special character" },
                     ];
                     const strength = requirements.map((req) => ({
                       met: req.regex.test(field.value || ""),
                       text: req.text,
                     }));
                     const strengthScore = strength.filter((req) => req.met).length;
+
+                    if (strengthScore === requirements.length) {
+                      setShowPasswordRequirements(false);
+                    } else {
+                      if (!showPasswordRequirements) {
+                        setShowPasswordRequirements(true);
+                      }
+                    }
+
                     const getStrengthColor = (score: number) => {
                       if (score === 0) return "bg-border";
-                      if (score <= 1) return "bg-red-500";
-                      if (score <= 2) return "bg-orange-500";
-                      if (score === 3) return "bg-amber-500";
+                      if (score === 1) return "bg-red-500";
+                      if (score === 2) return "bg-orange-500";
+                      if (score === 3) return "bg-yellow-500";
+                      if (score === 4) return "bg-blue-500";
                       return "bg-emerald-500";
                     };
+
                     const getStrengthText = (score: number) => {
                       if (score === 0) return "Enter a password";
                       if (score <= 2) return "Weak password";
                       if (score === 3) return "Medium password";
-                      return "Strong password";
+                      if (score >= 4) return "Strong password";
                     };
 
                     return (
@@ -217,7 +228,7 @@ export default function RegisterForm() {
                         </FormControl>
                         {/* AnimatePresence for smooth show/hide */}
                         <AnimatePresence>
-                          {field.value && (
+                          {field.value && showPasswordRequirements && (
                             <motion.div
                               key="password-strength"
                               initial={{ opacity: 0, y: -10 }}
@@ -235,7 +246,7 @@ export default function RegisterForm() {
                               >
                                 <div
                                   className={`h-full ${getStrengthColor(strengthScore)} transition-all duration-500 ease-out`}
-                                  style={{ width: `${(strengthScore / 4) * 100}%` }}
+                                  style={{ width: `${(strengthScore / requirements.length) * 100}%` }}
                                 ></div>
                               </div>
                               <p id="password-strength-desc" className="text-foreground mb-2 text-sm font-medium">
@@ -264,7 +275,8 @@ export default function RegisterForm() {
                         <FormMessage />
                       </FormItem>
                     );
-                  }}
+                  }
+                  }
                 />
 
                 <Turnstile
