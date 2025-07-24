@@ -16,7 +16,7 @@ import Link from "next/link";
 import { CheckIcon, EyeIcon, EyeOffIcon, Loader, XIcon } from "lucide-react";
 import { AnimatePresence, motion } from "framer-motion";
 import { cn } from "@/lib/utils";
-import { registerWithGoogleAction } from "../register/registerWithGoogleAction";
+import { signInWithGoogleAction } from "../register/loginWithGoogleAction";
 
 export default function LoginForm() {
   const [captchaToken, setCaptchaToken] = useState("");
@@ -46,7 +46,7 @@ export default function LoginForm() {
 
   async function handleContinueWithGoogle() {
     setGoogleLoading(true); // Start loading
-    const response = await registerWithGoogleAction();
+    const response = await signInWithGoogleAction();
 
     // Simulate a delay for loading effect
     setTimeout(() => {

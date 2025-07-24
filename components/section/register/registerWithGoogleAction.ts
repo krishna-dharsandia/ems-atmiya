@@ -12,7 +12,7 @@ export async function registerWithGoogleAction() {
       queryParams: { access_type: 'offline', prompt: 'consent' },
       scopes:
         'openid https://www.googleapis.com/auth/userinfo.profile https://www.googleapis.com/auth/userinfo.email',
-      redirectTo: `${process.env.BASE_URL}/auth/callback`,
+      redirectTo: `${process.env.BASE_URL}/auth/callback?next=/onboarding`,
     },
   });
 

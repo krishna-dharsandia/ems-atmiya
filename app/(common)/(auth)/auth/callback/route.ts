@@ -15,13 +15,29 @@ export async function GET(request: Request) {
       } = await supabase.auth.getUser();
 
       if (user) {
-        // Update user metadata
-        await supabase.auth.updateUser({
-          data: {
-            role: "STUDENT",
-            onboarding_complete: false,
-          },
-        });
+        const currentMetadata = user.user_metadata;
+
+        if (!currentMetadata?.role) {
+          // This is a new user without role, set it as STUDENT
+          const { error: updateError } = await supabase.auth.updateUser({
+            data: {
+              role: "STUDENT",
+              onboarding_complete: false,
+              // Preserve the full_name from Google if available
+              full_name: currentMetadata?.full_name ||
+                currentMetadata?.name ||
+                `${currentMetadata?.given_name || ""} ${currentMetadata?.family_name || ""}`.trim() ||
+                "",
+            },
+          });
+
+          if (updateError) {
+            console.error("Error updating user metadata:", updateError);
+            // Continue anyway, don't block the user
+          } else {
+            console.log("Successfully set role for Google user:", user.id);
+          }
+        }
       }
 
       const forwardedHost = request.headers.get("x-forwarded-host"); // original origin before load balancer
