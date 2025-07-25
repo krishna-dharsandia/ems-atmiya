@@ -18,6 +18,7 @@ export async function POST(request: NextRequest) {
     case "INSERT": {
       const { id, email, raw_user_meta_data } = body.record;
 
+      console.log("Processing INSERT webhook for user:", { id, email, raw_user_meta_data });
       if (raw_user_meta_data.role !== "STUDENT") {
         return NextResponse.json({ error: "Invalid role" }, { status: 403 });
       }

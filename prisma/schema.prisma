@@ -133,6 +133,7 @@ model EventRegistration {
   user      User     @relation(fields: [userId], references: [supabaseId], onDelete: Cascade)
   eventId   String
   event     Event    @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  attended  Boolean  @default(false)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }
