@@ -24,10 +24,11 @@ export async function POST(request: NextRequest) {
         raw_user_meta_data,
       });
 
-      if (raw_app_meta_data.provider !== "google") {
-        if (raw_user_meta_data.role !== "STUDENT") {
-          return NextResponse.json({ error: "Invalid role" }, { status: 403 });
-        }
+      if (
+        raw_app_meta_data.provider !== "google" &&
+        raw_user_meta_data.role !== "STUDENT"
+      ) {
+        return NextResponse.json({ error: "Invalid role" }, { status: 403 });
       }
 
       const fullName = raw_user_meta_data?.full_name || "";
