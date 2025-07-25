@@ -15,7 +15,10 @@ import useSWR from "swr";
 import { columns, Event } from "./columns";
 
 export default function Page() {
-  const { data, isLoading, error } = useSWR<Event[]>("/api/master/events", fetcher);
+  const { data, isLoading, error } = useSWR<Event[]>(
+    "/api/master/events",
+    fetcher
+  );
   const setCurrentBreadcrumbs = useSetAtom(sidebarBreadcrumbs);
   const router = useRouter();
 
@@ -31,8 +34,14 @@ export default function Page() {
   return (
     <>
       <div className="flex items-start justify-between">
-        <Heading title={`Events - ${data?.length || 0}`} description="Manage Events Details" />
-        <Button onClick={() => router.push("/master/events/create")} className="mb-4">
+        <Heading
+          title={`Events - ${data?.length || 0}`}
+          description="Manage Events Details"
+        />
+        <Button
+          onClick={() => router.push("/master/events/create")}
+          className="mb-4"
+        >
           <Plus className="mr-2 h-4 w-4" /> Create New Event
         </Button>
       </div>
@@ -48,6 +57,9 @@ export default function Page() {
             icon: <CircleQuestionMark size={40} />,
             title: "No results found",
             description: "There are no events matching your search criteria.",
+          }}
+          actions={{
+            onRowClick: (row) => router.push(`/events/${row.id}`),
           }}
         />
       ) : (
