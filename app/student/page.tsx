@@ -49,7 +49,10 @@ type StudentOverviewData = {
 };
 
 export default function StudentDashboard() {
-  const { data, error, isLoading } = useSWR<StudentOverviewData>("/api/student/overview", fetcher);
+  const { data, error, isLoading } = useSWR<StudentOverviewData>(
+    "/api/student/overview",
+    fetcher
+  );
   const setCurrentBreadcrumbs = useSetAtom(sidebarBreadcrumbs);
 
   useEffect(() => {
@@ -64,8 +67,16 @@ export default function StudentDashboard() {
     <div>
       <div className="flex items-start justify-between mb-4">
         <Heading
-          title={`Welcome Back - ${data?.student ? `${data.student.firstName} ${data.student.lastName}` : "Student"}`}
-          description={data?.student?.department && data?.student?.program ? `${data.student.department} • ${data.student.program}` : "Your personalized dashboard overview."}
+          title={`Welcome Back - ${
+            data?.student
+              ? `${data.student.firstName} ${data.student.lastName}`
+              : "Student"
+          }`}
+          description={
+            data?.student?.department && data?.student?.program
+              ? `${data.student.department} • ${data.student.program}`
+              : "Your personalized dashboard overview."
+          }
         />
         <Button className="mb-4">
           <ChartArea className="mr-2 h-4 w-4" /> More Insights
@@ -87,7 +98,11 @@ export default function StudentDashboard() {
               currentYear: data.student.currentYear,
             }}
           />
-          <StudentRecentActivity upcomingEvents={data.upcomingEvents} completedEvents={data.completedEvents} recentFeedback={data.recentFeedback} />
+          <StudentRecentActivity
+            upcomingEvents={data.upcomingEvents}
+            completedEvents={data.completedEvents}
+            recentFeedback={data.recentFeedback}
+          />
           <StudentCompletedEvents completedEvents={data.completedEvents} />
         </div>
       ) : (

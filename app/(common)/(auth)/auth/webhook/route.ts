@@ -19,7 +19,7 @@ export async function POST(request: NextRequest) {
       const { id, email, raw_user_meta_data } = body.record;
 
       if (raw_user_meta_data.role !== "STUDENT") {
-        return NextResponse.json({ error: "Invalid role" }, { status: 200 });
+        return NextResponse.json({ error: "Invalid role" }, { status: 403 });
       }
 
       const fullName = raw_user_meta_data?.full_name || "";
