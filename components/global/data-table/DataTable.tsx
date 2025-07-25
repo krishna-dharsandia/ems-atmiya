@@ -11,9 +11,27 @@ import {
   getSortedRowModel,
   useReactTable,
 } from "@tanstack/react-table";
-import { DropdownMenu, DropdownMenuCheckboxItem, DropdownMenuContent, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import {
+  DropdownMenu,
+  DropdownMenuCheckboxItem,
+  DropdownMenuContent,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import * as React from "react";
@@ -44,12 +62,26 @@ interface DataTableProps<TData, TValue> {
   search?: DataTableSearch;
   filter?: DataTableFilter | null;
   noData?: DataTableNoData;
+  actions?: {
+    onRowClick?: (row: TData) => void;
+    onRowDoubleClick?: (row: TData) => void;
+  };
 }
 
-export function DataTable<TData, TValue>({ columns, data, search, filter, noData }: DataTableProps<TData, TValue>) {
+export function DataTable<TData, TValue>({
+  columns,
+  data,
+  search,
+  filter,
+  noData,
+  actions,
+}: DataTableProps<TData, TValue>) {
   const [sorting, setSorting] = React.useState<SortingState>([]);
-  const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([]);
-  const [columnVisibility, setColumnVisibility] = React.useState<VisibilityState>({});
+  const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>(
+    []
+  );
+  const [columnVisibility, setColumnVisibility] =
+    React.useState<VisibilityState>({});
   const [rowSelection, setRowSelection] = React.useState({});
 
   const table = useReactTable({
@@ -77,15 +109,27 @@ export function DataTable<TData, TValue>({ columns, data, search, filter, noData
         {search && (
           <Input
             placeholder={search.placeholder}
-            value={(table.getColumn(search.column)?.getFilterValue() as string) ?? ""}
-            onChange={(event) => table.getColumn(search.column)?.setFilterValue(event.target.value)}
+            value={
+              (table.getColumn(search.column)?.getFilterValue() as string) ?? ""
+            }
+            onChange={(event) =>
+              table.getColumn(search.column)?.setFilterValue(event.target.value)
+            }
             className="max-w-sm"
           />
         )}
         {filter && (
           <Select
-            value={(table.getColumn(filter.column)?.getFilterValue() as string) ?? filter.options[0]?.value ?? "all"}
-            onValueChange={(value) => table.getColumn(filter.column)?.setFilterValue(value === "all" ? "" : value)}
+            value={
+              (table.getColumn(filter.column)?.getFilterValue() as string) ??
+              filter.options[0]?.value ??
+              "all"
+            }
+            onValueChange={(value) =>
+              table
+                .getColumn(filter.column)
+                ?.setFilterValue(value === "all" ? "" : value)
+            }
           >
             <SelectTrigger className="ml-4 w-[180px]">
               <SelectValue placeholder={filter.placeholder} />
@@ -110,7 +154,12 @@ export function DataTable<TData, TValue>({ columns, data, search, filter, noData
               .getAllColumns()
               .filter((column) => column.getCanHide())
               .map((column) => (
-                <DropdownMenuCheckboxItem key={column.id} className="capitalize" checked={column.getIsVisible()} onCheckedChange={(value) => column.toggleVisibility(!!value)}>
+                <DropdownMenuCheckboxItem
+                  key={column.id}
+                  className="capitalize"
+                  checked={column.getIsVisible()}
+                  onCheckedChange={(value) => column.toggleVisibility(!!value)}
+                >
                   {column.id}
                 </DropdownMenuCheckboxItem>
               ))}
@@ -123,7 +172,14 @@ export function DataTable<TData, TValue>({ columns, data, search, filter, noData
             {table.getHeaderGroups().map((headerGroup) => (
               <TableRow key={headerGroup.id}>
                 {headerGroup.headers.map((header) => (
-                  <TableHead key={header.id}>{header.isPlaceholder ? null : flexRender(header.column.columnDef.header, header.getContext())}</TableHead>
+                  <TableHead key={header.id}>
+                    {header.isPlaceholder
+                      ? null
+                      : flexRender(
+                          header.column.columnDef.header,
+                          header.getContext()
+                        )}
+                  </TableHead>
                 ))}
               </TableRow>
             ))}
@@ -131,21 +187,47 @@ export function DataTable<TData, TValue>({ columns, data, search, filter, noData
           <TableBody>
             {table.getRowModel().rows.length ? (
               table.getRowModel().rows.map((row) => (
-                <TableRow key={row.id} data-state={row.getIsSelected() && "selected"}>
+                <TableRow
+                  key={row.id}
+                  data-state={row.getIsSelected() && "selected"}
+                  className={actions ? "cursor-pointer" : ""}
+                  onClick={() =>
+                    actions &&
+                    actions.onRowClick &&
+                    actions.onRowClick(row.original)
+                  }
+                  onDoubleClick={() =>
+                    actions &&
+                    actions.onRowDoubleClick &&
+                    actions.onRowDoubleClick(row.original)
+                  }
+                >
                   {row.getVisibleCells().map((cell) => (
                     <TableCell key={cell.id} className="pl-6">
-                      {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                      {flexRender(
+                        cell.column.columnDef.cell,
+                        cell.getContext()
+                      )}
                     </TableCell>
                   ))}
                 </TableRow>
               ))
             ) : (
               <TableRow>
-                <TableCell colSpan={columns.length} className="h-full text-center">
+                <TableCell
+                  colSpan={columns.length}
+                  className="h-full text-center"
+                >
                   <div className="flex flex-col items-center justify-center space-y-2">
                     {noData?.icon}
-                    <div className="text-lg font-medium">{noData?.title ?? "No results found"}</div>
-                    {noData?.description && <div className="text-sm text-muted-foreground">{noData.description}</div>}
+                    <div className="text-lg font-medium">
+                      {noData?.title ?? "No results found"}
+                    </div>
+                    {noData?.description && (
+                      <div className="text-sm text-muted-foreground">
+                        {noData.description}
+                      </div>
+                    )}
                     {noData?.action}
                   </div>
                 </TableCell>
@@ -157,10 +239,20 @@ export function DataTable<TData, TValue>({ columns, data, search, filter, noData
       </ScrollArea>
       <div className="flex items-center justify-end space-x-2 py-4">
         <div className="space-x-2">
-          <Button variant="outline" size="sm" onClick={() => table.previousPage()} disabled={!table.getCanPreviousPage()}>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => table.previousPage()}
+            disabled={!table.getCanPreviousPage()}
+          >
             Previous
           </Button>
-          <Button variant="outline" size="sm" onClick={() => table.nextPage()} disabled={!table.getCanNextPage()}>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => table.nextPage()}
+            disabled={!table.getCanNextPage()}
+          >
             Next
           </Button>
         </div>

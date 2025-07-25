@@ -1,5 +1,12 @@
 "use client";
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Turnstile } from "@marsidev/react-turnstile";
 import { loginSchema, LoginSchema } from "@/schemas/loginSchema";
@@ -11,7 +18,13 @@ import { toast } from "sonner";
 import { getDashboardPath } from "@/utils/functions/getDashboardPath";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import Link from "next/link";
 import { CheckIcon, EyeIcon, EyeOffIcon, Loader, XIcon } from "lucide-react";
 import { AnimatePresence, motion } from "framer-motion";
@@ -21,8 +34,7 @@ import { signInWithGoogleAction } from "../register/loginWithGoogleAction";
 export default function LoginForm() {
   const [captchaToken, setCaptchaToken] = useState("");
   const [googleLoading, setGoogleLoading] = useState(false); // Add loading state
-  const [showPassword, setShowPassword] = useState(false)
-
+  const [showPassword, setShowPassword] = useState(false);
 
   const router = useRouter();
   const form = useForm<LoginSchema>({
@@ -70,7 +82,12 @@ export default function LoginForm() {
         <CardContent>
           <div className="grid gap-6">
             <div className="flex flex-col gap-4">
-              <Button variant="outline" className="w-full" onClick={handleContinueWithGoogle} disabled={googleLoading}>
+              <Button
+                variant="outline"
+                className="w-full"
+                onClick={handleContinueWithGoogle}
+                disabled={googleLoading}
+              >
                 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
                   <path
                     d="M12.48 10.92v3.28h7.84c-.24 1.84-.853 3.187-1.787 4.133-1.147 1.147-2.933 2.4-6.053 2.4-4.827 0-8.6-3.893-8.6-8.72s3.773-8.72 8.6-8.72c2.6 0 4.507 1.027 5.907 2.347l2.307-2.307C18.747 1.44 16.133 0 12.48 0 5.867 0 .307 5.387.307 12s5.56 12 12.173 12c3.573 0 6.267-1.173 8.373-3.36 2.16-2.16 2.84-5.213 2.84-7.667 0-.76-.053-1.467-.173-2.053H12.48z"
@@ -82,11 +99,16 @@ export default function LoginForm() {
             </div>
 
             <div className="after:border-border relative text-center text-sm after:absolute after:inset-0 after:top-1/2 after:z-0 after:flex after:items-center after:border-t">
-              <span className="bg-card text-muted-foreground relative z-10 px-2">Or continue with</span>
+              <span className="bg-card text-muted-foreground relative z-10 px-2">
+                Or continue with
+              </span>
             </div>
 
             <Form {...form}>
-              <form onSubmit={form.handleSubmit(onSubmit)} className="container mx-auto flex flex-col gap-4">
+              <form
+                onSubmit={form.handleSubmit(onSubmit)}
+                className="container mx-auto flex flex-col gap-4"
+              >
                 <FormField
                   control={form.control}
                   name="email"
@@ -94,7 +116,8 @@ export default function LoginForm() {
                     <FormItem>
                       <FormLabel>Email</FormLabel>
                       <FormControl>
-                        <Input {...field}
+                        <Input
+                          {...field}
                           placeholder="your@email.com"
                           type="email"
                         />
@@ -119,7 +142,9 @@ export default function LoginForm() {
                       met: req.regex.test(field.value || ""),
                       text: req.text,
                     }));
-                    const strengthScore = strength.filter((req) => req.met).length;
+                    const strengthScore = strength.filter(
+                      (req) => req.met
+                    ).length;
                     const getStrengthColor = (score: number) => {
                       if (score === 0) return "bg-border";
                       if (score <= 1) return "bg-red-500";
@@ -136,13 +161,24 @@ export default function LoginForm() {
 
                     return (
                       <FormItem>
-                        <FormLabel>Password</FormLabel>
+                        <FormLabel className="flex items-center justify-between">
+                          <span>Password</span>
+                          <Link
+                            href="/reset-password"
+                            className="text-xs hover:underline"
+                          >
+                            Forgot password?
+                          </Link>
+                        </FormLabel>
                         <FormControl>
                           <div className="relative">
                             <Input
                               {...field}
                               type={showPassword ? "text" : "password"}
-                              className={cn("hide-password-toggle pr-10", field.value ? "has-value" : "")}
+                              className={cn(
+                                "hide-password-toggle pr-10",
+                                field.value ? "has-value" : ""
+                              )}
                               aria-describedby="password-strength-desc"
                               placeholder="••••••••"
                             />
@@ -154,14 +190,26 @@ export default function LoginForm() {
                               onClick={() => setShowPassword((prev) => !prev)}
                               disabled={form.formState.isSubmitting}
                               tabIndex={-1}
-                              aria-label={showPassword ? "Hide password" : "Show password"}
+                              aria-label={
+                                showPassword ? "Hide password" : "Show password"
+                              }
                             >
                               {showPassword && !form.formState.isSubmitting ? (
-                                <EyeIcon className="h-4 w-4" aria-hidden="true" />
+                                <EyeIcon
+                                  className="h-4 w-4"
+                                  aria-hidden="true"
+                                />
                               ) : (
-                                <EyeOffIcon className="h-4 w-4" aria-hidden="true" />
+                                <EyeOffIcon
+                                  className="h-4 w-4"
+                                  aria-hidden="true"
+                                />
                               )}
-                              <span className="sr-only">{showPassword ? "Hide password" : "Show password"}</span>
+                              <span className="sr-only">
+                                {showPassword
+                                  ? "Hide password"
+                                  : "Show password"}
+                              </span>
                             </Button>
                           </div>
                         </FormControl>
@@ -184,25 +232,54 @@ export default function LoginForm() {
                                 aria-label="Password strength"
                               >
                                 <div
-                                  className={`h-full ${getStrengthColor(strengthScore)} transition-all duration-500 ease-out`}
-                                  style={{ width: `${(strengthScore / 4) * 100}%` }}
+                                  className={`h-full ${getStrengthColor(
+                                    strengthScore
+                                  )} transition-all duration-500 ease-out`}
+                                  style={{
+                                    width: `${(strengthScore / 4) * 100}%`,
+                                  }}
                                 ></div>
                               </div>
-                              <p id="password-strength-desc" className="text-foreground mb-2 text-sm font-medium">
+                              <p
+                                id="password-strength-desc"
+                                className="text-foreground mb-2 text-sm font-medium"
+                              >
                                 {getStrengthText(strengthScore)}. Must contain:
                               </p>
-                              <ul className="space-y-1.5 mb-2" aria-label="Password requirements">
+                              <ul
+                                className="space-y-1.5 mb-2"
+                                aria-label="Password requirements"
+                              >
                                 {strength.map((req, idx) => (
-                                  <li key={idx} className="flex items-center gap-2">
+                                  <li
+                                    key={idx}
+                                    className="flex items-center gap-2"
+                                  >
                                     {req.met ? (
-                                      <CheckIcon size={16} className="text-emerald-500" aria-hidden="true" />
+                                      <CheckIcon
+                                        size={16}
+                                        className="text-emerald-500"
+                                        aria-hidden="true"
+                                      />
                                     ) : (
-                                      <XIcon size={16} className="text-muted-foreground/80" aria-hidden="true" />
+                                      <XIcon
+                                        size={16}
+                                        className="text-muted-foreground/80"
+                                        aria-hidden="true"
+                                      />
                                     )}
-                                    <span className={`text-xs ${req.met ? "text-emerald-600" : "text-muted-foreground"}`}>
+                                    <span
+                                      className={`text-xs ${
+                                        req.met
+                                          ? "text-emerald-600"
+                                          : "text-muted-foreground"
+                                      }`}
+                                    >
                                       {req.text}
                                       <span className="sr-only">
-                                        {req.met ? " - Requirement met" : " - Requirement not met"}
+                                        {req.met
+                                          ? " - Requirement met"
+                                          : " - Requirement not met"}
                                       </span>
                                     </span>
                                   </li>
@@ -225,8 +302,8 @@ export default function LoginForm() {
                 />
 
                 <Button
-                  variant={'default'}
-                  size={'lg'}
+                  variant={"default"}
+                  size={"lg"}
                   type="submit"
                   disabled={form.formState.isSubmitting || !captchaToken}
                 >
@@ -235,7 +312,7 @@ export default function LoginForm() {
                       <Loader className="ml-2 size-4 animate-spin" />
                     </>
                   ) : (
-                    <>Register</>
+                    <>Login</>
                   )}
                 </Button>
               </form>
@@ -243,7 +320,7 @@ export default function LoginForm() {
           </div>
           <div className="mt-5 text-center">
             <p className="text-sm text-muted-foreground">
-              Don&apos;t have an account?{' '}
+              Don&apos;t have an account?{" "}
               <Link href="/register" className="text-foreground underline">
                 Register
               </Link>

@@ -64,7 +64,10 @@ type MasterOverviewData = {
 };
 
 export default function MasterOverview() {
-  const { data, error, isLoading } = useSWR<MasterOverviewData>("/api/master/overview", fetcher);
+  const { data, error, isLoading } = useSWR<MasterOverviewData>(
+    "/api/master/overview",
+    fetcher
+  );
   const setCurrentBreadcrumbs = useSetAtom(sidebarBreadcrumbs);
   const supabase = createClient();
   const [user, setUser] = useState<User | null>(null);
@@ -93,7 +96,14 @@ export default function MasterOverview() {
   return (
     <div>
       <div className="flex items-start justify-between mb-4">
-        <Heading title={`Welcome Back - ${user?.user_metadata.full_name}`} description="Platform-wide insights and analytics for the entire system." />
+        <Heading
+          title={`Welcome Back - ${
+            user?.user_metadata.full_name
+              ? user?.user_metadata.full_name
+              : "Master"
+          }`}
+          description="Platform-wide insights and analytics for the entire system."
+        />
         <Button className="mb-4">
           <ChartArea className="mr-2 h-4 w-4" /> More Insights
         </Button>
@@ -104,9 +114,21 @@ export default function MasterOverview() {
       {!isLoading && data ? (
         <div className="w-full space-y-8">
           <KeyMetrics data={data} />
-          <DistributionCharts departmentStats={data.departmentStats} eventTypeStats={data.eventTypeStats} />
-          <EventCharts upcomingEvents={data.upcomingEvents} completedEvents={data.completedEvents} cancelledEvents={data.cancelledEvents} userRoleStats={data.userRoleStats} />
-          <RecentActivity recentEvents={data.recentEvents} recentRegistrations={data.recentRegistrations} recentFeedback={data.recentFeedback} />
+          <DistributionCharts
+            departmentStats={data.departmentStats}
+            eventTypeStats={data.eventTypeStats}
+          />
+          <EventCharts
+            upcomingEvents={data.upcomingEvents}
+            completedEvents={data.completedEvents}
+            cancelledEvents={data.cancelledEvents}
+            userRoleStats={data.userRoleStats}
+          />
+          <RecentActivity
+            recentEvents={data.recentEvents}
+            recentRegistrations={data.recentRegistrations}
+            recentFeedback={data.recentFeedback}
+          />
         </div>
       ) : (
         <div className="p-8">
