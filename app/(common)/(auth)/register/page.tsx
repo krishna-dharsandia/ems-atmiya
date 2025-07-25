@@ -6,7 +6,6 @@ import { GalleryVerticalEnd } from "lucide-react";
 import Link from "next/link";
 
 export default function RegisterPage() {
-
   return (
     <div className="bg-muted flex min-h-svh flex-row items-stretch justify-center p-0 md:p-0">
       {/* Left: Register Form (40%) */}
@@ -32,7 +31,8 @@ export default function RegisterPage() {
         <div className="flex flex-col items-start max-w-xl mx-auto">
           <span className="text-6xl opacity-10 leading-none mb-4">“</span>
           <div className="text-2xl font-semibold mb-4">
-            Where has <span className="text-primary">@ems</span> been all my life?{" "}
+            Where has <span className="text-primary">@ems</span> been all my
+            life?{" "}
             <span role="img" aria-label="heart eyes">
               😍
             </span>
@@ -42,7 +42,7 @@ export default function RegisterPage() {
             <Image
               width={40}
               height={40}
-              src="/avatar.png"
+              src="https://i.pravatar.cc/40"
               alt="User avatar"
               className="w-10 h-10 rounded-full bg-muted"
             />
