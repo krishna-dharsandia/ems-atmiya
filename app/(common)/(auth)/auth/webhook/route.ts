@@ -16,11 +16,18 @@ export async function POST(request: NextRequest) {
 
   switch (body.type) {
     case "INSERT": {
-      const { id, email, raw_user_meta_data } = body.record;
+      const { id, email, raw_user_meta_data, raw_app_meta_data } = body.record;
 
-      console.log("Processing INSERT webhook for user:", { id, email, raw_user_meta_data });
-      if (raw_user_meta_data.role !== "STUDENT") {
-        return NextResponse.json({ error: "Invalid role" }, { status: 403 });
+      console.log("Processing INSERT webhook for user:", {
+        id,
+        email,
+        raw_user_meta_data,
+      });
+
+      if (raw_app_meta_data.provider !== "google") {
+        if (raw_user_meta_data.role !== "STUDENT") {
+          return NextResponse.json({ error: "Invalid role" }, { status: 403 });
+        }
       }
 
       const fullName = raw_user_meta_data?.full_name || "";
@@ -30,7 +37,10 @@ export async function POST(request: NextRequest) {
 
       if (!id || !email) {
         console.error("Missing required fields:", { id, email });
-        return NextResponse.json({ error: "Missing required fields" }, { status: 400 });
+        return NextResponse.json(
+          { error: "Missing required fields" },
+          { status: 400 }
+        );
       }
 
       try {
@@ -47,13 +57,16 @@ export async function POST(request: NextRequest) {
           },
           include: {
             students: true,
-          }
+          },
         });
         console.log("Successfully created user and student:", result);
         return NextResponse.json({ success: true }, { status: 200 });
       } catch (error) {
         console.error("Error processing webhook:", error);
-        return NextResponse.json({ error: "Internal server error" }, { status: 500 });
+        return NextResponse.json(
+          { error: "Internal server error" },
+          { status: 500 }
+        );
       } finally {
         await prisma.$disconnect();
         break;
@@ -76,7 +89,10 @@ export async function POST(request: NextRequest) {
         return NextResponse.json({ success: true }, { status: 200 });
       } catch (error) {
         console.error("Error processing webhook:", error);
-        return NextResponse.json({ error: "Internal server error" }, { status: 500 });
+        return NextResponse.json(
+          { error: "Internal server error" },
+          { status: 500 }
+        );
       } finally {
         await prisma.$disconnect();
         break;
