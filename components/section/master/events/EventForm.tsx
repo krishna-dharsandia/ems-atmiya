@@ -1218,6 +1218,7 @@ export default function EventForm() {
                           </PopoverTrigger>
                           <PopoverContent className="w-auto p-0" align="start">
                             <Calendar
+                              captionLayout="dropdown"
                               mode="range"
                               selected={{
                                 from: field.value,
