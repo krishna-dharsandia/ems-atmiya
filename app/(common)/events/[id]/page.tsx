@@ -6,7 +6,23 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Calendar, Clock, MapPin, Share2, Tag, Ticket, Users, Star, ExternalLink, CheckCircle, AlertCircle, User, Mail, Globe, Circle } from "lucide-react";
+import {
+  Calendar,
+  Clock,
+  MapPin,
+  Share2,
+  Tag,
+  Ticket,
+  Users,
+  Star,
+  ExternalLink,
+  CheckCircle,
+  AlertCircle,
+  User,
+  Mail,
+  Globe,
+  Circle,
+} from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import { fetcher } from "@/fetcher";
@@ -16,9 +32,30 @@ import { createClient } from "@/utils/supabase/client";
 import { format } from "date-fns";
 import { useParams } from "next/navigation";
 import { useState } from "react";
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { FacebookIcon, FacebookShareButton, TwitterShareButton, TwitterIcon, WhatsappShareButton, WhatsappIcon, LinkedinShareButton, LinkedinIcon, EmailShareButton, EmailIcon } from "react-share";
-import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import {
+  FacebookIcon,
+  FacebookShareButton,
+  TwitterShareButton,
+  TwitterIcon,
+  WhatsappShareButton,
+  WhatsappIcon,
+  LinkedinShareButton,
+  LinkedinIcon,
+  EmailShareButton,
+  EmailIcon,
+} from "react-share";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 import { registerInEventAction } from "@/components/section/events/registerInEventAction";
 import { toast } from "sonner";
 
@@ -40,7 +77,7 @@ type EventWithSpeakers = Event & {
 
 function LoadingSkeleton() {
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-white">
+    <div className="min-h-screen">
       <div className="container mx-auto px-4 py-8 pt-32">
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           <div className="lg:col-span-2 space-y-8">
@@ -62,7 +99,7 @@ function LoadingSkeleton() {
 
 function ErrorState({ message }: { message: string }) {
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-white flex items-center justify-center">
+    <div className="min-h-screen flex items-center justify-center">
       <Card className="max-w-md mx-auto">
         <CardContent className="pt-6 text-center">
           <AlertCircle className="h-12 w-12 text-red-500 mx-auto mb-4" />
@@ -95,7 +132,11 @@ export default function Page() {
       setLoading(false);
     }
   };
-  const { data: event, error, isLoading } = useSWR<EventWithSpeakers>(`/api/events/${id}`, fetcher);
+  const {
+    data: event,
+    error,
+    isLoading,
+  } = useSWR<EventWithSpeakers>(`/api/events/${id}`, fetcher);
 
   const supabase = createClient();
 
@@ -104,7 +145,9 @@ export default function Page() {
   };
 
   if (error) {
-    return <ErrorState message="Failed to load event details. Please try again later." />;
+    return (
+      <ErrorState message="Failed to load event details. Please try again later." />
+    );
   }
 
   if (isLoading || !event) {
@@ -143,25 +186,48 @@ export default function Page() {
 
   return (
     <>
-      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-slate-50">
+      <div className="min-h-screen">
         {/* Hero Section */}
         <div className="relative">
           <div className="absolute inset-0 bg-gradient-to-r from-black/60 via-black/40 to-black/60 z-10" />
           <div className="relative h-[70vh] overflow-hidden">
-            <Image src={publicUrl || "/placeholder.svg"} alt={event.name} fill className="object-cover" priority />
+            <Image
+              src={publicUrl || "/placeholder.svg"}
+              alt={event.name}
+              fill
+              className="object-cover"
+              priority
+            />
           </div>
           <div className="absolute inset-0 z-20 flex items-end">
             <div className="container mx-auto px-4 pb-16">
               <div className="max-w-4xl">
                 <div className="flex flex-wrap gap-3 mb-6">
-                  <Badge className={`${getStatusColor(event.status)} font-medium px-3 py-1`}>{event.status}</Badge>
-                  <Badge className={`${getModeColor(event.mode)} font-medium px-3 py-1`}>{event.mode}</Badge>
-                  <Badge variant="secondary" className="bg-white/20 text-white border-white/30 font-medium px-3 py-1">
+                  <Badge
+                    className={`${getStatusColor(
+                      event.status
+                    )} font-medium px-3 py-1`}
+                  >
+                    {event.status}
+                  </Badge>
+                  <Badge
+                    className={`${getModeColor(
+                      event.mode
+                    )} font-medium px-3 py-1`}
+                  >
+                    {event.mode}
+                  </Badge>
+                  <Badge
+                    variant="secondary"
+                    className="bg-white/20 text-white border-white/30 font-medium px-3 py-1"
+                  >
                     {event.event_type}
                   </Badge>
                 </div>
 
-                <h1 className="text-4xl md:text-6xl font-bold text-white mb-6 leading-tight">{event.name}</h1>
+                <h1 className="text-4xl md:text-6xl font-bold text-white mb-6 leading-tight">
+                  {event.name}
+                </h1>
 
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-6 text-white">
                   <div className="flex items-center gap-3">
@@ -171,7 +237,15 @@ export default function Page() {
                     <div>
                       <p className="text-sm opacity-90">Date</p>
                       <p className="font-semibold">
-                        {event.end_date ? `${format(new Date(event.start_date), "MMM dd")} - ${format(new Date(event.end_date), "MMM dd, yyyy")}` : format(new Date(event.start_date), "MMM dd, yyyy")}
+                        {event.end_date
+                          ? `${format(
+                              new Date(event.start_date),
+                              "MMM dd"
+                            )} - ${format(
+                              new Date(event.end_date),
+                              "MMM dd, yyyy"
+                            )}`
+                          : format(new Date(event.start_date), "MMM dd, yyyy")}
                       </p>
                     </div>
                   </div>
@@ -183,7 +257,12 @@ export default function Page() {
                     <div>
                       <p className="text-sm opacity-90">Time</p>
                       <p className="font-semibold">
-                        {event.end_time ? `${format(new Date(event.start_time), "hh:mm a")} - ${format(new Date(event.end_time), "hh:mm a")}` : format(new Date(event.start_time), "hh:mm a")}
+                        {event.end_time
+                          ? `${format(
+                              new Date(event.start_time),
+                              "hh:mm a"
+                            )} - ${format(new Date(event.end_time), "hh:mm a")}`
+                          : format(new Date(event.start_time), "hh:mm a")}
                       </p>
                     </div>
                   </div>
@@ -209,12 +288,16 @@ export default function Page() {
             {/* Left Column - Main Content */}
             <div className="lg:col-span-2 space-y-8">
               {/* About Section */}
-              <Card className="border-0 shadow-lg bg-white/80 backdrop-blur-sm">
+              <Card>
                 <CardHeader>
-                  <CardTitle className="text-2xl font-bold">About This Event</CardTitle>
+                  <CardTitle className="text-2xl font-bold">
+                    About This Event
+                  </CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-6">
-                  <p className="text-lg leading-relaxed text-muted-foreground">{event.description}</p>
+                  <p className="text-lg leading-relaxed text-muted-foreground">
+                    {event.description}
+                  </p>
 
                   {event.key_highlights && event.key_highlights.length > 0 && (
                     <div>
@@ -226,7 +309,9 @@ export default function Page() {
                         {event.key_highlights.map((highlight, idx) => (
                           <li key={idx} className="flex items-start gap-3">
                             <CheckCircle className="h-5 w-5 text-green-500 mt-0.5 flex-shrink-0" />
-                            <span className="text-muted-foreground">{highlight}</span>
+                            <span className="text-muted-foreground">
+                              {highlight}
+                            </span>
                           </li>
                         ))}
                       </ul>
@@ -243,7 +328,11 @@ export default function Page() {
 
                   <div className="flex flex-wrap gap-2">
                     {event.tags.map((tag) => (
-                      <Badge key={tag} variant="secondary" className="px-3 py-1">
+                      <Badge
+                        key={tag}
+                        variant="secondary"
+                        className="px-3 py-1"
+                      >
                         <Tag className="mr-1 h-3 w-3" />
                         {tag}
                       </Badge>
@@ -254,7 +343,7 @@ export default function Page() {
 
               {/* Speakers Section */}
               {event.speakers && event.speakers.length > 0 && (
-                <Card className="border-0 shadow-lg bg-white/80 backdrop-blur-sm">
+                <Card>
                   <CardHeader>
                     <CardTitle className="text-2xl font-bold flex items-center gap-2">
                       <Users className="h-6 w-6" />
@@ -268,14 +357,22 @@ export default function Page() {
                         if (speaker.photo_url) {
                           const {
                             data: { publicUrl },
-                          } = supabase.storage.from("event-speakers").getPublicUrl(speaker.photo_url);
+                          } = supabase.storage
+                            .from("event-speakers")
+                            .getPublicUrl(speaker.photo_url);
                           speakerPublicUrl = publicUrl;
                         }
 
                         return (
-                          <div key={speaker.id} className="flex gap-4 p-4 rounded-xl bg-gradient-to-r from-slate-50 to-white border">
+                          <div
+                            key={speaker.id}
+                            className="flex gap-4 p-4 rounded-xl border"
+                          >
                             <Avatar className="h-16 w-16">
-                              <AvatarImage src={speakerPublicUrl || "/placeholder.svg"} alt={speaker.name} />
+                              <AvatarImage
+                                src={speakerPublicUrl || "/placeholder.svg"}
+                                alt={speaker.name}
+                              />
                               <AvatarFallback className="bg-primary text-primary-foreground text-lg">
                                 {speaker.name
                                   .split(" ")
@@ -284,8 +381,14 @@ export default function Page() {
                               </AvatarFallback>
                             </Avatar>
                             <div className="flex-1">
-                              <h4 className="font-semibold text-lg">{speaker.name}</h4>
-                              {speaker.bio && <p className="text-muted-foreground text-sm mt-1 leading-relaxed">{speaker.bio}</p>}
+                              <h4 className="font-semibold text-lg">
+                                {speaker.name}
+                              </h4>
+                              {speaker.bio && (
+                                <p className="text-muted-foreground text-sm mt-1 leading-relaxed">
+                                  {speaker.bio}
+                                </p>
+                              )}
                             </div>
                           </div>
                         );
@@ -297,18 +400,31 @@ export default function Page() {
 
               {/* Registration & Feedback */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <Card className="border-0 shadow-lg bg-white/80 backdrop-blur-sm">
+                <Card>
                   <CardHeader>
-                    <CardTitle className="text-xl font-bold">Registration Details</CardTitle>
+                    <CardTitle className="text-xl font-bold">
+                      Registration Details
+                    </CardTitle>
                   </CardHeader>
                   <CardContent className="space-y-4">
                     <div className="flex items-center justify-between">
                       <span className="text-muted-foreground">Required</span>
-                      <Badge variant={event.registration_required ? "default" : "secondary"}>{event.registration_required ? "Yes" : "No"}</Badge>
+                      <Badge
+                        variant={
+                          event.registration_required ? "default" : "secondary"
+                        }
+                      >
+                        {event.registration_required ? "Yes" : "No"}
+                      </Badge>
                     </div>
 
                     {event.registration_link && (
-                      <Link href={event.registration_link} target="_blank" rel="noopener" className="flex items-center gap-2 text-primary hover:underline">
+                      <Link
+                        href={event.registration_link}
+                        target="_blank"
+                        rel="noopener"
+                        className="flex items-center gap-2 text-primary hover:underline"
+                      >
                         <ExternalLink className="h-4 w-4" />
                         Register Here
                       </Link>
@@ -317,24 +433,37 @@ export default function Page() {
                     {event.registration_limit && (
                       <div className="flex items-center justify-between">
                         <span className="text-muted-foreground">Limit</span>
-                        <span className="font-semibold">{event.registration_limit}</span>
+                        <span className="font-semibold">
+                          {event.registration_limit}
+                        </span>
                       </div>
                     )}
 
                     <div className="flex items-center justify-between">
-                      <span className="text-muted-foreground">Current Registrations</span>
-                      <span className="font-semibold">{event.current_registration_count}</span>
+                      <span className="text-muted-foreground">
+                        Current Registrations
+                      </span>
+                      <span className="font-semibold">
+                        {event.current_registration_count}
+                      </span>
                     </div>
                   </CardContent>
                 </Card>
 
-                <Card className="border-0 shadow-lg bg-white/80 backdrop-blur-sm">
+                <Card>
                   <CardHeader>
-                    <CardTitle className="text-xl font-bold">Event Feedback</CardTitle>
+                    <CardTitle className="text-xl font-bold">
+                      Event Feedback
+                    </CardTitle>
                   </CardHeader>
                   <CardContent className="space-y-4">
                     {event.feedback_form_link && (
-                      <Link href={event.feedback_form_link} target="_blank" rel="noopener" className="flex items-center gap-2 text-primary hover:underline">
+                      <Link
+                        href={event.feedback_form_link}
+                        target="_blank"
+                        rel="noopener"
+                        className="flex items-center gap-2 text-primary hover:underline"
+                      >
                         <ExternalLink className="h-4 w-4" />
                         Give Feedback
                       </Link>
@@ -342,11 +471,18 @@ export default function Page() {
 
                     <div className="flex items-center justify-between">
                       <span className="text-muted-foreground">Score</span>
-                      <span className="font-semibold">{event.feedback_score ?? "N/A"}</span>
+                      <span className="font-semibold">
+                        {event.feedback_score ?? "N/A"}
+                      </span>
                     </div>
 
                     {event.recording_link && (
-                      <Link href={event.recording_link} target="_blank" rel="noopener" className="flex items-center gap-2 text-primary hover:underline">
+                      <Link
+                        href={event.recording_link}
+                        target="_blank"
+                        rel="noopener"
+                        className="flex items-center gap-2 text-primary hover:underline"
+                      >
                         <ExternalLink className="h-4 w-4" />
                         Watch Recording
                       </Link>
@@ -356,7 +492,7 @@ export default function Page() {
               </div>
 
               {/* Organizer Info */}
-              <Card className="border-0 shadow-lg bg-white/80 backdrop-blur-sm">
+              <Card>
                 <CardHeader>
                   <CardTitle className="text-xl font-bold flex items-center gap-2">
                     <User className="h-5 w-5" />
@@ -367,12 +503,18 @@ export default function Page() {
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div className="space-y-3">
                       <div>
-                        <p className="text-sm text-muted-foreground">Organizer</p>
-                        <p className="font-semibold text-lg">{event.organizer_name}</p>
+                        <p className="text-sm text-muted-foreground">
+                          Organizer
+                        </p>
+                        <p className="font-semibold text-lg">
+                          {event.organizer_name}
+                        </p>
                       </div>
                       <div className="flex items-center gap-2">
                         <Mail className="h-4 w-4 text-muted-foreground" />
-                        <span className="text-muted-foreground">{event.organizer_contact}</span>
+                        <span className="text-muted-foreground">
+                          {event.organizer_contact}
+                        </span>
                       </div>
                     </div>
                     <div className="space-y-3 text-sm">
@@ -382,11 +524,15 @@ export default function Page() {
                       </div>
                       <div>
                         <p className="text-muted-foreground">Created</p>
-                        <p className="font-medium">{format(new Date(event.created_at), "MMM dd, yyyy")}</p>
+                        <p className="font-medium">
+                          {format(new Date(event.created_at), "MMM dd, yyyy")}
+                        </p>
                       </div>
                       <div>
                         <p className="text-muted-foreground">Last updated</p>
-                        <p className="font-medium">{format(new Date(event.updated_at), "MMM dd, yyyy")}</p>
+                        <p className="font-medium">
+                          {format(new Date(event.updated_at), "MMM dd, yyyy")}
+                        </p>
                       </div>
                     </div>
                   </div>
@@ -397,20 +543,31 @@ export default function Page() {
             {/* Right Column - Ticket Info */}
             <div className="lg:col-span-1">
               <div className="sticky top-8">
-                <Card className="border-0 shadow-xl bg-white/90 backdrop-blur-sm">
+                <Card>
                   <CardContent className="p-8">
                     <div className="text-center mb-6">
-                      <div className="text-4xl font-bold text-primary mb-2">{event.ticket_price ? `₹${event.ticket_price}` : "Free"}</div>
+                      <div className="text-4xl font-bold text-primary mb-2">
+                        {event.ticket_price ? `₹${event.ticket_price}` : "Free"}
+                      </div>
                       <p className="text-muted-foreground">per ticket</p>
                     </div>
 
                     <div className="space-y-4 mb-6 flex flex-col gap-0.5">
-                      <Button size="lg" className="w-full text-lg font-semibold h-12" onClick={() => setConfirmOpen(true)}>
+                      <Button
+                        size="lg"
+                        className="w-full text-lg font-semibold h-12"
+                        onClick={() => setConfirmOpen(true)}
+                      >
                         <Ticket className="mr-2 h-5 w-5" />
                         Get Tickets
                       </Button>
 
-                      <Button variant="outline" size="lg" className="w-full h-12 bg-transparent" onClick={handleShare}>
+                      <Button
+                        variant="outline"
+                        size="lg"
+                        className="w-full h-12 bg-transparent"
+                        onClick={handleShare}
+                      >
                         <Share2 className="mr-2 h-4 w-4" />
                         Share Event
                       </Button>
@@ -428,8 +585,17 @@ export default function Page() {
                             <p className="font-medium">Date</p>
                             <p className="text-muted-foreground">
                               {event.end_date
-                                ? `${format(new Date(event.start_date), "MMM dd")} - ${format(new Date(event.end_date), "MMM dd, yyyy")}`
-                                : format(new Date(event.start_date), "MMM dd, yyyy")}
+                                ? `${format(
+                                    new Date(event.start_date),
+                                    "MMM dd"
+                                  )} - ${format(
+                                    new Date(event.end_date),
+                                    "MMM dd, yyyy"
+                                  )}`
+                                : format(
+                                    new Date(event.start_date),
+                                    "MMM dd, yyyy"
+                                  )}
                             </p>
                           </div>
                         </div>
@@ -439,7 +605,15 @@ export default function Page() {
                           <div>
                             <p className="font-medium">Time</p>
                             <p className="text-muted-foreground">
-                              {event.end_time ? `${format(new Date(event.start_time), "hh:mm a")} - ${format(new Date(event.end_time), "hh:mm a")}` : format(new Date(event.start_time), "hh:mm a")}
+                              {event.end_time
+                                ? `${format(
+                                    new Date(event.start_time),
+                                    "hh:mm a"
+                                  )} - ${format(
+                                    new Date(event.end_time),
+                                    "hh:mm a"
+                                  )}`
+                                : format(new Date(event.start_time), "hh:mm a")}
                             </p>
                           </div>
                         </div>
@@ -448,7 +622,9 @@ export default function Page() {
                           <MapPin className="h-4 w-4 text-primary mt-0.5 flex-shrink-0" />
                           <div>
                             <p className="font-medium">Location</p>
-                            <p className="text-muted-foreground">{event.address}</p>
+                            <p className="text-muted-foreground">
+                              {event.address}
+                            </p>
                           </div>
                         </div>
 
@@ -456,7 +632,11 @@ export default function Page() {
                           <Globe className="h-4 w-4 text-primary mt-0.5 flex-shrink-0" />
                           <div>
                             <p className="font-medium">Mode</p>
-                            <Badge className={`${getModeColor(event.mode)} text-xs`}>{event.mode}</Badge>
+                            <Badge
+                              className={`${getModeColor(event.mode)} text-xs`}
+                            >
+                              {event.mode}
+                            </Badge>
                           </div>
                         </div>
 
@@ -464,7 +644,9 @@ export default function Page() {
                           <Users className="h-4 w-4 text-primary mt-0.5 flex-shrink-0" />
                           <div>
                             <p className="font-medium">Organizer</p>
-                            <p className="text-muted-foreground">{event.organizer_name}</p>
+                            <p className="text-muted-foreground">
+                              {event.organizer_name}
+                            </p>
                           </div>
                         </div>
                       </div>
@@ -481,13 +663,19 @@ export default function Page() {
         <DialogContent className="max-w-sm m-2 bg-white/30 backdrop-blur-lg border border-white/40 shadow-lg rounded-xl">
           <DialogHeader>
             <DialogTitle>Share Event</DialogTitle>
-            <DialogDescription>Share this event with your friends and colleagues via email or social media.</DialogDescription>
+            <DialogDescription>
+              Share this event with your friends and colleagues via email or
+              social media.
+            </DialogDescription>
           </DialogHeader>
           <div className="flex justify-around mt-4">
             {/* ...existing code for share buttons... */}
             <Tooltip>
               <TooltipTrigger asChild>
-                <FacebookShareButton url={window.location.href} hashtag="#atmiyauniversity">
+                <FacebookShareButton
+                  url={window.location.href}
+                  hashtag="#atmiyauniversity"
+                >
                   <Button variant="outline" size={"icon"}>
                     <FacebookIcon borderRadius={18} />
                   </Button>
@@ -497,7 +685,11 @@ export default function Page() {
             </Tooltip>
             <Tooltip>
               <TooltipTrigger asChild>
-                <TwitterShareButton url={window.location.href} title={event.name} hashtags={["atmiyauniversity"]}>
+                <TwitterShareButton
+                  url={window.location.href}
+                  title={event.name}
+                  hashtags={["atmiyauniversity"]}
+                >
                   <Button variant="outline" size={"icon"}>
                     <TwitterIcon borderRadius={18} />
                   </Button>
@@ -507,7 +699,11 @@ export default function Page() {
             </Tooltip>
             <Tooltip>
               <TooltipTrigger asChild>
-                <LinkedinShareButton url={window.location.href} title={event.name} summary={event.description}>
+                <LinkedinShareButton
+                  url={window.location.href}
+                  title={event.name}
+                  summary={event.description}
+                >
                   <Button variant="outline" size={"icon"}>
                     <LinkedinIcon borderRadius={18} />
                   </Button>
@@ -517,7 +713,11 @@ export default function Page() {
             </Tooltip>
             <Tooltip>
               <TooltipTrigger asChild>
-                <EmailShareButton url={window.location.href} subject={event.name} body={event.description}>
+                <EmailShareButton
+                  url={window.location.href}
+                  subject={event.name}
+                  body={event.description}
+                >
                   <Button variant="outline" size={"icon"}>
                     <EmailIcon borderRadius={18} />
                   </Button>
@@ -527,7 +727,10 @@ export default function Page() {
             </Tooltip>
             <Tooltip>
               <TooltipTrigger asChild>
-                <WhatsappShareButton url={window.location.href} title={event.name}>
+                <WhatsappShareButton
+                  url={window.location.href}
+                  title={event.name}
+                >
                   <Button variant="outline" size={"icon"}>
                     <WhatsappIcon borderRadius={18} />
                   </Button>
@@ -540,14 +743,23 @@ export default function Page() {
       </Dialog>
 
       {/* Confirm Get Ticket Dialog */}
-      <Dialog open={confirmOpen} onOpenChange={loading ? undefined : setConfirmOpen}>
+      <Dialog
+        open={confirmOpen}
+        onOpenChange={loading ? undefined : setConfirmOpen}
+      >
         <DialogContent className="max-w-sm m-2 bg-white/30 backdrop-blur-lg border border-white/40 shadow-lg rounded-xl">
           <DialogHeader>
             <DialogTitle>Confirm Ticket</DialogTitle>
-            <DialogDescription>Are you sure you want to get a ticket for this event?</DialogDescription>
+            <DialogDescription>
+              Are you sure you want to get a ticket for this event?
+            </DialogDescription>
           </DialogHeader>
           <div className="flex justify-end gap-2 mt-4">
-            <Button variant="outline" onClick={() => setConfirmOpen(false)} disabled={loading}>
+            <Button
+              variant="outline"
+              onClick={() => setConfirmOpen(false)}
+              disabled={loading}
+            >
               Cancel
             </Button>
             <Button onClick={handleGetTicket} disabled={loading}>

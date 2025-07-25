@@ -31,14 +31,32 @@ import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Calendar } from "@/components/ui/calendar";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Progress } from "@/components/ui/progress";
-import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import {
+  Form,
+  FormControl,
+  FormDescription,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
 import { cn } from "@/lib/utils";
 import { createClient } from "@/utils/supabase/client";
 import { toast } from "sonner";
@@ -90,11 +108,17 @@ export default function EventForm() {
   const [keyHighlights, setKeyHighlights] = useState<string[]>([""]);
   const [tags, setTags] = useState<string[]>([]);
   const [newTag, setNewTag] = useState("");
-  const [speakers, setSpeakers] = useState<EventSpeakerSchema[]>([{ name: "", bio: "", photo_url: "" }]);
+  const [speakers, setSpeakers] = useState<EventSpeakerSchema[]>([
+    { name: "", bio: "", photo_url: "" },
+  ]);
   const [posterFile, setPosterFile] = useState<File | null>(null);
   const [posterPreview, setPosterPreview] = useState<string>("");
-  const [speakerFiles, setSpeakerFiles] = useState<{ [key: number]: File | null }>({});
-  const [speakerPreviews, setSpeakerPreviews] = useState<{ [key: number]: string }>({});
+  const [speakerFiles, setSpeakerFiles] = useState<{
+    [key: number]: File | null;
+  }>({});
+  const [speakerPreviews, setSpeakerPreviews] = useState<{
+    [key: number]: string;
+  }>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const form = useForm({
@@ -139,7 +163,9 @@ export default function EventForm() {
       setIsSubmitting(true);
 
       // Ensure we have valid key highlights
-      const validHighlights = keyHighlights.filter((highlight) => highlight.trim() !== "");
+      const validHighlights = keyHighlights.filter(
+        (highlight) => highlight.trim() !== ""
+      );
       if (validHighlights.length === 0) {
         validHighlights.push("Event details to be announced");
       }
@@ -163,7 +189,12 @@ export default function EventForm() {
       }
 
       const posterId = v4();
-      const { error } = await supabase.storage.from("event-posters").upload(`posters/${posterId.toString()}.${posterFile.name.split(".").pop()}`, posterFile as File);
+      const { error } = await supabase.storage
+        .from("event-posters")
+        .upload(
+          `posters/${posterId.toString()}.${posterFile.name.split(".").pop()}`,
+          posterFile as File
+        );
 
       if (error) {
         toast.error("Failed to upload poster image");
@@ -174,10 +205,19 @@ export default function EventForm() {
       for (const [index, file] of Object.entries(speakerFiles)) {
         if (file) {
           const speakersId = v4();
-          const { error: speakerPhotoError } = await supabase.storage.from("event-speakers").upload(`speakers/${speakersId}.${file.name.split(".").pop()}`, file);
+          const { error: speakerPhotoError } = await supabase.storage
+            .from("event-speakers")
+            .upload(
+              `speakers/${speakersId}.${file.name.split(".").pop()}`,
+              file
+            );
 
           if (speakerPhotoError) {
-            toast.error(`Failed to upload photo for speaker ${speakers[Number(index)].name}`);
+            toast.error(
+              `Failed to upload photo for speaker ${
+                speakers[Number(index)].name
+              }`
+            );
           }
           speakerPhotoUrls[Number(index)] = `speakers/${speakersId}.jpg`;
         }
@@ -296,13 +336,19 @@ export default function EventForm() {
     }
   };
 
-  const updateSpeaker = (index: number, field: keyof EventSpeakerSchema, value: string) => {
+  const updateSpeaker = (
+    index: number,
+    field: keyof EventSpeakerSchema,
+    value: string
+  ) => {
     const updatedSpeakers = [...speakers];
     updatedSpeakers[index] = { ...updatedSpeakers[index], [field]: value };
     setSpeakers(updatedSpeakers);
 
     // Update form value with valid speakers (those with names)
-    const validSpeakers = updatedSpeakers.filter((speaker) => speaker.name.trim() !== "");
+    const validSpeakers = updatedSpeakers.filter(
+      (speaker) => speaker.name.trim() !== ""
+    );
     form.setValue("speakers", validSpeakers);
 
     // Clear any previous speaker-related errors
@@ -353,7 +399,10 @@ export default function EventForm() {
     setSpeakerFiles((prev) => ({ ...prev, [speakerIndex]: file }));
     const reader = new FileReader();
     reader.onloadend = () => {
-      setSpeakerPreviews((prev) => ({ ...prev, [speakerIndex]: reader.result as string }));
+      setSpeakerPreviews((prev) => ({
+        ...prev,
+        [speakerIndex]: reader.result as string,
+      }));
       updateSpeaker(speakerIndex, "photo_url", reader.result as string);
     };
     reader.readAsDataURL(file);
@@ -366,7 +415,10 @@ export default function EventForm() {
 
     // Basic required fields
     if (!formValues.name?.trim()) {
-      form.setError("name", { type: "manual", message: "Event name is required" });
+      form.setError("name", {
+        type: "manual",
+        message: "Event name is required",
+      });
       isValid = false;
     }
 
@@ -376,7 +428,8 @@ export default function EventForm() {
     } else if (!/^[a-z0-9-]+$/.test(formValues.slug)) {
       form.setError("slug", {
         type: "manual",
-        message: "Slug must contain only lowercase letters, numbers, and hyphens",
+        message:
+          "Slug must contain only lowercase letters, numbers, and hyphens",
       });
       isValid = false;
     }
@@ -391,7 +444,10 @@ export default function EventForm() {
 
     // Poster image validation
     if (!posterFile && !formValues.poster_url) {
-      form.setError("poster_url", { type: "manual", message: "Event poster is required" });
+      form.setError("poster_url", {
+        type: "manual",
+        message: "Event poster is required",
+      });
       isValid = false;
     }
 
@@ -421,7 +477,11 @@ export default function EventForm() {
     }
 
     // Date and time validations
-    if (formValues.end_date && formValues.start_date && new Date(formValues.end_date) < new Date(formValues.start_date)) {
+    if (
+      formValues.end_date &&
+      formValues.start_date &&
+      new Date(formValues.end_date) < new Date(formValues.start_date)
+    ) {
       form.setError("end_date", {
         type: "manual",
         message: "End date cannot be earlier than start date",
@@ -429,7 +489,11 @@ export default function EventForm() {
       isValid = false;
     }
 
-    if (formValues.end_time && formValues.start_time && new Date(formValues.end_time) < new Date(formValues.start_time)) {
+    if (
+      formValues.end_time &&
+      formValues.start_time &&
+      new Date(formValues.end_time) < new Date(formValues.start_time)
+    ) {
       form.setError("end_time", {
         type: "manual",
         message: "End time cannot be earlier than start time",
@@ -461,7 +525,9 @@ export default function EventForm() {
       {/* Header */}
       <div className="text-center space-y-2">
         <h1 className="text-3xl font-bold tracking-tight">Create New Event</h1>
-        <p className="text-muted-foreground">Follow the steps below to create a comprehensive event</p>
+        <p className="text-muted-foreground">
+          Follow the steps below to create a comprehensive event
+        </p>
       </div>
 
       {/* Progress Bar */}
@@ -490,21 +556,39 @@ export default function EventForm() {
               disabled={false}
               className={cn(
                 "group relative p-4 rounded-xl border text-left transition-all duration-300 hover:shadow-lg focus:outline-none focus:ring-2 focus:ring-primary/20 cursor-pointer",
-                isCurrent && ["border-primary bg-gradient-to-br from-primary/10 to-primary/5", "shadow-md ring-2 ring-primary/10"],
-                isCompleted && !isCurrent && ["border-green-500 bg-gradient-to-br from-green-50 to-emerald-50", "hover:border-green-600 hover:shadow-green-100"],
-                !isCurrent && !isCompleted && ["border-border bg-background", "hover:border-muted-foreground/40 hover:bg-muted/30"]
+                isCurrent && [
+                  "border-primary bg-gradient-to-br from-primary/10 to-primary/5",
+                  "shadow-md ring-2 ring-primary/10",
+                ],
+                isCompleted &&
+                  !isCurrent && [
+                    "border-green-500 bg-gradient-to-br from-green-50 to-emerald-50",
+                    "hover:border-green-600 hover:shadow-green-100",
+                  ],
+                !isCurrent &&
+                  !isCompleted && [
+                    "border-border bg-background",
+                    "hover:border-muted-foreground/40 hover:bg-muted/30",
+                  ]
               )}
             >
               {/* Step Number Badge */}
               <div
                 className={cn(
                   "absolute -top-2 -left-2 w-6 h-6 rounded-full border-2 flex items-center justify-center text-xs font-bold transition-colors",
-                  isCurrent && "bg-primary text-primary-foreground border-primary",
+                  isCurrent &&
+                    "bg-primary text-primary-foreground border-primary",
                   isCompleted && "bg-green-500 text-white border-green-500",
-                  !isCurrent && !isCompleted && "bg-muted text-muted-foreground border-muted-foreground/20"
+                  !isCurrent &&
+                    !isCompleted &&
+                    "bg-muted text-muted-foreground border-muted-foreground/20"
                 )}
               >
-                {isCompleted ? <CheckIcon className="h-3 w-3" /> : <span>{step.id}</span>}
+                {isCompleted ? (
+                  <CheckIcon className="h-3 w-3" />
+                ) : (
+                  <span>{step.id}</span>
+                )}
               </div>
 
               {/* Icon and Title */}
@@ -514,7 +598,9 @@ export default function EventForm() {
                     "flex items-center justify-center w-8 h-8 rounded-lg transition-colors",
                     isCurrent && "bg-primary/10 text-primary",
                     isCompleted && "bg-green-100 text-green-600",
-                    !isCurrent && !isCompleted && "bg-muted/50 text-muted-foreground group-hover:bg-muted"
+                    !isCurrent &&
+                      !isCompleted &&
+                      "bg-muted/50 text-muted-foreground group-hover:bg-muted"
                   )}
                 >
                   <Icon className="h-4 w-4" />
@@ -525,7 +611,9 @@ export default function EventForm() {
                       "font-semibold text-sm leading-tight transition-colors",
                       isCurrent && "text-primary",
                       isCompleted && "text-green-700",
-                      !isCurrent && !isCompleted && "text-foreground group-hover:text-foreground"
+                      !isCurrent &&
+                        !isCompleted &&
+                        "text-foreground group-hover:text-foreground"
                     )}
                   >
                     {step.title}
@@ -539,7 +627,9 @@ export default function EventForm() {
                   "text-xs leading-relaxed transition-colors hidden sm:block",
                   isCurrent && "text-primary/70",
                   isCompleted && "text-green-600/70",
-                  !isCurrent && !isCompleted && "text-muted-foreground group-hover:text-muted-foreground/80"
+                  !isCurrent &&
+                    !isCompleted &&
+                    "text-muted-foreground group-hover:text-muted-foreground/80"
                 )}
               >
                 {step.description}
@@ -549,8 +639,10 @@ export default function EventForm() {
               <div
                 className={cn(
                   "absolute bottom-0 left-0 h-1 rounded-b-xl transition-all duration-500",
-                  isCurrent && "w-full bg-gradient-to-r from-primary/60 to-primary",
-                  isCompleted && "w-full bg-gradient-to-r from-green-400 to-green-500",
+                  isCurrent &&
+                    "w-full bg-gradient-to-r from-primary/60 to-primary",
+                  isCompleted &&
+                    "w-full bg-gradient-to-r from-green-400 to-green-500",
                   !isCurrent && !isCompleted && "w-0 bg-muted-foreground/20"
                 )}
               />
@@ -593,15 +685,55 @@ export default function EventForm() {
                 const errorKeys = Object.keys(errors);
                 if (errorKeys.length > 0) {
                   // Navigation logic based on error fields
-                  if (errorKeys.some((k) => ["name", "slug", "description", "poster_url", "key_highlights", "note"].includes(k))) {
+                  if (
+                    errorKeys.some((k) =>
+                      [
+                        "name",
+                        "slug",
+                        "description",
+                        "poster_url",
+                        "key_highlights",
+                        "note",
+                      ].includes(k)
+                    )
+                  ) {
                     setCurrentStep(1);
-                  } else if (errorKeys.some((k) => ["mode", "event_type", "status", "address", "organizer_name", "organizer_contact"].includes(k))) {
+                  } else if (
+                    errorKeys.some((k) =>
+                      [
+                        "mode",
+                        "event_type",
+                        "status",
+                        "address",
+                        "organizer_name",
+                        "organizer_contact",
+                      ].includes(k)
+                    )
+                  ) {
                     setCurrentStep(2);
-                  } else if (errorKeys.some((k) => ["start_date", "end_date", "start_time", "end_time"].includes(k))) {
+                  } else if (
+                    errorKeys.some((k) =>
+                      [
+                        "start_date",
+                        "end_date",
+                        "start_time",
+                        "end_time",
+                      ].includes(k)
+                    )
+                  ) {
                     setCurrentStep(3);
                   } else if (errorKeys.some((k) => k.startsWith("speakers"))) {
                     setCurrentStep(4);
-                  } else if (errorKeys.some((k) => ["registration_required", "registration_link", "is_paid", "ticket_price"].includes(k))) {
+                  } else if (
+                    errorKeys.some((k) =>
+                      [
+                        "registration_required",
+                        "registration_link",
+                        "is_paid",
+                        "ticket_price",
+                      ].includes(k)
+                    )
+                  ) {
                     setCurrentStep(5);
                   } else {
                     setCurrentStep(6);
@@ -615,10 +747,14 @@ export default function EventForm() {
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
-                {currentStepData && <currentStepData.icon className="h-5 w-5" />}
+                {currentStepData && (
+                  <currentStepData.icon className="h-5 w-5" />
+                )}
                 {currentStepData?.title}
               </CardTitle>
-              <p className="text-sm text-muted-foreground">{currentStepData?.description}</p>
+              <p className="text-sm text-muted-foreground">
+                {currentStepData?.description}
+              </p>
             </CardHeader>
             <CardContent className="space-y-6">
               {/* Step 1: Basic Information */}
@@ -648,7 +784,11 @@ export default function EventForm() {
                             <FormLabel>Slug</FormLabel>
                             <Popover>
                               <PopoverTrigger asChild>
-                                <Button variant="ghost" size="sm" className="h-auto p-0">
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  className="h-auto p-0"
+                                >
                                   <HelpCircleIcon className="h-4 w-4 text-muted-foreground" />
                                 </Button>
                               </PopoverTrigger>
@@ -656,7 +796,9 @@ export default function EventForm() {
                                 <div className="space-y-2">
                                   <h4 className="font-medium">Event Slug</h4>
                                   <p className="text-sm text-muted-foreground">
-                                    A URL-friendly identifier for your event. Use lowercase letters, numbers, and hyphens only. Example: &quot;ai-workshop-2024&quot;
+                                    A URL-friendly identifier for your event.
+                                    Use lowercase letters, numbers, and hyphens
+                                    only. Example: &quot;ai-workshop-2024&quot;
                                   </p>
                                 </div>
                               </PopoverContent>
@@ -680,22 +822,35 @@ export default function EventForm() {
                           <FormLabel>Description</FormLabel>
                           <Popover>
                             <PopoverTrigger asChild>
-                              <Button variant="ghost" size="sm" className="h-auto p-0">
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                className="h-auto p-0"
+                              >
                                 <HelpCircleIcon className="h-4 w-4 text-muted-foreground" />
                               </Button>
                             </PopoverTrigger>
                             <PopoverContent className="w-80">
                               <div className="space-y-2">
-                                <h4 className="font-medium">Event Description</h4>
+                                <h4 className="font-medium">
+                                  Event Description
+                                </h4>
                                 <p className="text-sm text-muted-foreground">
-                                  Provide a detailed description of your event. Include what attendees will learn, the format, and any prerequisites. This will be visible to potential attendees.
+                                  Provide a detailed description of your event.
+                                  Include what attendees will learn, the format,
+                                  and any prerequisites. This will be visible to
+                                  potential attendees.
                                 </p>
                               </div>
                             </PopoverContent>
                           </Popover>
                         </div>
                         <FormControl>
-                          <Textarea placeholder="Describe your event in detail. What will attendees learn or experience?" rows={4} {...field} />
+                          <Textarea
+                            placeholder="Describe your event in detail. What will attendees learn or experience?"
+                            rows={4}
+                            {...field}
+                          />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -714,7 +869,16 @@ export default function EventForm() {
                         <div className="space-y-4">
                           {/* File Upload */}
                           <div className="flex items-center gap-4">
-                            <Button type="button" variant="outline" onClick={() => document.getElementById("poster-upload")?.click()} className="flex items-center gap-2">
+                            <Button
+                              type="button"
+                              variant="outline"
+                              onClick={() =>
+                                document
+                                  .getElementById("poster-upload")
+                                  ?.click()
+                              }
+                              className="flex items-center gap-2"
+                            >
                               <UploadIcon className="h-4 w-4" />
                               Upload Image
                             </Button>
@@ -728,12 +892,18 @@ export default function EventForm() {
                                 if (file) handlePosterUpload(file);
                               }}
                             />
-                            <span className="text-sm text-muted-foreground">{posterFile ? posterFile.name : "No file selected"}</span>
+                            <span className="text-sm text-muted-foreground">
+                              {posterFile
+                                ? posterFile.name
+                                : "No file selected"}
+                            </span>
                           </div>
 
                           {/* URL Input as alternative */}
                           <div className="space-y-2">
-                            <Label className="text-sm text-muted-foreground">Or enter image URL</Label>
+                            <Label className="text-sm text-muted-foreground">
+                              Or enter image URL
+                            </Label>
                             <FormControl>
                               <Input
                                 placeholder="https://example.com/poster.jpg"
@@ -752,7 +922,9 @@ export default function EventForm() {
                           {/* Preview */}
                           {(posterPreview || field.value) && (
                             <div className="mt-4">
-                              <Label className="text-sm text-muted-foreground">Preview</Label>
+                              <Label className="text-sm text-muted-foreground">
+                                Preview
+                              </Label>
                               <div className="mt-2 border rounded-lg p-4 bg-muted/30">
                                 <Image
                                   src={posterPreview || field.value || ""}
@@ -767,7 +939,10 @@ export default function EventForm() {
                             </div>
                           )}
                         </div>
-                        <FormDescription>Upload an image file or provide a URL for your event poster</FormDescription>
+                        <FormDescription>
+                          Upload an image file or provide a URL for your event
+                          poster
+                        </FormDescription>
                         <FormMessage />
                       </FormItem>
                     )}
@@ -779,7 +954,11 @@ export default function EventForm() {
                       <Label>Key Highlights</Label>
                       <Popover>
                         <PopoverTrigger asChild>
-                          <Button variant="ghost" size="sm" className="h-auto p-0">
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="h-auto p-0"
+                          >
                             <HelpCircleIcon className="h-4 w-4 text-muted-foreground" />
                           </Button>
                         </PopoverTrigger>
@@ -787,7 +966,9 @@ export default function EventForm() {
                           <div className="space-y-2">
                             <h4 className="font-medium">Key Highlights</h4>
                             <p className="text-sm text-muted-foreground">
-                              Add the most important points or benefits of attending your event. These will be prominently displayed to attract attendees.
+                              Add the most important points or benefits of
+                              attending your event. These will be prominently
+                              displayed to attract attendees.
                             </p>
                           </div>
                         </PopoverContent>
@@ -795,15 +976,33 @@ export default function EventForm() {
                     </div>
                     {keyHighlights.map((highlight, index) => (
                       <div key={index} className="flex gap-3">
-                        <Input placeholder="Enter key highlight" value={highlight} onChange={(e) => updateKeyHighlight(index, e.target.value)} className="flex-1" />
+                        <Input
+                          placeholder="Enter key highlight"
+                          value={highlight}
+                          onChange={(e) =>
+                            updateKeyHighlight(index, e.target.value)
+                          }
+                          className="flex-1"
+                        />
                         {keyHighlights.length > 1 && (
-                          <Button type="button" variant="outline" size="icon" onClick={() => removeKeyHighlight(index)}>
+                          <Button
+                            type="button"
+                            variant="outline"
+                            size="icon"
+                            onClick={() => removeKeyHighlight(index)}
+                          >
                             <TrashIcon className="h-4 w-4" />
                           </Button>
                         )}
                       </div>
                     ))}
-                    <Button type="button" variant="outline" size="sm" onClick={addKeyHighlight} className="w-full">
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      onClick={addKeyHighlight}
+                      className="w-full"
+                    >
                       <PlusIcon className="h-4 w-4 mr-2" />
                       Add Highlight
                     </Button>
@@ -816,7 +1015,10 @@ export default function EventForm() {
                       <FormItem>
                         <FormLabel>Additional Notes (Optional)</FormLabel>
                         <FormControl>
-                          <Textarea placeholder="Any additional notes or special instructions" {...field} />
+                          <Textarea
+                            placeholder="Any additional notes or special instructions"
+                            {...field}
+                          />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -835,7 +1037,10 @@ export default function EventForm() {
                       render={({ field }) => (
                         <FormItem>
                           <FormLabel>Event Mode</FormLabel>
-                          <Select onValueChange={field.onChange} defaultValue={field.value}>
+                          <Select
+                            onValueChange={field.onChange}
+                            defaultValue={field.value}
+                          >
                             <FormControl>
                               <SelectTrigger>
                                 <SelectValue placeholder="Select mode" />
@@ -857,7 +1062,10 @@ export default function EventForm() {
                       render={({ field }) => (
                         <FormItem>
                           <FormLabel>Event Type</FormLabel>
-                          <Select onValueChange={field.onChange} defaultValue={field.value}>
+                          <Select
+                            onValueChange={field.onChange}
+                            defaultValue={field.value}
+                          >
                             <FormControl>
                               <SelectTrigger>
                                 <SelectValue placeholder="Select type" />
@@ -881,7 +1089,10 @@ export default function EventForm() {
                       render={({ field }) => (
                         <FormItem>
                           <FormLabel>Status</FormLabel>
-                          <Select onValueChange={field.onChange} defaultValue={field.value}>
+                          <Select
+                            onValueChange={field.onChange}
+                            defaultValue={field.value}
+                          >
                             <FormControl>
                               <SelectTrigger>
                                 <SelectValue placeholder="Select status" />
@@ -889,8 +1100,12 @@ export default function EventForm() {
                             </FormControl>
                             <SelectContent>
                               <SelectItem value="UPCOMING">Upcoming</SelectItem>
-                              <SelectItem value="COMPLETED">Completed</SelectItem>
-                              <SelectItem value="CANCELLED">Cancelled</SelectItem>
+                              <SelectItem value="COMPLETED">
+                                Completed
+                              </SelectItem>
+                              <SelectItem value="CANCELLED">
+                                Cancelled
+                              </SelectItem>
                               <SelectItem value="OTHER">Other</SelectItem>
                             </SelectContent>
                           </Select>
@@ -912,7 +1127,11 @@ export default function EventForm() {
                             Event Address
                           </FormLabel>
                           <FormControl>
-                            <Textarea placeholder="Enter the complete address where the event will be held" rows={3} {...field} />
+                            <Textarea
+                              placeholder="Enter the complete address where the event will be held"
+                              rows={3}
+                              {...field}
+                            />
                           </FormControl>
                           <FormMessage />
                         </FormItem>
@@ -924,7 +1143,9 @@ export default function EventForm() {
 
                   {/* Organizer Information */}
                   <div className="space-y-4">
-                    <h3 className="text-lg font-medium">Organizer Information</h3>
+                    <h3 className="text-lg font-medium">
+                      Organizer Information
+                    </h3>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       <FormField
                         control={form.control}
@@ -933,7 +1154,10 @@ export default function EventForm() {
                           <FormItem>
                             <FormLabel>Organizer Name</FormLabel>
                             <FormControl>
-                              <Input placeholder="Enter organizer name" {...field} />
+                              <Input
+                                placeholder="Enter organizer name"
+                                {...field}
+                              />
                             </FormControl>
                             <FormMessage />
                           </FormItem>
@@ -961,55 +1185,62 @@ export default function EventForm() {
               {/* Step 3: Schedule */}
               {currentStep === 3 && (
                 <div className="space-y-6">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <FormField
-                      control={form.control}
-                      name="start_date"
-                      render={({ field }) => (
-                        <FormItem className="flex flex-col">
-                          <FormLabel>Start Date</FormLabel>
-                          <Popover>
-                            <PopoverTrigger asChild>
-                              <FormControl>
-                                <Button variant={"outline"} className={cn("w-full pl-3 text-left font-normal", !field.value && "text-muted-foreground")}>
-                                  {field.value ? format(field.value, "PPP") : <span>Pick a date</span>}
-                                  <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
-                                </Button>
-                              </FormControl>
-                            </PopoverTrigger>
-                            <PopoverContent className="w-auto p-0" align="start">
-                              <Calendar mode="single" selected={field.value} onSelect={field.onChange} disabled={(date) => date < new Date(new Date().setHours(0, 0, 0, 0))} initialFocus />
-                            </PopoverContent>
-                          </Popover>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-
-                    <FormField
-                      control={form.control}
-                      name="end_date"
-                      render={({ field }) => (
-                        <FormItem className="flex flex-col">
-                          <FormLabel>End Date (Optional)</FormLabel>
-                          <Popover>
-                            <PopoverTrigger asChild>
-                              <FormControl>
-                                <Button variant={"outline"} className={cn("w-full pl-3 text-left font-normal", !field.value && "text-muted-foreground")}>
-                                  {field.value ? format(field.value, "PPP") : <span>Pick a date</span>}
-                                  <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
-                                </Button>
-                              </FormControl>
-                            </PopoverTrigger>
-                            <PopoverContent className="w-auto p-0" align="start">
-                              <Calendar mode="single" selected={field.value} onSelect={field.onChange} disabled={(date) => date < new Date(new Date().setHours(0, 0, 0, 0))} initialFocus />
-                            </PopoverContent>
-                          </Popover>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                  </div>
+                  <FormField
+                    control={form.control}
+                    name="start_date"
+                    render={({ field }) => (
+                      <FormItem className="flex flex-col">
+                        <FormLabel>Event Date Range</FormLabel>
+                        <Popover>
+                          <PopoverTrigger asChild>
+                            <FormControl>
+                              <Button
+                                variant={"outline"}
+                                className={cn(
+                                  "w-full pl-3 text-left font-normal",
+                                  (!field.value ||
+                                    !form.getValues("end_date")) &&
+                                    "text-muted-foreground"
+                                )}
+                              >
+                                {field.value && form.getValues("end_date") ? (
+                                  `${format(field.value, "PPP")} - ${format(
+                                    form.getValues("end_date")?.toString() ||
+                                      new Date().toString(),
+                                    "PPP"
+                                  )}`
+                                ) : (
+                                  <span>Pick date range</span>
+                                )}
+                                <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
+                              </Button>
+                            </FormControl>
+                          </PopoverTrigger>
+                          <PopoverContent className="w-auto p-0" align="start">
+                            <Calendar
+                              mode="range"
+                              selected={{
+                                from: field.value,
+                                to: form.getValues("end_date"),
+                              }}
+                              onSelect={(range) => {
+                                field.onChange(range?.from || null);
+                                form.setValue(
+                                  "end_date",
+                                  range?.to ?? undefined
+                                );
+                              }}
+                              disabled={(date) =>
+                                date < new Date(new Date().setHours(0, 0, 0, 0))
+                              }
+                              initialFocus
+                            />
+                          </PopoverContent>
+                        </Popover>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
 
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <FormField
@@ -1019,7 +1250,18 @@ export default function EventForm() {
                         <FormItem>
                           <FormLabel>Start Time</FormLabel>
                           <FormControl>
-                            <Input type="datetime-local" {...field} value={field.value ? format(field.value, "yyyy-MM-dd'T'HH:mm") : ""} onChange={(e) => field.onChange(new Date(e.target.value))} />
+                            <Input
+                              type="time"
+                              {...field}
+                              value={
+                                field.value ? format(field.value, "HH:mm") : ""
+                              }
+                              onChange={(e) =>
+                                field.onChange(
+                                  new Date(`1970-01-01T${e.target.value}`)
+                                )
+                              }
+                            />
                           </FormControl>
                           <FormMessage />
                         </FormItem>
@@ -1034,10 +1276,18 @@ export default function EventForm() {
                           <FormLabel>End Time (Optional)</FormLabel>
                           <FormControl>
                             <Input
-                              type="datetime-local"
+                              type="time"
                               {...field}
-                              value={field.value ? format(field.value, "yyyy-MM-dd'T'HH:mm") : ""}
-                              onChange={(e) => field.onChange(e.target.value ? new Date(e.target.value) : undefined)}
+                              value={
+                                field.value ? format(field.value, "HH:mm") : ""
+                              }
+                              onChange={(e) =>
+                                field.onChange(
+                                  e.target.value
+                                    ? new Date(`1970-01-01T${e.target.value}`)
+                                    : undefined
+                                )
+                              }
                             />
                           </FormControl>
                           <FormMessage />
@@ -1059,7 +1309,12 @@ export default function EventForm() {
                           Speaker {index + 1}
                         </h4>
                         {speakers.length > 1 && (
-                          <Button type="button" variant="outline" size="sm" onClick={() => removeSpeaker(index)}>
+                          <Button
+                            type="button"
+                            variant="outline"
+                            size="sm"
+                            onClick={() => removeSpeaker(index)}
+                          >
                             <TrashIcon className="h-4 w-4 mr-2" />
                             Remove
                           </Button>
@@ -1079,7 +1334,11 @@ export default function EventForm() {
                                   placeholder="Enter speaker name"
                                   value={speaker.name}
                                   onChange={(e) => {
-                                    updateSpeaker(index, "name", e.target.value);
+                                    updateSpeaker(
+                                      index,
+                                      "name",
+                                      e.target.value
+                                    );
                                     field.onChange(e.target.value);
                                   }}
                                 />
@@ -1102,7 +1361,19 @@ export default function EventForm() {
                               <div className="space-y-4">
                                 {/* File Upload */}
                                 <div className="flex items-center gap-4">
-                                  <Button type="button" variant="outline" size="sm" onClick={() => document.getElementById(`speaker-photo-${index}`)?.click()} className="flex items-center gap-2">
+                                  <Button
+                                    type="button"
+                                    variant="outline"
+                                    size="sm"
+                                    onClick={() =>
+                                      document
+                                        .getElementById(
+                                          `speaker-photo-${index}`
+                                        )
+                                        ?.click()
+                                    }
+                                    className="flex items-center gap-2"
+                                  >
                                     <UploadIcon className="h-4 w-4" />
                                     Upload Photo
                                   </Button>
@@ -1113,24 +1384,41 @@ export default function EventForm() {
                                     className="hidden"
                                     onChange={(e) => {
                                       const file = e.target.files?.[0];
-                                      if (file) handleSpeakerPhotoUpload(index, file);
+                                      if (file)
+                                        handleSpeakerPhotoUpload(index, file);
                                     }}
                                   />
-                                  <span className="text-sm text-muted-foreground">{speakerFiles[index] ? speakerFiles[index]?.name : "No file selected"}</span>
+                                  <span className="text-sm text-muted-foreground">
+                                    {speakerFiles[index]
+                                      ? speakerFiles[index]?.name
+                                      : "No file selected"}
+                                  </span>
                                 </div>
 
                                 {/* URL Input as alternative */}
                                 <div className="space-y-2">
-                                  <Label className="text-sm text-muted-foreground">Or enter image URL</Label>
+                                  <Label className="text-sm text-muted-foreground">
+                                    Or enter image URL
+                                  </Label>
                                   <FormControl>
                                     <Input
                                       placeholder="https://example.com/photo.jpg"
                                       value={speaker.photo_url || ""}
                                       onChange={(e) => {
-                                        updateSpeaker(index, "photo_url", e.target.value);
+                                        updateSpeaker(
+                                          index,
+                                          "photo_url",
+                                          e.target.value
+                                        );
                                         field.onChange(e.target.value);
-                                        if (e.target.value && !speakerFiles[index]) {
-                                          setSpeakerPreviews((prev) => ({ ...prev, [index]: e.target.value }));
+                                        if (
+                                          e.target.value &&
+                                          !speakerFiles[index]
+                                        ) {
+                                          setSpeakerPreviews((prev) => ({
+                                            ...prev,
+                                            [index]: e.target.value,
+                                          }));
                                         }
                                       }}
                                     />
@@ -1160,55 +1448,77 @@ export default function EventForm() {
                                   rows={3}
                                 />
                               </FormControl>
-                              <FormDescription>Add speaker&apos;s background, expertise, and credentials</FormDescription>
+                              <FormDescription>
+                                Add speaker&apos;s background, expertise, and
+                                credentials
+                              </FormDescription>
                               <FormMessage />
                             </FormItem>
                           )}
                         />
 
                         {/* Speaker Preview */}
-                        {(speakerPreviews[index] || speaker.photo_url) && speaker.name && (
-                          <div className="mt-4">
-                            <Label className="text-sm text-muted-foreground">Speaker Preview</Label>
-                            <div className="mt-2 p-4 bg-muted/30 rounded-lg">
-                              <div className="flex items-start gap-4">
-                                <Avatar className="h-16 w-16">
-                                  <AvatarImage
-                                    src={speakerPreviews[index] || speaker.photo_url}
-                                    alt={speaker.name}
-                                    onError={() => {
-                                      setSpeakerPreviews((prev) => {
-                                        const newPreviews = { ...prev };
-                                        delete newPreviews[index];
-                                        return newPreviews;
-                                      });
-                                      if (speakerFiles[index]) {
-                                        setSpeakerFiles((prev) => {
-                                          const newFiles = { ...prev };
-                                          delete newFiles[index];
-                                          return newFiles;
-                                        });
+                        {(speakerPreviews[index] || speaker.photo_url) &&
+                          speaker.name && (
+                            <div className="mt-4">
+                              <Label className="text-sm text-muted-foreground">
+                                Speaker Preview
+                              </Label>
+                              <div className="mt-2 p-4 bg-muted/30 rounded-lg">
+                                <div className="flex items-start gap-4">
+                                  <Avatar className="h-16 w-16">
+                                    <AvatarImage
+                                      src={
+                                        speakerPreviews[index] ||
+                                        speaker.photo_url
                                       }
-                                    }}
-                                  />
-                                  <AvatarFallback className="text-lg">{speaker.name.charAt(0).toUpperCase()}</AvatarFallback>
-                                </Avatar>
-                                <div className="flex-1">
-                                  <h5 className="font-medium text-base">{speaker.name}</h5>
-                                  {speaker.bio && <p className="text-sm text-muted-foreground mt-1 line-clamp-3">{speaker.bio}</p>}
-                                  <Badge variant="secondary" className="mt-2">
-                                    Speaker Preview
-                                  </Badge>
+                                      alt={speaker.name}
+                                      onError={() => {
+                                        setSpeakerPreviews((prev) => {
+                                          const newPreviews = { ...prev };
+                                          delete newPreviews[index];
+                                          return newPreviews;
+                                        });
+                                        if (speakerFiles[index]) {
+                                          setSpeakerFiles((prev) => {
+                                            const newFiles = { ...prev };
+                                            delete newFiles[index];
+                                            return newFiles;
+                                          });
+                                        }
+                                      }}
+                                    />
+                                    <AvatarFallback className="text-lg">
+                                      {speaker.name.charAt(0).toUpperCase()}
+                                    </AvatarFallback>
+                                  </Avatar>
+                                  <div className="flex-1">
+                                    <h5 className="font-medium text-base">
+                                      {speaker.name}
+                                    </h5>
+                                    {speaker.bio && (
+                                      <p className="text-sm text-muted-foreground mt-1 line-clamp-3">
+                                        {speaker.bio}
+                                      </p>
+                                    )}
+                                    <Badge variant="secondary" className="mt-2">
+                                      Speaker Preview
+                                    </Badge>
+                                  </div>
                                 </div>
                               </div>
                             </div>
-                          </div>
-                        )}
+                          )}
                       </div>
                     </Card>
                   ))}
 
-                  <Button type="button" variant="outline" onClick={addSpeaker} className="w-full">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={addSpeaker}
+                    className="w-full"
+                  >
                     <PlusIcon className="h-4 w-4 mr-2" />
                     Add Another Speaker
                   </Button>
@@ -1216,7 +1526,10 @@ export default function EventForm() {
                   {speakers.length === 0 && (
                     <div className="text-center py-8 text-muted-foreground">
                       <UserIcon className="h-12 w-12 mx-auto mb-4 opacity-50" />
-                      <p>No speakers added yet. Click &quot;Add Speaker&quot; to get started.</p>
+                      <p>
+                        No speakers added yet. Click &quot;Add Speaker&quot; to
+                        get started.
+                      </p>
                     </div>
                   )}
                 </div>
@@ -1233,11 +1546,18 @@ export default function EventForm() {
                       render={({ field }) => (
                         <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
                           <div className="space-y-0.5">
-                            <FormLabel className="text-base font-medium">Registration Required</FormLabel>
-                            <FormDescription>Require users to register for this event</FormDescription>
+                            <FormLabel className="text-base font-medium">
+                              Registration Required
+                            </FormLabel>
+                            <FormDescription>
+                              Require users to register for this event
+                            </FormDescription>
                           </div>
                           <FormControl>
-                            <Switch checked={field.value} onCheckedChange={field.onChange} />
+                            <Switch
+                              checked={field.value}
+                              onCheckedChange={field.onChange}
+                            />
                           </FormControl>
                         </FormItem>
                       )}
@@ -1252,7 +1572,11 @@ export default function EventForm() {
                             <FormItem>
                               <FormLabel>Registration Link</FormLabel>
                               <FormControl>
-                                <Input placeholder="https://example.com/register" {...field} value={field.value || ""} />
+                                <Input
+                                  placeholder="https://example.com/register"
+                                  {...field}
+                                  value={field.value || ""}
+                                />
                               </FormControl>
                               <FormMessage />
                             </FormItem>
@@ -1264,14 +1588,22 @@ export default function EventForm() {
                           name="registration_limit"
                           render={({ field }) => (
                             <FormItem>
-                              <FormLabel>Registration Limit (Optional)</FormLabel>
+                              <FormLabel>
+                                Registration Limit (Optional)
+                              </FormLabel>
                               <FormControl>
                                 <Input
                                   type="number"
                                   placeholder="Maximum participants"
                                   {...field}
                                   value={field.value || ""}
-                                  onChange={(e) => field.onChange(e.target.value ? parseInt(e.target.value) : undefined)}
+                                  onChange={(e) =>
+                                    field.onChange(
+                                      e.target.value
+                                        ? parseInt(e.target.value)
+                                        : undefined
+                                    )
+                                  }
                                 />
                               </FormControl>
                               <FormMessage />
@@ -1294,10 +1626,15 @@ export default function EventForm() {
                               <CreditCardIcon className="h-4 w-4" />
                               Paid Event
                             </FormLabel>
-                            <FormDescription>This is a paid event requiring ticket purchase</FormDescription>
+                            <FormDescription>
+                              This is a paid event requiring ticket purchase
+                            </FormDescription>
                           </div>
                           <FormControl>
-                            <Switch checked={field.value} onCheckedChange={field.onChange} />
+                            <Switch
+                              checked={field.value}
+                              onCheckedChange={field.onChange}
+                            />
                           </FormControl>
                         </FormItem>
                       )}
@@ -1317,7 +1654,13 @@ export default function EventForm() {
                                   placeholder="Price in INR"
                                   {...field}
                                   value={field.value || ""}
-                                  onChange={(e) => field.onChange(e.target.value ? parseInt(e.target.value) : undefined)}
+                                  onChange={(e) =>
+                                    field.onChange(
+                                      e.target.value
+                                        ? parseInt(e.target.value)
+                                        : undefined
+                                    )
+                                  }
                                 />
                               </FormControl>
                               <FormMessage />
@@ -1344,9 +1687,16 @@ export default function EventForm() {
                             Recording Link (Optional)
                           </FormLabel>
                           <FormControl>
-                            <Input placeholder="https://example.com/recording" {...field} value={field.value || ""} />
+                            <Input
+                              placeholder="https://example.com/recording"
+                              {...field}
+                              value={field.value || ""}
+                            />
                           </FormControl>
-                          <FormDescription>Link to event recording (can be added after the event)</FormDescription>
+                          <FormDescription>
+                            Link to event recording (can be added after the
+                            event)
+                          </FormDescription>
                           <FormMessage />
                         </FormItem>
                       )}
@@ -1359,9 +1709,15 @@ export default function EventForm() {
                         <FormItem>
                           <FormLabel>Feedback Form Link (Optional)</FormLabel>
                           <FormControl>
-                            <Input placeholder="https://example.com/feedback" {...field} value={field.value || ""} />
+                            <Input
+                              placeholder="https://example.com/feedback"
+                              {...field}
+                              value={field.value || ""}
+                            />
                           </FormControl>
-                          <FormDescription>Link to collect feedback from attendees</FormDescription>
+                          <FormDescription>
+                            Link to collect feedback from attendees
+                          </FormDescription>
                           <FormMessage />
                         </FormItem>
                       )}
@@ -1379,7 +1735,11 @@ export default function EventForm() {
                       </Label>
                       <Popover>
                         <PopoverTrigger asChild>
-                          <Button variant="ghost" size="sm" className="h-auto p-0">
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="h-auto p-0"
+                          >
                             <HelpCircleIcon className="h-4 w-4 text-muted-foreground" />
                           </Button>
                         </PopoverTrigger>
@@ -1387,7 +1747,9 @@ export default function EventForm() {
                           <div className="space-y-2">
                             <h4 className="font-medium">Event Tags</h4>
                             <p className="text-sm text-muted-foreground">
-                              Add relevant tags to help categorize your event and make it discoverable. Examples: AI, Machine Learning, Web Development, etc.
+                              Add relevant tags to help categorize your event
+                              and make it discoverable. Examples: AI, Machine
+                              Learning, Web Development, etc.
                             </p>
                           </div>
                         </PopoverContent>
@@ -1396,14 +1758,28 @@ export default function EventForm() {
 
                     <div className="flex flex-wrap gap-2">
                       {tags.map((tag, index) => (
-                        <Badge key={index} variant="secondary" className="cursor-pointer hover:bg-destructive/10 transition-colors">
+                        <Badge
+                          key={index}
+                          variant="secondary"
+                          className="cursor-pointer hover:bg-destructive/10 transition-colors"
+                        >
                           {tag}
-                          <Button type="button" variant="ghost" size="sm" className="ml-1 h-auto p-0 text-muted-foreground hover:text-destructive" onClick={() => removeTag(tag)}>
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            size="sm"
+                            className="ml-1 h-auto p-0 text-muted-foreground hover:text-destructive"
+                            onClick={() => removeTag(tag)}
+                          >
                             ×
                           </Button>
                         </Badge>
                       ))}
-                      {tags.length === 0 && <p className="text-sm text-muted-foreground">No tags added yet</p>}
+                      {tags.length === 0 && (
+                        <p className="text-sm text-muted-foreground">
+                          No tags added yet
+                        </p>
+                      )}
                     </div>
 
                     <div className="flex gap-2">
@@ -1411,10 +1787,17 @@ export default function EventForm() {
                         placeholder="Add a tag (e.g., AI, ML, Web Dev)"
                         value={newTag}
                         onChange={(e) => setNewTag(e.target.value)}
-                        onKeyPress={(e) => e.key === "Enter" && (e.preventDefault(), addTag())}
+                        onKeyPress={(e) =>
+                          e.key === "Enter" && (e.preventDefault(), addTag())
+                        }
                         className="flex-1"
                       />
-                      <Button type="button" variant="outline" onClick={addTag} disabled={!newTag.trim()}>
+                      <Button
+                        type="button"
+                        variant="outline"
+                        onClick={addTag}
+                        disabled={!newTag.trim()}
+                      >
                         Add Tag
                       </Button>
                     </div>
@@ -1429,11 +1812,20 @@ export default function EventForm() {
             {/* Previous Button */}
             <div className="flex-1">
               {currentStep > 1 ? (
-                <Button type="button" variant="ghost" onClick={prevStep} className="flex items-center gap-2 text-muted-foreground hover:text-foreground transition-all group">
+                <Button
+                  type="button"
+                  variant="ghost"
+                  onClick={prevStep}
+                  className="flex items-center gap-2 text-muted-foreground hover:text-foreground transition-all group"
+                >
                   <ChevronLeft className="h-4 w-4 group-hover:-translate-x-0.5 transition-transform" />
                   <div className="text-left">
-                    <div className="text-xs text-muted-foreground/70">Previous</div>
-                    <div className="font-medium">{FORM_STEPS.find((s) => s.id === currentStep - 1)?.title}</div>
+                    <div className="text-xs text-muted-foreground/70">
+                      Previous
+                    </div>
+                    <div className="font-medium">
+                      {FORM_STEPS.find((s) => s.id === currentStep - 1)?.title}
+                    </div>
                   </div>
                 </Button>
               ) : (
@@ -1491,7 +1883,11 @@ export default function EventForm() {
                   </Button>
                 </div>
               ) : (
-                <Button type="button" onClick={nextStep} className="flex items-center gap-2 group">
+                <Button
+                  type="button"
+                  onClick={nextStep}
+                  className="flex items-center gap-2 group"
+                >
                   Next
                   <ChevronRight className="h-4 w-4 group-hover:translate-x-0.5 transition-transform" />
                 </Button>
