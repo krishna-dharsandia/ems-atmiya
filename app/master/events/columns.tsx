@@ -218,6 +218,11 @@ export const columns: ColumnDef<Event>[] = [
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">
+            <DropdownMenuItem
+              onClick={() => navigate(`/master/events/details/${event.id}`)}
+            >
+              <Eye /> Details
+            </DropdownMenuItem>
             <DropdownMenuItem onClick={() => navigate(`/events/${event.id}`)}>
               <Eye /> View
             </DropdownMenuItem>
