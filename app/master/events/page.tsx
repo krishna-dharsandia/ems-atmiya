@@ -58,9 +58,6 @@ export default function Page() {
             title: "No results found",
             description: "There are no events matching your search criteria.",
           }}
-          actions={{
-            onRowClick: (row) => router.push(`/events/${row.id}`),
-          }}
         />
       ) : (
         <DataTableSkeleton />

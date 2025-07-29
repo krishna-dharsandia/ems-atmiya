@@ -2,13 +2,19 @@
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { EventMode, EventStatus, EventType } from "@prisma/client";
 import { ColumnDef } from "@tanstack/react-table";
 import { format } from "date-fns";
 import { ArrowUpDown, MoreHorizontal, Pencil, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import { deleteEventAction } from "./actions";
+import { useRouter } from "next/navigation";
 
 export type Event = {
   id: string;
@@ -35,7 +41,10 @@ export const columns: ColumnDef<Event>[] = [
   {
     accessorKey: "slug",
     header: ({ column }) => (
-      <Button variant="ghost" onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}>
+      <Button
+        variant="ghost"
+        onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+      >
         Slug
         <ArrowUpDown className="ml-2 h-4 w-4" />
       </Button>
@@ -44,7 +53,10 @@ export const columns: ColumnDef<Event>[] = [
   {
     accessorKey: "name",
     header: ({ column }) => (
-      <Button variant="ghost" onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}>
+      <Button
+        variant="ghost"
+        onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+      >
         Name
         <ArrowUpDown className="ml-2 h-4 w-4" />
       </Button>
@@ -66,7 +78,11 @@ export const columns: ColumnDef<Event>[] = [
         default:
           color = "gray";
       }
-      return <Badge className={`bg-${color}-500 text-white`}>{mode.charAt(0).toUpperCase() + mode.slice(1).toLowerCase()}</Badge>;
+      return (
+        <Badge className={`bg-${color}-500 text-white`}>
+          {mode.charAt(0).toUpperCase() + mode.slice(1).toLowerCase()}
+        </Badge>
+      );
     },
   },
   {
@@ -89,7 +105,11 @@ export const columns: ColumnDef<Event>[] = [
         default:
           color = "gray";
       }
-      return <Badge className={`bg-${color}-500 text-white`}>{type.charAt(0).toUpperCase() + type.slice(1).toLowerCase()}</Badge>;
+      return (
+        <Badge className={`bg-${color}-500 text-white`}>
+          {type.charAt(0).toUpperCase() + type.slice(1).toLowerCase()}
+        </Badge>
+      );
     },
   },
   {
@@ -111,7 +131,11 @@ export const columns: ColumnDef<Event>[] = [
         default:
           color = "gray";
       }
-      return <Badge className={`bg-${color}-500 text-white`}>{status.charAt(0).toUpperCase() + status.slice(1).toLowerCase()}</Badge>;
+      return (
+        <Badge className={`bg-${color}-500 text-white`}>
+          {status.charAt(0).toUpperCase() + status.slice(1).toLowerCase()}
+        </Badge>
+      );
     },
   },
   {
@@ -133,7 +157,10 @@ export const columns: ColumnDef<Event>[] = [
   {
     accessorKey: "organizer_name",
     header: ({ column }) => (
-      <Button variant="ghost" onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}>
+      <Button
+        variant="ghost"
+        onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+      >
         Oragnizer Name
         <ArrowUpDown className="ml-2 h-4 w-4" />
       </Button>
@@ -142,7 +169,10 @@ export const columns: ColumnDef<Event>[] = [
   {
     accessorKey: "current_registration_count",
     header: ({ column }) => (
-      <Button variant="ghost" onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}>
+      <Button
+        variant="ghost"
+        onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+      >
         Registrations
         <ArrowUpDown className="ml-2 h-4 w-4" />
       </Button>
@@ -151,7 +181,10 @@ export const columns: ColumnDef<Event>[] = [
   {
     accessorKey: "feedback_score",
     header: ({ column }) => (
-      <Button variant="ghost" onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}>
+      <Button
+        variant="ghost"
+        onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+      >
         Feedback Score
         <ArrowUpDown className="ml-2 h-4 w-4" />
       </Button>
@@ -161,6 +194,7 @@ export const columns: ColumnDef<Event>[] = [
     id: "actions",
     header: "Actions",
     cell: ({ row }) => {
+      const router = useRouter();
       const event = row.original;
 
       async function handleDelete() {
@@ -172,6 +206,10 @@ export const columns: ColumnDef<Event>[] = [
         }
       }
 
+      async function handleEdit() {
+        router.push(`/master/events/edit?id=${event.id}`);
+      }
+
       return (
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
@@ -181,7 +219,7 @@ export const columns: ColumnDef<Event>[] = [
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">
-            <DropdownMenuItem onClick={() => alert(`Edit event with ID: ${event.id}`)}>
+            <DropdownMenuItem onClick={handleEdit}>
               <Pencil /> Edit
             </DropdownMenuItem>
             <DropdownMenuItem className="text-red-500" onClick={handleDelete}>

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import {
@@ -61,6 +61,8 @@ import { cn } from "@/lib/utils";
 import { createClient } from "@/utils/supabase/client";
 import { toast } from "sonner";
 import { createEventAction } from "./createEventAction";
+import { updateEventAction } from "./updateEventAction";
+import { fetchEventById, EventWithDetails } from "./fetchEventById";
 import { v4 } from "uuid";
 import Image from "next/image";
 
@@ -103,7 +105,11 @@ const FORM_STEPS = [
   },
 ];
 
-export default function EventForm() {
+interface EventFormProps {
+  id?: string;
+}
+
+export default function EventForm({ id }: EventFormProps) {
   const [currentStep, setCurrentStep] = useState(1);
   const [keyHighlights, setKeyHighlights] = useState<string[]>([""]);
   const [tags, setTags] = useState<string[]>([]);
@@ -120,6 +126,10 @@ export default function EventForm() {
     [key: number]: string;
   }>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+  const [eventData, setEventData] = useState<EventWithDetails | null>(null);
+
+  const isEditMode = Boolean(id);
 
   const form = useForm({
     resolver: zodResolver(eventSchema),
@@ -155,9 +165,114 @@ export default function EventForm() {
   const watchMode = form.watch("mode");
   const watchRegistrationRequired = form.watch("registration_required");
   const watchIsPaid = form.watch("is_paid");
+  const supabase = createClient();
+
+  // Fetch event data if in edit mode
+  useEffect(() => {
+    const fetchEventData = async () => {
+      if (!id) return;
+
+      setIsLoading(true);
+      try {
+        const event = await fetchEventById(id);
+        if (event) {
+          setEventData(event);
+
+          const {
+            data: { publicUrl },
+          } = supabase.storage
+            .from("event-posters")
+            .getPublicUrl(event.poster_url);
+          // Pre-fill form with fetched data
+          form.reset({
+            slug: event.slug,
+            name: event.name,
+            description: event.description,
+            key_highlights: event.key_highlights,
+            note: event.note || "",
+            poster_url: publicUrl,
+            mode: event.mode,
+            address: event.address || "",
+            start_date: new Date(event.start_date),
+            end_date: event.end_date ? new Date(event.end_date) : new Date(),
+            start_time: new Date(event.start_time),
+            end_time: event.end_time ? new Date(event.end_time) : new Date(),
+            event_type: event.event_type,
+            status: event.status,
+            registration_required: event.registration_required,
+            registration_link: event.registration_link || "",
+            registration_limit: event.registration_limit || undefined,
+            recording_link: event.recording_link || "",
+            feedback_form_link: event.feedback_form_link || "",
+            tags: event.tags,
+            organizer_name: event.organizer_name,
+            organizer_contact: event.organizer_contact || "",
+            is_paid: event.is_paid,
+            ticket_price: event.ticket_price || undefined,
+            speakers: event.speakers.map((speaker) => ({
+              name: speaker.name,
+              bio: speaker.bio || "",
+              photo_url: speaker.photo_url || "",
+            })),
+          });
+
+          // Set state variables
+          setKeyHighlights(
+            event.key_highlights.length > 0 ? event.key_highlights : [""]
+          );
+          setTags(event.tags);
+          setSpeakers(
+            event.speakers.length > 0
+              ? event.speakers.map((speaker) => ({
+                  name: speaker.name,
+                  bio: speaker.bio || "",
+                  photo_url: speaker.photo_url || "",
+                }))
+              : [{ name: "", bio: "", photo_url: "" }]
+          );
+
+          // Set poster preview if exists
+          if (event.poster_url) {
+            const supabase = createClient();
+            const { data } = supabase.storage
+              .from("event-posters")
+              .getPublicUrl(event.poster_url);
+            setPosterPreview(data.publicUrl);
+          }
+
+          // Set speaker previews if exist
+          const newSpeakerPreviews: { [key: number]: string } = {};
+          event.speakers.forEach((speaker, index) => {
+            if (speaker.photo_url) {
+              const supabase = createClient();
+              const { data } = supabase.storage
+                .from("event-speakers")
+                .getPublicUrl(speaker.photo_url);
+              newSpeakerPreviews[index] = data.publicUrl;
+            }
+          });
+          setSpeakerPreviews(newSpeakerPreviews);
+        } else {
+          toast.error("Event not found");
+        }
+      } catch (error) {
+        console.error("Error fetching event:", error);
+        toast.error("Failed to fetch event data");
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchEventData();
+  }, [id, form]);
+
   async function handleSubmit(data: EventSchema) {
     console.log("Form submitted with data:", data);
-    toast.success("Form submission started"); // Visual feedback for debugging
+    toast.success(
+      `Form submission started for ${
+        isEditMode ? "updating" : "creating"
+      } event`
+    );
 
     try {
       setIsSubmitting(true);
@@ -183,26 +298,36 @@ export default function EventForm() {
         return;
       }
 
-      if (!posterFile) {
+      let posterUrl = data.poster_url || "";
+
+      // Handle poster upload (only if new file is provided)
+      if (posterFile) {
+        const posterId = v4();
+        const { error } = await supabase.storage
+          .from("event-posters")
+          .upload(
+            `posters/${posterId.toString()}.${posterFile.name
+              .split(".")
+              .pop()}`,
+            posterFile as File
+          );
+
+        if (error) {
+          toast.error("Failed to upload poster image");
+          return;
+        }
+        posterUrl = `posters/${posterId.toString()}.jpg`;
+      } else if (!isEditMode) {
         toast.error("Please upload a poster image");
         return;
       }
 
-      const posterId = v4();
-      const { error } = await supabase.storage
-        .from("event-posters")
-        .upload(
-          `posters/${posterId.toString()}.${posterFile.name.split(".").pop()}`,
-          posterFile as File
-        );
-
-      if (error) {
-        toast.error("Failed to upload poster image");
-      }
-
+      // Handle speaker photo uploads
       const speakerPhotoUrls: string[] = [];
+      const updatedSpeakers = [...speakers];
 
       for (const [index, file] of Object.entries(speakerFiles)) {
+        const idx = Number(index);
         if (file) {
           const speakersId = v4();
           const { error: speakerPhotoError } = await supabase.storage
@@ -214,28 +339,19 @@ export default function EventForm() {
 
           if (speakerPhotoError) {
             toast.error(
-              `Failed to upload photo for speaker ${
-                speakers[Number(index)].name
-              }`
+              `Failed to upload photo for speaker ${speakers[idx].name}`
             );
+            return;
           }
-          speakerPhotoUrls[Number(index)] = `speakers/${speakersId}.jpg`;
+          updatedSpeakers[idx].photo_url = `speakers/${speakersId}.jpg`;
         }
       }
 
-      // Assign uploaded photo URLs to speakers
-      speakers.forEach((speaker, idx) => {
-        if (speakerPhotoUrls[idx]) {
-          speaker.photo_url = speakerPhotoUrls[idx];
-        }
-      });
-
       // Before creating the formatted data, ensure form values are updated
-      // This ensures Zod validation is working with the latest data
       form.setValue("key_highlights", validHighlights);
       form.setValue(
         "speakers",
-        speakers.filter((speaker) => speaker.name.trim() !== "")
+        updatedSpeakers.filter((speaker) => speaker.name.trim() !== "")
       );
       form.setValue("tags", tags);
 
@@ -243,35 +359,60 @@ export default function EventForm() {
         ...data,
         key_highlights: validHighlights,
         tags: tags,
-        speakers: speakers.filter((speaker) => speaker.name.trim() !== ""),
-        poster_url: `posters/${posterId.toString()}.jpg`,
+        speakers: updatedSpeakers.filter(
+          (speaker) => speaker.name.trim() !== ""
+        ),
+        poster_url: posterUrl,
         recording_link: data.recording_link?.trim() || undefined,
         feedback_form_link: data.feedback_form_link?.trim() || undefined,
         registration_link: data.registration_link?.trim() || undefined,
       };
 
-      const response = await createEventAction(formattedData);
-      console.log("Response from createEventAction:", response);
+      // Use appropriate action based on mode
+      const response = isEditMode
+        ? await updateEventAction(id!, formattedData)
+        : await createEventAction(formattedData);
+
+      console.log(
+        `Response from ${isEditMode ? "update" : "create"}EventAction:`,
+        response
+      );
+
       if (response.error) {
         toast.error(response.error);
         return;
       } else {
-        toast.success("Event created successfully!");
-        form.reset();
-        setPosterFile(null);
-        setPosterPreview("");
-        setSpeakerFiles({});
-        setSpeakerPreviews({});
-        setSpeakers([{ name: "", bio: "", photo_url: "" }]);
-        setKeyHighlights([""]);
-        setTags([]);
-        setNewTag("");
-        setCurrentStep(1);
+        toast.success(
+          `Event ${isEditMode ? "updated" : "created"} successfully!`
+        );
+
+        // Only reset form if creating new event
+        if (!isEditMode) {
+          form.reset();
+          setPosterFile(null);
+          setPosterPreview("");
+          setSpeakerFiles({});
+          setSpeakerPreviews({});
+          setSpeakers([{ name: "", bio: "", photo_url: "" }]);
+          setKeyHighlights([""]);
+          setTags([]);
+          setNewTag("");
+          setCurrentStep(1);
+        }
       }
     } catch (error) {
-      console.log("JSON Error creating event:", JSON.stringify(error));
-      console.error("Error creating event:", typeof error, error);
-      toast.error("Failed to create event. Please try again.");
+      console.log(
+        `JSON Error ${isEditMode ? "updating" : "creating"} event:`,
+        JSON.stringify(error)
+      );
+      console.error(
+        `Error ${isEditMode ? "updating" : "creating"} event:`,
+        typeof error,
+        error
+      );
+      toast.error(
+        `Failed to ${isEditMode ? "update" : "create"} event. Please try again.`
+      );
     } finally {
       setIsSubmitting(false);
     }
@@ -449,6 +590,13 @@ export default function EventForm() {
         message: "Event poster is required",
       });
       isValid = false;
+    } else if (!isEditMode && !posterFile) {
+      // For create mode, we need an uploaded file
+      form.setError("poster_url", {
+        type: "manual",
+        message: "Please upload a poster image",
+      });
+      isValid = false;
     }
 
     // Check conditional fields
@@ -520,13 +668,34 @@ export default function EventForm() {
     return isValid;
   };
 
+  if (isLoading) {
+    return (
+      <div className="max-w-5xl mx-auto p-6 space-y-6">
+        <div className="text-center space-y-2">
+          <h1 className="text-3xl font-bold tracking-tight">
+            Loading Event...
+          </h1>
+          <p className="text-muted-foreground">
+            Please wait while we fetch the event data
+          </p>
+        </div>
+        <div className="flex justify-center">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="max-w-5xl mx-auto p-6 space-y-6">
       {/* Header */}
       <div className="text-center space-y-2">
-        <h1 className="text-3xl font-bold tracking-tight">Create New Event</h1>
+        <h1 className="text-3xl font-bold tracking-tight">
+          {isEditMode ? "Edit Event" : "Create New Event"}
+        </h1>
         <p className="text-muted-foreground">
-          Follow the steps below to create a comprehensive event
+          Follow the steps below to{" "}
+          {isEditMode ? "update the" : "create a comprehensive"} event
         </p>
       </div>
 
@@ -930,6 +1099,8 @@ export default function EventForm() {
                                   src={posterPreview || field.value || ""}
                                   alt="Poster preview"
                                   className="max-w-full h-48 object-cover rounded-md mx-auto"
+                                  width={300}
+                                  height={200}
                                   onError={() => {
                                     setPosterPreview("");
                                     if (posterFile) setPosterFile(null);
@@ -1873,12 +2044,12 @@ export default function EventForm() {
                     {isSubmitting ? (
                       <>
                         <div className="h-4 w-4 animate-spin rounded-full border-2 border-primary border-t-transparent" />
-                        Creating...
+                        {isEditMode ? "Updating..." : "Creating..."}
                       </>
                     ) : (
                       <>
                         <SaveIcon className="h-4 w-4" />
-                        Create Event
+                        {isEditMode ? "Update Event" : "Create Event"}
                       </>
                     )}
                   </Button>
