@@ -11,7 +11,7 @@ import {
 import { EventMode, EventStatus, EventType } from "@prisma/client";
 import { ColumnDef } from "@tanstack/react-table";
 import { format } from "date-fns";
-import { ArrowUpDown, MoreHorizontal, Pencil, Trash2 } from "lucide-react";
+import { ArrowUpDown, Eye, MoreHorizontal, Pencil, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import { deleteEventAction } from "./actions";
 import { useRouter } from "next/navigation";
@@ -219,6 +219,11 @@ export const columns: ColumnDef<Event>[] = [
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">
+            <DropdownMenuItem
+              onClick={() => router.push(`/events/${event.id}`)}
+            >
+              <Eye /> View
+            </DropdownMenuItem>
             <DropdownMenuItem onClick={handleEdit}>
               <Pencil /> Edit
             </DropdownMenuItem>
