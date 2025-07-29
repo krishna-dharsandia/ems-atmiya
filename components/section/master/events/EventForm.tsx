@@ -65,6 +65,7 @@ import { updateEventAction } from "./updateEventAction";
 import { fetchEventById, EventWithDetails } from "./fetchEventById";
 import { v4 } from "uuid";
 import Image from "next/image";
+import { useRouter } from "next/navigation";
 
 const FORM_STEPS = [
   {
@@ -166,6 +167,7 @@ export default function EventForm({ id }: EventFormProps) {
   const watchRegistrationRequired = form.watch("registration_required");
   const watchIsPaid = form.watch("is_paid");
   const supabase = createClient();
+  const router = useRouter();
 
   // Fetch event data if in edit mode
   useEffect(() => {
@@ -399,6 +401,8 @@ export default function EventForm({ id }: EventFormProps) {
           setNewTag("");
           setCurrentStep(1);
         }
+
+        router.push(`/events/${id}`);
       }
     } catch (error) {
       console.log(
