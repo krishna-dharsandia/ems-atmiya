@@ -95,10 +95,6 @@ export const columns: ColumnDef<EventFeedback>[] = [
         // Implement delete logic here
       }
 
-      async function handleToggleAttendance() {
-        // Implement toggle attendance logic here
-      }
-
       return (
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
