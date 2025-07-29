@@ -11,13 +11,11 @@ export default function Page({ params }: { params: Promise<{ id: string }> }) {
 
   useEffect(() => {
     setCurrentBreadcrumb([
-      { label: "Dashboard", href: "/master" },
-      { label: "Events", href: "/master/events" },
-      { label: "Edit Event", href: "/master/events/edit" },
+      { label: "Dashboard", href: "/admin" },
+      { label: "Events", href: "/admin/events" },
+      { label: "Edit Event", href: "/admin/events/edit" },
     ]);
   });
-
-  console.log("Editing event with ID:", id);
 
   if (!id) {
     return <div>Error: Event ID is required for editing.</div>;

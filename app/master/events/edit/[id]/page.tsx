@@ -17,8 +17,6 @@ export default function Page({ params }: { params: Promise<{ id: string }> }) {
     ]);
   });
 
-  console.log("Editing event with ID:", id);
-
   if (!id) {
     return <div>Error: Event ID is required for editing.</div>;
   }
