@@ -128,7 +128,7 @@ export default function EventForm({ id }: EventFormProps) {
   }>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
-  const [eventData, setEventData] = useState<EventWithDetails | null>(null);
+  const [, setEventData] = useState<EventWithDetails | null>(null);
 
   const isEditMode = Boolean(id);
 
@@ -324,8 +324,6 @@ export default function EventForm({ id }: EventFormProps) {
         return;
       }
 
-      // Handle speaker photo uploads
-      const speakerPhotoUrls: string[] = [];
       const updatedSpeakers = [...speakers];
 
       for (const [index, file] of Object.entries(speakerFiles)) {

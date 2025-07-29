@@ -14,7 +14,7 @@ import { format } from "date-fns";
 import { ArrowUpDown, Eye, MoreHorizontal, Pencil, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import { deleteEventAction } from "./actions";
-import { useRouter } from "next/navigation";
+import { navigate } from "@/utils/functions/navigate";
 
 export type Event = {
   id: string;
@@ -194,7 +194,6 @@ export const columns: ColumnDef<Event>[] = [
     id: "actions",
     header: "Actions",
     cell: ({ row }) => {
-      const router = useRouter();
       const event = row.original;
 
       async function handleDelete() {
@@ -207,7 +206,7 @@ export const columns: ColumnDef<Event>[] = [
       }
 
       async function handleEdit() {
-        router.push(`/master/events/edit?id=${event.id}`);
+        navigate(`/master/events/edit/${event.id}`);
       }
 
       return (
@@ -219,9 +218,7 @@ export const columns: ColumnDef<Event>[] = [
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">
-            <DropdownMenuItem
-              onClick={() => router.push(`/events/${event.id}`)}
-            >
+            <DropdownMenuItem onClick={() => navigate(`/events/${event.id}`)}>
               <Eye /> View
             </DropdownMenuItem>
             <DropdownMenuItem onClick={handleEdit}>

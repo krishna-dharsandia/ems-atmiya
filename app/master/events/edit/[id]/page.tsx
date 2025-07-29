@@ -3,13 +3,11 @@
 import EventForm from "@/components/section/master/events/EventForm";
 import { sidebarBreadcrumbs } from "@/store/sidebar";
 import { useSetAtom } from "jotai";
-import { useSearchParams } from "next/navigation";
-import { useEffect } from "react";
+import { use, useEffect } from "react";
 
-export default function Page() {
+export default function Page({ params }: { params: Promise<{ id: string }> }) {
+  const { id } = use(params);
   const setCurrentBreadcrumb = useSetAtom(sidebarBreadcrumbs);
-  const searchParams = useSearchParams();
-  const eventId = searchParams.get("id");
 
   useEffect(() => {
     setCurrentBreadcrumb([
@@ -19,11 +17,11 @@ export default function Page() {
     ]);
   });
 
-  console.log("Editing event with ID:", eventId);
+  console.log("Editing event with ID:", id);
 
-  if (!eventId) {
+  if (!id) {
     return <div>Error: Event ID is required for editing.</div>;
   }
 
-  return <EventForm id={eventId} />;
+  return <EventForm id={id} />;
 }

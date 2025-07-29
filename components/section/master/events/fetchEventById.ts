@@ -1,5 +1,3 @@
-import { createClient } from "@/utils/supabase/client";
-
 export interface EventWithDetails {
   id: string;
   slug: string;
