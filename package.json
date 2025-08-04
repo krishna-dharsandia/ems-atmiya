@@ -34,6 +34,7 @@
     "@supabase/supabase-js": "^2.49.7",
     "@tanstack/react-table": "^8.21.3",
     "@types/google-one-tap": "^1.2.6",
+    "@types/papaparse": "^5.3.16",
     "axios": "^1.9.0",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
@@ -43,9 +44,11 @@
     "google-one-tap": "^1.0.6",
     "input-otp": "^1.4.2",
     "jotai": "^2.12.5",
+    "jspdf": "^3.0.1",
     "lucide-react": "^0.525.0",
     "next": "15.3.2",
     "next-themes": "^0.4.6",
+    "papaparse": "^5.5.3",
     "prisma": "^6.8.2",
     "react": "^19.0.0",
     "react-day-picker": "^9.8.0",
@@ -57,6 +60,7 @@
     "swr": "^2.3.3",
     "tailwind-merge": "^3.3.0",
     "uuid": "^11.1.0",
+    "xlsx": "^0.18.5",
     "zod": "^3.25.20"
   },
   "devDependencies": {

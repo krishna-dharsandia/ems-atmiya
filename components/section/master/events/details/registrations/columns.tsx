@@ -17,6 +17,9 @@ import {
   Trash2,
   X,
 } from "lucide-react";
+import { toggleAttendance } from "./toggleAttendanceAction";
+import { toast } from "sonner";
+import { deleteAttendance } from "./deleteAttendance";
 
 export type EventRegistration = {
   id: string;
@@ -146,11 +149,24 @@ export const columns: ColumnDef<EventRegistration>[] = [
       const registration = row.original;
 
       async function handleDelete() {
-        // Implement delete logic here
+        const response = await deleteAttendance(registration.id);
+        if (response.success) {
+          toast.success("Registration deleted successfully");
+        }
+        else {
+          toast.error(`Error: ${response.error}`);
+        }
       }
 
       async function handleToggleAttendance() {
-        // Implement toggle attendance logic here
+        const response = await toggleAttendance(registration.id);
+        if(response.success) {
+          toast.success(
+            `Registration ${registration.attended ? "marked as not attended" : "marked as attended"}`
+          );
+        } else {
+          toast.error(`Error: ${response.error}`);
+        }
       }
 
       return (
