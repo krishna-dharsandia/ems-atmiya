@@ -8,6 +8,6 @@ export const studentSidebarLinks = [
   },
   {
     title: "Events",
-    items: [{ title: "All Events", url: "/events" }],
+    items: [{ title: "All Events", url: "/events" },{ title: "All Hackathons", url: "/hackathons" }],
   },
 ];

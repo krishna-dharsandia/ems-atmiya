@@ -10,6 +10,8 @@ export const masterSidebarLinks = [
     title: "Events",
     items: [
       { title: "All Events", url: "/events" },
+      { title: "All Hackathons", url: "/hackathons" },
+      { title: "Create Hackathon", url: "/hackathons/create" },
       { title: "Create Event", url: "/events/create" },
     ],
   },

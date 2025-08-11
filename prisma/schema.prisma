@@ -43,20 +43,22 @@ model Program {
 }
 
 model Student {
-  id                 String      @id @default(uuid())
-  userId             String      @unique
-  user               User        @relation(fields: [userId], references: [supabaseId], onDelete: Cascade)
-  university         String?
-  departmentId       String?
-  department         Department? @relation(fields: [departmentId], references: [id], onDelete: Cascade)
-  programId          String?
-  program            Program?    @relation(fields: [programId], references: [id], onDelete: Cascade)
-  currentSemester    Int?
-  currentYear        Int?
-  registrationNumber String?     @unique
-  dateOfBirth        DateTime?
-  createdAt          DateTime    @default(now())
-  updatedAt          DateTime    @updatedAt
+  id                  String                @id @default(uuid())
+  userId              String                @unique
+  user                User                  @relation(fields: [userId], references: [supabaseId], onDelete: Cascade)
+  university          String?
+  departmentId        String?
+  department          Department?           @relation(fields: [departmentId], references: [id], onDelete: Cascade)
+  programId           String?
+  program             Program?              @relation(fields: [programId], references: [id], onDelete: Cascade)
+  currentSemester     Int?
+  currentYear         Int?
+  registrationNumber  String?               @unique
+  dateOfBirth         DateTime?
+  createdAt           DateTime              @default(now())
+  updatedAt           DateTime              @updatedAt
+  HackathonTeamMember HackathonTeamMember[]
+  HackathonTeamInvite HackathonTeamInvite[]
 }
 
 model Admin {
@@ -149,6 +151,90 @@ model EventFeedback {
   comment   String?
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+}
+
+model Hackathon {
+  id                      String                      @id @default(uuid())
+  name                    String
+  description             String
+  location                String
+  poster_url              String
+  start_date              DateTime
+  end_date                DateTime
+  start_time              DateTime
+  end_time                DateTime
+  registration_start_date DateTime
+  registration_end_date   DateTime
+  registration_limit      Int?
+  mode                    EventMode
+  status                  EventStatus
+  problemStatements       HackathonProblemStatement[]
+  tags                    String[]
+  organizer_name          String
+  organizer_contact       String?
+  rules                   HackathonRules[]
+  evaluationCriteria      String[]
+  team_size_limit         Int?
+  teams                   HackathonTeam[]
+  created_at              DateTime                    @default(now())
+  updated_at              DateTime                    @updatedAt
+}
+
+model HackathonProblemStatement {
+  id          String          @id @default(uuid())
+  hackathonId String
+  hackathon   Hackathon       @relation(fields: [hackathonId], references: [id], onDelete: Cascade)
+  code        String
+  title       String
+  description String
+  created_at  DateTime        @default(now())
+  updated_at  DateTime        @updatedAt
+  teams       HackathonTeam[]
+}
+
+model HackathonRules {
+  id          String    @id @default(uuid())
+  hackathonId String
+  hackathon   Hackathon @relation(fields: [hackathonId], references: [id], onDelete: Cascade)
+  rule        String
+  created_at  DateTime  @default(now())
+  updated_at  DateTime  @updatedAt
+}
+
+model HackathonTeam {
+  id                 String                     @id @default(uuid())
+  hackathonId        String
+  hackathon          Hackathon                  @relation(fields: [hackathonId], references: [id])
+  problemStatementId String?
+  problemStatement   HackathonProblemStatement? @relation(fields: [problemStatementId], references: [id], onDelete: Cascade)
+  teamName           String
+  teamId             String?
+  members            HackathonTeamMember[]
+  invites            HackathonTeamInvite[]
+}
+
+model HackathonTeamMember {
+  id        String        @id @default(uuid())
+  teamId    String
+  team      HackathonTeam @relation(fields: [teamId], references: [id])
+  studentId String
+  student   Student       @relation(fields: [studentId], references: [id])
+  attended  Boolean      @default(false)
+}
+
+model HackathonTeamInvite {
+  id        String        @id @default(uuid())
+  teamId    String
+  team      HackathonTeam @relation(fields: [teamId], references: [id])
+  studentId String
+  student   Student       @relation(fields: [studentId], references: [id])
+  status    InviteStatus  @default(PENDING)
+}
+
+enum InviteStatus {
+  PENDING
+  ACCEPTED
+  DECLINED
 }
 
 enum EventMode {
