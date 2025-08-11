@@ -10,7 +10,6 @@ export async function onboardingStudent(data: OnboardingStudentSchema) {
     return { error: "Onboarding data is invalid" };
   }
 
-  const { departmentId, programId, currentSemester, currentYear, registrationNumber } = validatedData.data;
   const prisma = new PrismaClient();
   const supabase = await createClient();
   const {
@@ -22,18 +21,37 @@ export async function onboardingStudent(data: OnboardingStudentSchema) {
   }
 
   try {
-    await prisma.student.update({
-      where: {
-        userId: user.id,
-      },
-      data: {
-        departmentId,
-        programId,
-        currentSemester,
-        currentYear,
-        registrationNumber,
-      },
-    });
+    if (validatedData.data.studentType === "atmiya") {
+      const { departmentId, programId, currentSemester, currentYear, registrationNumber } = validatedData.data;
+      await prisma.student.update({
+        where: {
+          userId: user.id,
+        },
+        data: {
+          departmentId,
+          programId,
+          currentSemester,
+          currentYear,
+          registrationNumber,
+          university: null,
+        },
+      });
+    } else if (validatedData.data.studentType === "other") {
+      const { currentSemester, currentYear, universityName } = validatedData.data;
+      await prisma.student.update({
+        where: {
+          userId: user.id,
+        },
+        data: {
+          departmentId: null,
+          programId: null,
+          currentSemester,
+          currentYear,
+          registrationNumber: null,
+          university: universityName,
+        },
+      });
+    }
 
     await supabase.auth.updateUser({
       data: {

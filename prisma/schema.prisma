@@ -46,6 +46,7 @@ model Student {
   id                 String      @id @default(uuid())
   userId             String      @unique
   user               User        @relation(fields: [userId], references: [supabaseId], onDelete: Cascade)
+  university         String?
   departmentId       String?
   department         Department? @relation(fields: [departmentId], references: [id], onDelete: Cascade)
   programId          String?
