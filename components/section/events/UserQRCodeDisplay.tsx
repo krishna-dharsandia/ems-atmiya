@@ -157,14 +157,12 @@ export function UserQRCodeDisplay() {
                             alt="Personal QR Code"
                             className="w-64 h-64 mx-auto"
                         />
-                    </div>
-
-                    <div className="space-y-2">
+                    </div>                    <div className="space-y-2">
                         <p className="text-sm text-muted-foreground">
                             Show this QR code to event staff for quick check-in at any registered event.
                         </p>
                         <p className="text-xs text-muted-foreground">
-                            QR code is valid for 24 hours and contains encrypted identification data.
+                            QR code has lifetime validity and contains encrypted identification data.
                         </p>
                     </div>
 
@@ -179,13 +177,12 @@ export function UserQRCodeDisplay() {
                         </Button>
                     </div>
 
-                    <div className="mt-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
-                        <h4 className="font-semibold text-blue-800 mb-2">How to use:</h4>
+                    <div className="mt-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">                        <h4 className="font-semibold text-blue-800 mb-2">How to use:</h4>
                         <ul className="text-sm text-blue-700 text-left space-y-1">
                             <li>• Save this QR code to your phone</li>
                             <li>• Show it to event staff when checking in</li>
                             <li>• Make sure you're registered for the event first</li>
-                            <li>• The QR code automatically updates for security</li>
+                            <li>• The QR code has lifetime validity - no expiration</li>
                         </ul>
                     </div>
                 </div>

@@ -145,7 +145,6 @@ export class QRCodeService {
       qrCodeData: eventUrl,
     };
   }
-
   /**
    * Parse and verify QR code data
    */
@@ -159,13 +158,9 @@ export class QRCodeService {
         return null;
       }
 
-      // Check if QR code is not too old (e.g., 24 hours)
-      const maxAge = 24 * 60 * 60 * 1000; // 24 hours in milliseconds
-      if (Date.now() - data.timestamp > maxAge) {
-        console.error('QR code has expired');
-        return null;
-      }
-
+      // QR codes now have lifetime validity - no expiration check
+      // The timestamp is kept for tracking purposes but not for expiration
+      
       return data;
     } catch (error) {
       console.error('Error parsing QR code data:', error);

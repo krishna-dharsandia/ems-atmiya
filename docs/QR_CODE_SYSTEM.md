@@ -8,7 +8,7 @@ The QR code system has been updated to use **event-based QR codes** instead of i
 
 ### 1. User QR Codes
 - Each user has one personal QR code containing their encrypted ID
-- Valid for 24 hours with HMAC signature verification
+- **Lifetime validity** - QR codes never expire
 - Used for check-in at any event they're registered for
 
 ### 2. Event QR Codes
@@ -94,7 +94,7 @@ model Event {
 ## Security Features
 
 - **HMAC Signature**: All QR codes are cryptographically signed
-- **Timestamp Validation**: QR codes expire after 24 hours
+- **Lifetime Validity**: QR codes never expire (timestamp kept for tracking only)
 - **Permission Checks**: Only Admins/Masters can scan QR codes
 - **Data Encryption**: Sensitive data is encrypted within QR codes
 
