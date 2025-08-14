@@ -170,9 +170,16 @@ export function DataTable<TData, TValue>({
         <Table className="relative">
           <TableHeader>
             {table.getHeaderGroups().map((headerGroup) => (
-              <TableRow key={headerGroup.id}>
-                {headerGroup.headers.map((header) => (
-                  <TableHead key={header.id}>
+              <TableRow key={headerGroup.id}>                {headerGroup.headers.map((header) => (
+                  <TableHead 
+                    key={header.id}
+                    className="whitespace-nowrap px-4 py-3 text-left"
+                    style={{ 
+                      width: header.getSize(),
+                      minWidth: header.column.columnDef.minSize || header.getSize(),
+                      maxWidth: header.column.columnDef.maxSize || 'auto'
+                    }}
+                  >
                     {header.isPlaceholder
                       ? null
                       : flexRender(
@@ -201,9 +208,16 @@ export function DataTable<TData, TValue>({
                     actions.onRowDoubleClick &&
                     actions.onRowDoubleClick(row.original)
                   }
-                >
-                  {row.getVisibleCells().map((cell) => (
-                    <TableCell key={cell.id} className="pl-6">
+                >                  {row.getVisibleCells().map((cell) => (
+                    <TableCell 
+                      key={cell.id} 
+                      className="px-4 py-3 whitespace-nowrap overflow-hidden text-ellipsis"
+                      style={{ 
+                        width: cell.column.getSize(),
+                        minWidth: cell.column.columnDef.minSize || cell.column.getSize(),
+                        maxWidth: cell.column.columnDef.maxSize || 'auto'
+                      }}
+                    >
                       {flexRender(
                         cell.column.columnDef.cell,
                         cell.getContext()

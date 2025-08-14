@@ -32,7 +32,7 @@ export default function Page() {
   if (error) return <p>Error: {error}</p>;
 
   return (
-    <>
+    <div>
       <div className="flex items-start justify-between">
         <Heading
           title={`Events - ${data?.length || 0}`}
@@ -62,6 +62,6 @@ export default function Page() {
       ) : (
         <DataTableSkeleton />
       )}
-    </>
+    </div>
   );
 }

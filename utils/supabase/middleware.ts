@@ -1,6 +1,6 @@
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
-import { getDashboardPath } from "../functions/getDashboardPath";
+import { getDashboardPath as getAccessPath } from "../functions/getDashboardPath";
 
 export const PUBLIC_ROUTES = [
   "/",
@@ -20,12 +20,7 @@ export const PUBLIC_ROUTES = [
 const AUTH_ROUTES = ["/login", "/register"];
 
 function isPublicRoute(pathname: string) {
-  return (
-    pathname.startsWith("/api/") ||
-    PUBLIC_ROUTES.some(
-      (route) => pathname === route || pathname.startsWith(route + "/")
-    )
-  );
+  return pathname.startsWith("/api/") || PUBLIC_ROUTES.some((route) => pathname === route || pathname.startsWith(route + "/"));
 }
 
 function isAuthRoute(pathname: string) {
@@ -58,11 +53,7 @@ export async function updateSession(request: NextRequest) {
   );
 
   // Always allow access to API routes and certain public routes
-  if (
-    currentPath.startsWith("/api/") ||
-    currentPath === "/" ||
-    currentPath === "/events"
-  ) {
+  if (currentPath.startsWith("/api/") || currentPath === "/" || currentPath === "/events") {
     return response;
   }
 
@@ -73,14 +64,13 @@ export async function updateSession(request: NextRequest) {
   // Handle authenticated users
   if (user) {
     const onboardingComplete = user.user_metadata?.onboarding_complete;
-    const dashboardPath = getDashboardPath(user.user_metadata?.role);
+
+    const accessPath = getAccessPath(user.user_metadata?.role);
 
     // If user is authenticated and tries to access login/register, redirect to dashboard
     if (isAuthRoute(currentPath)) {
-      console.log(
-        "Authenticated user trying to access auth route, redirecting to dashboard"
-      );
-      return redirectTo(dashboardPath, request);
+      console.log("Authenticated user trying to access auth route, redirecting to dashboard");
+      return redirectTo(accessPath, request);
     }
 
     // If onboarding is not complete, redirect to onboarding (except if already on onboarding)
@@ -91,10 +81,8 @@ export async function updateSession(request: NextRequest) {
 
     // If onboarding is complete and user is on onboarding page, redirect to dashboard
     if (onboardingComplete && currentPath === "/onboarding") {
-      console.log(
-        "Onboarding complete, redirecting from onboarding to dashboard"
-      );
-      return redirectTo(dashboardPath, request);
+      console.log("Onboarding complete, redirecting from onboarding to dashboard");
+      return redirectTo(accessPath, request);
     }
 
     // Allow access to public routes even when authenticated
@@ -103,11 +91,9 @@ export async function updateSession(request: NextRequest) {
     }
 
     // If trying to access protected route that doesn't match their dashboard path
-    if (onboardingComplete && !currentPath.startsWith(dashboardPath)) {
-      console.log(
-        "User accessing wrong dashboard path, redirecting to correct dashboard"
-      );
-      return redirectTo(dashboardPath, request);
+    if (onboardingComplete && !currentPath.startsWith(accessPath)) {
+      console.log("User accessing wrong dashboard path, redirecting to correct dashboard");
+      return redirectTo(accessPath, request);
     }
 
     return response;

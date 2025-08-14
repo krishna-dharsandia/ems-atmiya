@@ -24,7 +24,7 @@ import { Calendar } from "@/components/ui/calendar";
 import { Separator } from "@/components/ui/separator";
 import { Badge } from "@/components/ui/badge";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { X, Plus, Info, MapPin, Clock, User, Link, CreditCard, PlusCircle, MinusCircle } from "lucide-react";
+import { X, Plus, Info, MapPin, Clock, User, Link, CreditCard } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { format } from "date-fns";
 import { hackathonSchema, HackathonSchema } from "@/schemas/hackathon";
@@ -124,7 +124,6 @@ export default function HackathonForm({ id }: HackathonFormProps) {
   });
 
   const watchMode = form.watch("mode");
-  const supabase = createClient();
 
   // Fetch hackathon data if in edit mode
   useEffect(() => {

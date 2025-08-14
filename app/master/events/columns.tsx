@@ -11,7 +11,7 @@ import {
 import { EventMode, EventStatus, EventType } from "@prisma/client";
 import { ColumnDef } from "@tanstack/react-table";
 import { format } from "date-fns";
-import { ArrowUpDown, Eye, MoreHorizontal, Pencil, Trash2 } from "lucide-react";
+import { ArrowUpDown, ExternalLink, Eye, MoreHorizontal, Pencil, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import { deleteEventAction } from "./actions";
 import { navigate } from "@/utils/functions/navigate";
@@ -37,179 +37,271 @@ export type Event = {
   feedback_score: number;
 };
 
-export const columns: ColumnDef<Event>[] = [
-  {
-    accessorKey: "slug",
-    header: ({ column }) => (
-      <Button
-        variant="ghost"
-        onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+export const columns: ColumnDef<Event>[] = [{
+  accessorKey: "slug",
+  header: ({ column }) => (
+    <Button
+      variant="ghost"
+      onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+      className="h-auto !p-0 justify-start gap-0"
+    >
+      <span>Slug</span>
+      <ArrowUpDown className="ml-2 h-4 w-4" />
+    </Button>
+  ),
+  size: 120,
+  minSize: 100,
+  maxSize: 150,
+  cell: ({ row }) => {
+    const slug = row.getValue("slug") as string;
+    return (
+      <div
+        className="text-left font-medium text-sm max-w-[120px] truncate cursor-help"
+        title={slug}
       >
-        Slug
-        <ArrowUpDown className="ml-2 h-4 w-4" />
-      </Button>
-    ),
+        {slug}
+      </div>
+    );
   },
-  {
-    accessorKey: "name",
-    header: ({ column }) => (
-      <Button
-        variant="ghost"
-        onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+}, {
+  accessorKey: "name",
+  header: ({ column }) => (
+    <Button
+      variant="ghost"
+      onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+      className="h-auto !p-0 justify-start"
+    >
+      Name
+      <ArrowUpDown className="ml-2 h-4 w-4" />
+    </Button>
+  ),
+  size: 180,
+  minSize: 150,
+  maxSize: 220,
+  cell: ({ row }) => {
+    const name = row.getValue("name") as string;
+    return (
+      <div
+        className="text-left font-semibold text-sm max-w-[180px] truncate cursor-help"
+        title={name}
       >
-        Name
-        <ArrowUpDown className="ml-2 h-4 w-4" />
-      </Button>
-    ),
+        {name}
+      </div>
+    );
   },
-  {
-    accessorKey: "mode",
-    header: "Mode",
-    cell: ({ row }) => {
-      const mode = row.getValue<EventMode>("mode");
-      let color: string;
-      switch (mode) {
-        case EventMode.ONLINE:
-          color = "blue";
-          break;
-        case EventMode.OFFLINE:
-          color = "green";
-          break;
-        default:
-          color = "gray";
-      }
-      return (
-        <Badge className={`bg-${color}-500 text-white`}>
+}, {
+  accessorKey: "mode",
+  header: "Mode",
+  size: 100,
+  minSize: 80,
+  maxSize: 120,
+  cell: ({ row }) => {
+    const mode = row.getValue<EventMode>("mode");
+    let color: string;
+    switch (mode) {
+      case EventMode.ONLINE:
+        color = "blue";
+        break;
+      case EventMode.OFFLINE:
+        color = "green";
+        break;
+      default:
+        color = "gray";
+    }
+    return (
+      <div className="text-left">
+        <Badge className={`bg-${color}-500 text-white text-xs`}>
           {mode.charAt(0).toUpperCase() + mode.slice(1).toLowerCase()}
         </Badge>
-      );
-    },
+      </div>
+    );
   },
-  {
-    accessorKey: "event_type",
-    header: "Type",
-    cell: ({ row }) => {
-      const type = row.getValue<EventType>("event_type");
-      let color: string;
-      switch (type) {
-        case EventType.SESSION:
-          color = "purple";
-          break;
-        case EventType.WORKSHOP:
-          color = "orange";
-          break;
-        case EventType.WEBINAR:
-          color = "blue";
-          break;
-        case EventType.OTHER:
-        default:
-          color = "gray";
-      }
-      return (
-        <Badge className={`bg-${color}-500 text-white`}>
+},
+{
+  accessorKey: "event_type",
+  header: "Type",
+  size: 120,
+  minSize: 100,
+  maxSize: 150,
+  cell: ({ row }) => {
+    const type = row.getValue<EventType>("event_type");
+    let color: string;
+    switch (type) {
+      case EventType.SESSION:
+        color = "purple";
+        break;
+      case EventType.WORKSHOP:
+        color = "orange";
+        break;
+      case EventType.WEBINAR:
+        color = "blue";
+        break;
+      case EventType.OTHER:
+      default:
+        color = "gray";
+    }
+    return (
+      <div className="text-left">
+        <Badge className={`bg-${color}-500 text-white text-xs`}>
           {type.charAt(0).toUpperCase() + type.slice(1).toLowerCase()}
         </Badge>
-      );
-    },
+      </div>
+    );
   },
-  {
-    accessorKey: "status",
-    header: "Status",
-    cell: ({ row }) => {
-      const status = row.getValue<EventStatus>("status");
-      let color: string;
-      switch (status) {
-        case EventStatus.UPCOMING:
-          color = "yellow";
-          break;
-        case EventStatus.COMPLETED:
-          color = "green";
-          break;
-        case EventStatus.CANCELLED:
-          color = "red";
-          break;
-        default:
-          color = "gray";
-      }
-      return (
-        <Badge className={`bg-${color}-500 text-white`}>
+},
+{
+  accessorKey: "status",
+  header: "Status",
+  size: 120,
+  minSize: 100,
+  maxSize: 150,
+  cell: ({ row }) => {
+    const status = row.getValue<EventStatus>("status");
+    let color: string;
+    switch (status) {
+      case EventStatus.UPCOMING:
+        color = "yellow";
+        break;
+      case EventStatus.COMPLETED:
+        color = "green";
+        break;
+      case EventStatus.CANCELLED:
+        color = "red";
+        break;
+      default:
+        color = "gray";
+    }
+    return (
+      <div className="text-left">
+        <Badge className={`bg-${color}-500 text-white text-xs`}>
           {status.charAt(0).toUpperCase() + status.slice(1).toLowerCase()}
         </Badge>
-      );
-    },
+      </div>
+    );
   },
-  {
-    accessorKey: "start_date",
-    header: "Start Date",
-    cell: ({ row }) => {
-      const startDate = row.getValue<string>("start_date");
-      return startDate ? format(new Date(startDate), "dd MMM yyyy") : "N/A";
-    },
+}, {
+  accessorKey: "start_date",
+  header: "Start",
+  size: 100,
+  minSize: 90,
+  maxSize: 120,
+  cell: ({ row }) => {
+    const startDate = row.getValue<string>("start_date");
+    return (
+      <div className="text-left text-sm">
+        {startDate ? format(new Date(startDate), "dd MMM yyyy") : "N/A"}
+      </div>
+    );
   },
-  {
-    accessorKey: "end_date",
-    header: "End Date",
-    cell: ({ row }) => {
-      const endDate = row.getValue<string>("end_date");
-      return endDate ? format(new Date(endDate), "dd MMM yyyy") : "N/A";
-    },
+},
+{
+  accessorKey: "end_date",
+  header: "End",
+  size: 100,
+  minSize: 90,
+  maxSize: 120,
+  cell: ({ row }) => {
+    const endDate = row.getValue<string>("end_date");
+    return (
+      <div className="text-left text-sm">
+        {endDate ? format(new Date(endDate), "dd MMM yyyy") : "N/A"}
+      </div>
+    );
   },
-  {
-    accessorKey: "organizer_name",
-    header: ({ column }) => (
-      <Button
-        variant="ghost"
-        onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+}, {
+  accessorKey: "organizer_name",
+  header: ({ column }) => (
+    <Button
+      variant="ghost"
+      onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+      className="h-auto !p-0 justify-start"
+    >
+      Organizer
+      <ArrowUpDown className="ml-2 h-4 w-4" />
+    </Button>
+  ),
+  size: 140,
+  minSize: 120,
+  maxSize: 180,
+  cell: ({ row }) => {
+    const organizerName = row.getValue("organizer_name") as string;
+    return (
+      <div
+        className="text-left text-sm max-w-[140px] truncate cursor-help"
+        title={organizerName}
       >
-        Oragnizer Name
-        <ArrowUpDown className="ml-2 h-4 w-4" />
-      </Button>
-    ),
+        {organizerName}
+      </div>
+    );
   },
-  {
-    accessorKey: "current_registration_count",
-    header: ({ column }) => (
-      <Button
-        variant="ghost"
-        onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-      >
-        Registrations
-        <ArrowUpDown className="ml-2 h-4 w-4" />
-      </Button>
-    ),
+}, {
+  accessorKey: "current_registration_count",
+  header: ({ column }) => (
+    <Button
+      variant="ghost"
+      onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+      className="h-auto !p-0 justify-start"
+    >
+      Regs
+      <ArrowUpDown className="ml-2 h-4 w-4" />
+    </Button>
+  ),
+  size: 80,
+  minSize: 70,
+  maxSize: 100,
+  cell: ({ row }) => (
+    <div className="text-left text-sm font-medium">
+      {row.getValue("current_registration_count")}
+    </div>
+  ),
+},
+{
+  accessorKey: "feedback_score",
+  header: ({ column }) => (
+    <Button
+      variant="ghost"
+      onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+      className="h-auto !p-0 justify-start"
+    >
+      Score
+      <ArrowUpDown className="ml-2 h-4 w-4" />
+    </Button>
+  ),
+  size: 80,
+  minSize: 70,
+  maxSize: 100,
+  cell: ({ row }) => {
+    const score = row.getValue<number>("feedback_score");
+    return (
+      <div className="text-left text-sm">
+        {score ? score.toFixed(1) : "N/A"}
+      </div>
+    );
   },
-  {
-    accessorKey: "feedback_score",
-    header: ({ column }) => (
-      <Button
-        variant="ghost"
-        onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-      >
-        Feedback Score
-        <ArrowUpDown className="ml-2 h-4 w-4" />
-      </Button>
-    ),
-  },
-  {
-    id: "actions",
-    header: "Actions",
-    cell: ({ row }) => {
-      const event = row.original;
+}, {
+  id: "actions",
+  header: "Actions",
+  size: 80,
+  minSize: 80,
+  maxSize: 120,
+  cell: ({ row }) => {
+    const event = row.original;
 
-      async function handleDelete() {
-        const response = await deleteEventAction(event.id);
-        if (response.error) {
-          toast.error(`Failed to delete event: ${response.error}`);
-        } else {
-          toast.success("Event deleted successfully");
-        }
+    async function handleDelete() {
+      const response = await deleteEventAction(event.id);
+      if (response.error) {
+        toast.error(`Failed to delete event: ${response.error}`);
+      } else {
+        toast.success("Event deleted successfully");
       }
+    }
 
-      async function handleEdit() {
-        navigate(`/master/events/edit/${event.id}`);
-      }
+    async function handleEdit() {
+      navigate(`/master/events/edit/${event.id}`);
+    }
 
-      return (
+    return (
+      <div className="flex justify-end">
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <Button variant="ghost" className="h-8 w-8 p-0">
@@ -221,7 +313,7 @@ export const columns: ColumnDef<Event>[] = [
             <DropdownMenuItem
               onClick={() => navigate(`/master/events/details/${event.id}`)}
             >
-              <Eye /> Details
+              <ExternalLink /> Details
             </DropdownMenuItem>
             <DropdownMenuItem onClick={() => navigate(`/events/${event.id}`)}>
               <Eye /> View
@@ -234,7 +326,8 @@ export const columns: ColumnDef<Event>[] = [
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
-      );
-    },
+      </div>
+    );
   },
+},
 ];
