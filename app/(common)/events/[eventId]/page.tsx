@@ -113,7 +113,7 @@ function ErrorState({ message }: { message: string }) {
 
 export default function Page() {
   const params = useParams();
-  const id = params.id as string;
+  const id = params.eventId as string;
   const [open, setOpen] = useState(false);
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [loading, setLoading] = useState(false);

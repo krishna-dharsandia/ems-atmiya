@@ -4,18 +4,18 @@ import { PrismaClient } from "@prisma/client";
 
 export async function GET(
     request: NextRequest,
-    { params }: { params: Promise<{ eventId: string }> }
+    { params }: { params: Promise<{ id: string }> }
 ) {
     const prisma = new PrismaClient();
     try {
-        const { eventId } = await params;
+        const { id } = await params;
         const supabase = await createClient();
         const { data: { user }, error: authError } = await supabase.auth.getUser();
 
         if (authError || !user) {
-            return NextResponse.json({ 
+            return NextResponse.json({
                 isRegistered: false,
-                message: 'Please log in to check registration status' 
+                message: 'Please log in to check registration status'
             });
         }
 
@@ -23,7 +23,7 @@ export async function GET(
         const registration = await prisma.eventRegistration.findFirst({
             where: {
                 userId: user.id,
-                eventId: eventId
+                eventId: id
             }
         });
 

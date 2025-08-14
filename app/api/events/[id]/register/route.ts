@@ -4,11 +4,11 @@ import { PrismaClient } from "@prisma/client";
 
 export async function POST(
     request: NextRequest,
-    { params }: { params: Promise<{ eventId: string }> }
+    { params }: { params: Promise<{ id: string }> }
 ) {
     const prisma = new PrismaClient();
     try {
-        const { eventId } = await params;
+        const { id } = await params;
         const supabase = await createClient();
         const { data: { user }, error: authError } = await supabase.auth.getUser();
 
@@ -18,7 +18,7 @@ export async function POST(
 
         // Check if event exists and is open for registration
         const event = await prisma.event.findUnique({
-            where: { id: eventId },
+            where: { id: id },
             select: {
                 id: true,
                 name: true,
@@ -63,7 +63,7 @@ export async function POST(
         const existingRegistration = await prisma.eventRegistration.findFirst({
             where: {
                 userId: user.id,
-                eventId: eventId
+                eventId: id
             }
         });
 
@@ -78,13 +78,13 @@ export async function POST(
         const registration = await prisma.eventRegistration.create({
             data: {
                 userId: user.id,
-                eventId: eventId
+                eventId: id
             }
         });
 
         // Update event registration count
         await prisma.event.update({
-            where: { id: eventId },
+            where: { id: id },
             data: {
                 current_registration_count: {
                     increment: 1

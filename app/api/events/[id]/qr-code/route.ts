@@ -5,11 +5,11 @@ import { PrismaClient } from "@prisma/client";
 
 export async function POST(
     request: NextRequest,
-    { params }: { params: Promise<{ eventId: string }> }
+    { params }: { params: Promise<{ id: string }> }
 ) {
     const prisma = new PrismaClient();
     try {
-        const { eventId } = await params;
+        const { id } = await params;
         const supabase = await createClient();
         const { data: { user }, error: authError } = await supabase.auth.getUser();
 
@@ -32,11 +32,11 @@ export async function POST(
 
         // Get the event details
         const event = await prisma.event.findUnique({
-            where: { id: eventId },
-            select: { 
-                id: true, 
-                name: true, 
-                start_date: true, 
+            where: { id: id },
+            select: {
+                id: true,
+                name: true,
+                start_date: true,
                 createdById: true,
                 qrCode: true,
                 qrCodeData: true
@@ -59,16 +59,16 @@ export async function POST(
             });
         }        // Generate QR code for the event
         const { qrCode, qrCodeData } = await QRCodeService.generateEventQRCode(
-            eventId,
+            id,
             event.createdById
         );
 
         // Also generate a URL-based QR code for easy scanning
-        const { qrCode: urlQrCode } = await QRCodeService.generateEventURLQRCode(eventId);
+        const { qrCode: urlQrCode } = await QRCodeService.generateEventURLQRCode(id);
 
         // Update event with QR code
         await prisma.event.update({
-            where: { id: eventId },
+            where: { id: id },
             data: {
                 qrCode,
                 qrCodeData
