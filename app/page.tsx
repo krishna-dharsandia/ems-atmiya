@@ -1,9 +1,21 @@
-import OneTapComponent from "@/components/global/OnTapGoogle";
+import { HeroSection } from "@/components/section/landing/HeroSection";
+import { FeaturesSection } from "@/components/section/landing/FeaturesSection";
+import { StatsSection } from "@/components/section/landing/StatsSection";
+import { CTASection } from "@/components/section/landing/CTASection";
+import { LandingHeader } from "@/components/global/navigation-bar/LandingHeader";
+import { LandingFooter } from "@/components/global/LandingFooter";
 
 export default function Page() {
   return (
-    <div>
-      <OneTapComponent />
+    <div className="min-h-screen bg-gradient-to-br from-background to-muted">
+      <LandingHeader />
+      <main>
+        <HeroSection />
+        <FeaturesSection />
+        <StatsSection />
+        <CTASection />
+      </main>
+      <LandingFooter />
     </div>
   );
 }

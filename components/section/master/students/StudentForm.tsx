@@ -14,7 +14,7 @@ import { useState, useTransition } from "react";
 import { createStudentAction } from "./createStudentAction";
 import { Turnstile } from "@marsidev/react-turnstile";
 
-export function StudentForm() {
+export function StudentForm({ setIsFormOpen }: { isFormOpen: boolean; setIsFormOpen: (open: boolean) => void }) {
   const { data: departments, isLoading: loadingDepartments } = useSWR<{ name: string; id: string }[]>("/api/department", fetcher);
   const { data: programs, isLoading: loadingPrograms } = useSWR<{ name: string; id: string }[]>("/api/program", fetcher);
   const [loading, startTransition] = useTransition();
@@ -120,7 +120,7 @@ export function StudentForm() {
             <FormItem>
               <FormLabel>Department</FormLabel>
               <Select onValueChange={field.onChange} defaultValue={field.value}>
-                <FormControl>
+                <FormControl className="w-full">
                   <SelectTrigger>
                     <SelectValue placeholder="Select Department" />
                   </SelectTrigger>
@@ -151,7 +151,7 @@ export function StudentForm() {
             <FormItem>
               <FormLabel>Program</FormLabel>
               <Select onValueChange={field.onChange} defaultValue={field.value}>
-                <FormControl>
+                <FormControl className="w-full">
                   <SelectTrigger>
                     <SelectValue placeholder="Select Program" />
                   </SelectTrigger>
@@ -242,9 +242,18 @@ export function StudentForm() {
           }}
         />
 
-        <Button type="submit" disabled={loading}>
-          {loading ? "Creating Student..." : "Create Student"}
-        </Button>
+
+        <div className="flex justify-end gap-2 mt-4">
+          <Button type="button" variant="outline" onClick={() => {
+            form.reset();
+            setIsFormOpen(false);
+          }} disabled={loading}>
+            Cancel
+          </Button>
+          <Button type="submit" disabled={loading}>
+            {loading ? "Creating Student..." : "Create Student"}
+          </Button>
+        </div>
       </form>
     </Form>
   );

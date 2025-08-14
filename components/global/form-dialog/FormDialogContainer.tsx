@@ -27,7 +27,7 @@ export default function FormDialogContainer() {
       </FormDialog>
 
       <FormDialog open={createStudentDialog} onOpenChange={setCreateStudentDialog} title="Create Student">
-        <StudentForm />
+        <StudentForm isFormOpen={createStudentDialog} setIsFormOpen={setCreateStudentDialog} />
       </FormDialog>
       <FormDialog open={createAdminDialog} onOpenChange={setCreateAdminDialog} title="Create Admin">
         <AdminForm />

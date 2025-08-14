@@ -208,7 +208,8 @@ export function DataTable<TData, TValue>({
                     actions.onRowDoubleClick &&
                     actions.onRowDoubleClick(row.original)
                   }
-                >                  {row.getVisibleCells().map((cell) => (
+                >                  
+                {row.getVisibleCells().map((cell) => (
                     <TableCell 
                       key={cell.id} 
                       className="px-4 py-3 whitespace-nowrap overflow-hidden text-ellipsis"
