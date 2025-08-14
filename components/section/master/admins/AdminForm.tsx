@@ -130,7 +130,7 @@ export function AdminForm() {
             <FormItem>
               <FormLabel>Department</FormLabel>
               <Select onValueChange={field.onChange} defaultValue={field.value}>
-                <FormControl>
+                <FormControl className="w-full">
                   <SelectTrigger>
                     <SelectValue placeholder="Select Department" />
                   </SelectTrigger>
@@ -161,7 +161,7 @@ export function AdminForm() {
             <FormItem>
               <FormLabel>Program</FormLabel>
               <Select onValueChange={field.onChange} defaultValue={field.value}>
-                <FormControl>
+                <FormControl className="w-full">
                   <SelectTrigger>
                     <SelectValue placeholder="Select Program" />
                   </SelectTrigger>

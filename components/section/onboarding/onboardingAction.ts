@@ -1,8 +1,10 @@
 "use server";
 
+import { QRCodeService } from "@/lib/qr-code";
 import { onboardingStudentSchema, OnboardingStudentSchema } from "@/schemas/onboardingStudentSchema";
 import { createClient } from "@/utils/supabase/server";
 import { PrismaClient } from "@prisma/client";
+import axios from "axios";
 
 export async function onboardingStudent(data: OnboardingStudentSchema) {
   const validatedData = onboardingStudentSchema.safeParse(data);
@@ -52,6 +54,19 @@ export async function onboardingStudent(data: OnboardingStudentSchema) {
         },
       });
     }
+
+    // Generate QR code for the user
+    // Generate new QR code for the user
+    const { qrCode, qrCodeData } = await QRCodeService.generateUserQRCode(user.id);
+
+    // Update user with QR code
+    await prisma.user.update({
+      where: { supabaseId: user.id },
+      data: {
+        qrCode,
+        qrCodeData
+      }
+    });
 
     await supabase.auth.updateUser({
       data: {

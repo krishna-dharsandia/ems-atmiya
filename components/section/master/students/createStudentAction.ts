@@ -1,5 +1,6 @@
 "use server";
 
+import { QRCodeService } from "@/lib/qr-code";
 import { studentSchema, StudentSchema } from "@/schemas/student";
 import { createClient } from "@/utils/supabase/server";
 import { PrismaClient } from "@prisma/client";
@@ -28,10 +29,12 @@ export async function createStudentAction(data: StudentSchema, captchaToken: str
         onboarding_complete: true,
         full_name: `${firstName} ${lastName}`,
       },
-      emailRedirectTo: "http://localhost:3000/student",
+      emailRedirectTo: `${process.env.BASE_URL}/student`,
       captchaToken,
     },
   });
+
+  // Generate QR code for the user
 
   if (error || !userData || !userData.user) {
     return { error: error ? error.message : "Failed to register user with Supabase" };
@@ -39,6 +42,18 @@ export async function createStudentAction(data: StudentSchema, captchaToken: str
 
   const prisma = new PrismaClient();
   try {
+
+    const { qrCode, qrCodeData } = await QRCodeService.generateUserQRCode(userData.user.id);
+
+    // Update user with QR code
+    await prisma.user.update({
+      where: { supabaseId: userData.user.id },
+      data: {
+        qrCode,
+        qrCodeData
+      }
+    });
+
     await prisma.user.create({
       data: {
         supabaseId: userData.user.id,

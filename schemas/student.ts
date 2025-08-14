@@ -7,8 +7,8 @@ export const studentSchema = z.object({
   password: z.string().min(8, "Password must be at least 8 characters"),
   departmentId: z.string().uuid("Department ID must be a valid UUID").optional(),
   programId: z.string().uuid("Program ID must be a valid UUID").optional(),
-  currentSemester: z.number().int().min(1).optional(),
-  currentYear: z.number().int().min(1).optional(),
+  currentSemester: z.coerce.number().int().min(1).optional(),
+  currentYear: z.coerce.number().int().min(1).optional(),
   registrationNumber: z.string().min(2).optional(),
   dateOfBirth: z.string().optional(), // ISO string
 });

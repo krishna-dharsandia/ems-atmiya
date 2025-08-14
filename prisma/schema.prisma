@@ -14,6 +14,8 @@ model User {
   firstName          String
   lastName           String
   role               Role
+  qrCode             String? // Base64 encoded QR code for the user
+  qrCodeData         String? // JSON data encoded in QR code
   students           Student[]
   admins             Admin[]
   masters            Master[]
@@ -110,6 +112,8 @@ model Event {
   ticket_price               Int?
   current_registration_count Int                 @default(0)
   feedback_score             Float?
+  qrCode                     String? // Base64 encoded QR code for the event
+  qrCodeData                 String? // JSON data encoded in QR code for the event
   createdById                String
   created_by                 User                @relation(fields: [createdById], references: [supabaseId], onDelete: Cascade)
   created_at                 DateTime            @default(now())
@@ -131,14 +135,16 @@ model EventSpeaker {
 }
 
 model EventRegistration {
-  id        String   @id @default(uuid())
-  userId    String
-  user      User     @relation(fields: [userId], references: [supabaseId], onDelete: Cascade)
-  eventId   String
-  event     Event    @relation(fields: [eventId], references: [id], onDelete: Cascade)
-  attended  Boolean  @default(false)
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  id          String    @id @default(uuid())
+  userId      String
+  user        User      @relation(fields: [userId], references: [supabaseId], onDelete: Cascade)
+  eventId     String
+  event       Event     @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  attended    Boolean   @default(false)
+  checkedInAt DateTime? // When the user checked in using QR code
+  checkedInBy String? // Who verified the QR code
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
 }
 
 model EventFeedback {
@@ -219,7 +225,7 @@ model HackathonTeamMember {
   team      HackathonTeam @relation(fields: [teamId], references: [id])
   studentId String
   student   Student       @relation(fields: [studentId], references: [id])
-  attended  Boolean      @default(false)
+  attended  Boolean       @default(false)
 }
 
 model HackathonTeamInvite {

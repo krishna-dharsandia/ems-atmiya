@@ -34,9 +34,7 @@ export function StudentForm({ setIsFormOpen }: { isFormOpen: boolean; setIsFormO
       registrationNumber: "",
       dateOfBirth: "",
     },
-  });
-
-  async function onSubmit(data: StudentSchema) {
+  });  async function onSubmit(data: StudentSchema) {
     startTransition(async () => {
       const response = await createStudentAction(data, captchaToken);
       if (response.error) {
@@ -174,8 +172,7 @@ export function StudentForm({ setIsFormOpen }: { isFormOpen: boolean; setIsFormO
             </FormItem>
           )}
         />
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-          <FormField
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">          <FormField
             control={form.control}
             name="currentSemester"
             disabled={loading}

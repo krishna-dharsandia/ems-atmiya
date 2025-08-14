@@ -10,8 +10,7 @@ const compat = new FlatCompat({
 });
 
 const eslintConfig = [
-  ...compat.extends("next/core-web-vitals", "next/typescript"),
-  {
+  ...compat.extends("next/core-web-vitals", "next/typescript"),  {
     rules: {
       // TypeScript specific rules
       "@typescript-eslint/no-explicit-any": "off",
@@ -21,6 +20,10 @@ const eslintConfig = [
       "@typescript-eslint/no-empty-function": "warn",
       "@typescript-eslint/no-inferrable-types": "off",
       "@typescript-eslint/ban-ts-comment": "off",
+      "@typescript-eslint/no-unescaped-entities": "off",
+      
+      // React specific rules
+      "react/no-unescaped-entities": "off",
     }
   }
 ];
