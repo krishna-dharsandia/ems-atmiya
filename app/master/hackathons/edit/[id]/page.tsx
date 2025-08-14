@@ -1,15 +1,18 @@
 "use client";
 
 import HackathonForm from "@/components/section/master/hackathons/HackathonForm";
+import { use } from "react";
 
 export default function EditHackathonPage({
   params,
 }: {
-  params: { id: string };
+  params: Promise<{ id: string }>;
 }) {
+  const { id } = use(params);
+  
   return (
     <div className="container mx-auto py-8 px-4">
-      <HackathonForm id={params.id} />
+      <HackathonForm id={id} />
     </div>
   );
 }

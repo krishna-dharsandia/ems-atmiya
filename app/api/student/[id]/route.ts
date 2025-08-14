@@ -4,8 +4,9 @@ import { PrismaClient } from "@prisma/client";
 
 export async function GET(
   req: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
+  const { id } = await params;
   const supabase = await createClient();
   const {
     data: { user: currentUser },
@@ -17,10 +18,9 @@ export async function GET(
 
   const prisma = new PrismaClient();
 
-  try {
-    // Make sure the user is only allowed to fetch their own data
+  try {    // Make sure the user is only allowed to fetch their own data
     // or allow admins/masters to fetch any user's data
-    if (currentUser.id !== params.id) {
+    if (currentUser.id !== id) {
       // Check if current user has admin or master role
       const currentDbUser = await prisma.user.findUnique({
         where: {
@@ -39,7 +39,7 @@ export async function GET(
     // Fetch the user with their student data
     const user = await prisma.user.findUnique({
       where: {
-        supabaseId: params.id,
+        supabaseId: id,
       },
       include: {
         students: true,

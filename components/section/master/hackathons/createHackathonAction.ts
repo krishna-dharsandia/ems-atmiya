@@ -28,7 +28,7 @@ export async function createHackathonAction(data: FormattedHackathonSchema) {
       return { error: "Invalid hackathon data: " + validatedData.error.errors.map(e => e.message).join(", ") };
     }
 
-    const { problemStatements, rules, evaluationCriteria } = validatedData.data;
+    const { problemStatements, rules } = validatedData.data;
     prisma = new PrismaClient();
 
     console.log("Creating hackathon in database");

@@ -8,6 +8,7 @@ import { useState, useMemo } from "react";
 import { Input } from "@/components/ui/input";
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
+import { LandingHeader } from "@/components/global/navigation-bar/LandingHeader";
 
 type Event = {
   id: string;
@@ -44,87 +45,90 @@ export default function Page() {
   }, [data, search, mode, type, status]);
 
   return (
-    <div className="min-h-svh bg-background pt-32 px-4 pb-12">
-      <div className="max-w-screen-xl mx-auto">
-        <div className="mb-8 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-          <div className="flex flex-col sm:flex-row gap-4 w-full">
-            <Input placeholder="Search events..." value={search} onChange={(e) => setSearch(e.target.value)} className="w-full sm:w-64 rounded-full" />
-            <Select value={mode} onValueChange={setMode}>
-              <SelectTrigger className="w-full sm:w-40 rounded-full">
-                <SelectValue placeholder="Mode" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All Modes</SelectItem>
-                <SelectItem value="ONLINE">Online</SelectItem>
-                <SelectItem value="OFFLINE">Offline</SelectItem>
-                <SelectItem value="HYBRID">Hybrid</SelectItem>
-              </SelectContent>
-            </Select>
-            <Select value={type} onValueChange={setType}>
-              <SelectTrigger className="w-full sm:w-40 rounded-full">
-                <SelectValue placeholder="Type" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All Types</SelectItem>
-                <SelectItem value="TECHNICAL">Technical</SelectItem>
-                <SelectItem value="CULTURAL">Cultural</SelectItem>
-                <SelectItem value="SPORTS">Sports</SelectItem>
-                <SelectItem value="OTHER">Other</SelectItem>
-              </SelectContent>
-            </Select>
-            <Select value={status} onValueChange={setStatus}>
-              <SelectTrigger className="w-full sm:w-40 rounded-full">
-                <SelectValue placeholder="Status" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All Status</SelectItem>
-                <SelectItem value="UPCOMING">Upcoming</SelectItem>
-                <SelectItem value="ONGOING">Ongoing</SelectItem>
-                <SelectItem value="COMPLETED">Completed</SelectItem>
-                <SelectItem value="CANCELLED">Cancelled</SelectItem>
-              </SelectContent>
-            </Select>
+    <div className="min-h-svh">
+      <LandingHeader />
+      <div className="bg-background pt-6 px-4 pb-12">
+        <div className="max-w-screen-xl mx-auto">
+          <div className="mb-8 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+            <div className="flex flex-col sm:flex-row gap-4 w-full">
+              <Input placeholder="Search events..." value={search} onChange={(e) => setSearch(e.target.value)} className="w-full sm:w-64 rounded-full" />
+              <Select value={mode} onValueChange={setMode}>
+                <SelectTrigger className="w-full sm:w-40 rounded-full">
+                  <SelectValue placeholder="Mode" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Modes</SelectItem>
+                  <SelectItem value="ONLINE">Online</SelectItem>
+                  <SelectItem value="OFFLINE">Offline</SelectItem>
+                  <SelectItem value="HYBRID">Hybrid</SelectItem>
+                </SelectContent>
+              </Select>
+              <Select value={type} onValueChange={setType}>
+                <SelectTrigger className="w-full sm:w-40 rounded-full">
+                  <SelectValue placeholder="Type" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Types</SelectItem>
+                  <SelectItem value="TECHNICAL">Technical</SelectItem>
+                  <SelectItem value="CULTURAL">Cultural</SelectItem>
+                  <SelectItem value="SPORTS">Sports</SelectItem>
+                  <SelectItem value="OTHER">Other</SelectItem>
+                </SelectContent>
+              </Select>
+              <Select value={status} onValueChange={setStatus}>
+                <SelectTrigger className="w-full sm:w-40 rounded-full">
+                  <SelectValue placeholder="Status" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Status</SelectItem>
+                  <SelectItem value="UPCOMING">Upcoming</SelectItem>
+                  <SelectItem value="ONGOING">Ongoing</SelectItem>
+                  <SelectItem value="COMPLETED">Completed</SelectItem>
+                  <SelectItem value="CANCELLED">Cancelled</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="flex gap-2">
+              <Button
+                variant="outline"
+                onClick={() => {
+                  setSearch("");
+                  setMode("");
+                  setType("");
+                  setStatus("");
+                }}
+                className="rounded-full"
+              >
+                Clear Filters
+              </Button>
+            </div>
           </div>
-          <div className="flex gap-2">
-            <Button
-              variant="outline"
-              onClick={() => {
-                setSearch("");
-                setMode("");
-                setType("");
-                setStatus("");
-              }}
-              className="rounded-full"
-            >
-              Clear Filters
-            </Button>
-          </div>
+          {isLoading || !data ? (
+            <div className="flex justify-center items-center h-64 text-lg font-medium">Loading events...</div>
+          ) : error ? (
+            <div className="flex justify-center items-center h-64 text-lg font-medium text-destructive">Failed to load events data</div>
+          ) : (
+            <div className="grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-3">
+              {filteredEvents.length === 0 ? (
+                <div className="col-span-full text-center text-muted-foreground py-16">No events found.</div>
+              ) : (
+                filteredEvents.map((event) => (
+                  <EventCard
+                    key={event.id}
+                    id={event.id}
+                    name={event.name}
+                    description={event.description}
+                    poster_url={event.poster_url}
+                    address={event.address}
+                    start_date={event.start_date}
+                    mode={event.mode}
+                    price={event.ticket_price}
+                  />
+                ))
+              )}
+            </div>
+          )}
         </div>
-        {isLoading || !data ? (
-          <div className="flex justify-center items-center h-64 text-lg font-medium">Loading events...</div>
-        ) : error ? (
-          <div className="flex justify-center items-center h-64 text-lg font-medium text-destructive">Failed to load events data</div>
-        ) : (
-          <div className="grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-3">
-            {filteredEvents.length === 0 ? (
-              <div className="col-span-full text-center text-muted-foreground py-16">No events found.</div>
-            ) : (
-              filteredEvents.map((event) => (
-                <EventCard
-                  key={event.id}
-                  id={event.id}
-                  name={event.name}
-                  description={event.description}
-                  poster_url={event.poster_url}
-                  address={event.address}
-                  start_date={event.start_date}
-                  mode={event.mode}
-                  price={event.ticket_price}
-                />
-              ))
-            )}
-          </div>
-        )}
       </div>
     </div>
   );

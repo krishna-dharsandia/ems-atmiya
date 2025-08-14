@@ -44,14 +44,12 @@ export function CTASection() {
                 <span>{benefit}</span>
               </div>
             ))}
-          </div>
-
-          {/* CTA Buttons */}
+          </div>          {/* CTA Buttons */}
           <div className="flex flex-col sm:flex-row gap-4 justify-center mb-8">
             <Link href="/register">
               <Button
                 size="lg"
-                className="bg-white text-blue-600 hover:bg-blue-50 px-8 py-4 text-lg font-semibold shadow-lg hover:shadow-xl transition-all duration-200 border-0"
+                className="bg-background text-foreground hover:bg-background/90 px-8 py-4 text-lg font-semibold shadow-lg hover:shadow-xl transition-all duration-200 border-0"
               >
                 Join as Student
                 <ArrowRight className="ml-2 h-5 w-5" />
@@ -61,7 +59,7 @@ export function CTASection() {
               <Button
                 variant="outline"
                 size="lg"
-                className="border-2 border-white/30 text-white hover:bg-white/10 backdrop-blur-sm px-8 py-4 text-lg font-semibold transition-all duration-200"
+                className="border-2 border-primary-foreground/30 text-primary-foreground hover:bg-primary-foreground/10 backdrop-blur-sm px-8 py-4 text-lg font-semibold transition-all duration-200"
               >
                 Explore Events
               </Button>
@@ -69,25 +67,23 @@ export function CTASection() {
           </div>
 
           {/* Trust Message */}
-          <p className="text-blue-200 text-sm">
+          <p className="text-primary-foreground/70 text-sm">
             Official Atmiya University platform • Secure registration • Free access for students
           </p>
-        </div>
-
-        {/* Campus Statistics */}
-        <div className="mt-16 bg-white/10 backdrop-blur-sm rounded-2xl p-8">
+        </div>        {/* Campus Statistics */}
+        <div className="mt-16 bg-primary-foreground/10 backdrop-blur-sm rounded-2xl p-8 border border-primary-foreground/20">
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-8 text-center">
             <div>
-              <div className="text-3xl font-bold text-white mb-2">15,000+</div>
-              <div className="text-blue-200">Active students</div>
+              <div className="text-3xl font-bold text-primary-foreground mb-2">15,000+</div>
+              <div className="text-primary-foreground/70">Active students</div>
             </div>
             <div>
-              <div className="text-3xl font-bold text-white mb-2">50+</div>
-              <div className="text-blue-200">Student clubs & societies</div>
+              <div className="text-3xl font-bold text-primary-foreground mb-2">50+</div>
+              <div className="text-primary-foreground/70">Student clubs & societies</div>
             </div>
             <div>
-              <div className="text-3xl font-bold text-white mb-2">500+</div>
-              <div className="text-blue-200">Events annually</div>
+              <div className="text-3xl font-bold text-primary-foreground mb-2">500+</div>
+              <div className="text-primary-foreground/70">Events annually</div>
             </div>
           </div>
         </div>
