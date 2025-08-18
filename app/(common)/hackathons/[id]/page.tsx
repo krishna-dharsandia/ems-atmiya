@@ -4,7 +4,6 @@ import { useEffect, useState } from "react";
 import { notFound, useParams } from "next/navigation";
 import HackathonDetail, { HackathonDetailProps, Team } from "@/components/section/student/hackathons/HackathonDetail";
 import { Skeleton } from "@/components/ui/skeleton";
-import { createClient } from "@/utils/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 
 export default function HackathonDetailPage() {

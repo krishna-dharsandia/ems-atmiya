@@ -5,6 +5,7 @@ import { getDashboardPath as getAccessPath } from "../functions/getDashboardPath
 export const PUBLIC_ROUTES = [
   "/",
   "/events",
+  "/hackathons",
   "/register",
   "/login",
   "/reset-password",
