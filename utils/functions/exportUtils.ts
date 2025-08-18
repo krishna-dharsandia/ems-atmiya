@@ -32,12 +32,22 @@ export interface FeedbackExportData {
   feedbackDate: string;
 }
 
+export interface TeamMemberData {
+  name: string;
+  email: string;
+  department: string;
+  enrollment: string;
+  attended: boolean;
+  isTeamAdmin: boolean;
+}
+
 export interface TeamExportData {
   teamName: string;
   teamId: string;
   problemStatement: string;
   problemCode: string;
   memberCount: number;
+  members: TeamMemberData[];
   memberNames: string;
   memberEmails: string;
   memberDepartments: string;
@@ -62,8 +72,49 @@ export const exportToCSV = (data: ExportData, filename: string, type: 'registrat
       csvData = data.feedbacks;
       csvContent = Papa.unparse(csvData);
     } else if (type === 'teams' && data.teams) {
-      csvData = data.teams;
-      csvContent = Papa.unparse(csvData);
+      // Create individual rows for each team member with team information
+      const teamMemberRows: Record<string, unknown>[] = [];
+      
+      data.teams.forEach(team => {
+        if (team.members && team.members.length > 0) {
+          team.members.forEach(member => {
+            teamMemberRows.push({
+              'Team ID': team.teamId,
+              'Team Name': team.teamName,
+              'Problem Code': team.problemCode,
+              'Problem Statement': team.problemStatement,
+              'Member Name': member.name,
+              'Member Email': member.email,
+              'Department': member.department,
+              'Enrollment': member.enrollment,
+              'Role': member.isTeamAdmin ? 'Team Admin' : 'Member',
+              'Attended': member.attended ? 'Yes' : 'No',
+              'Team Size': team.memberCount,
+              'Has Submission': team.hasSubmission,
+              'Submission URL': team.submissionUrl
+            });
+          });
+        } else {
+          // Fallback for teams without members
+          teamMemberRows.push({
+            'Team ID': team.teamId,
+            'Team Name': team.teamName,
+            'Problem Code': team.problemCode,
+            'Problem Statement': team.problemStatement,
+            'Member Name': 'No members',
+            'Member Email': 'N/A',
+            'Department': 'N/A',
+            'Enrollment': 'N/A',
+            'Role': 'N/A',
+            'Attended': 'N/A',
+            'Team Size': 0,
+            'Has Submission': team.hasSubmission,
+            'Submission URL': team.submissionUrl
+          });
+        }
+      });
+      
+      csvContent = Papa.unparse(teamMemberRows);
     } else if (type === 'both') {
       // For both, create separate sections
       if (data.registrations) {
@@ -78,7 +129,31 @@ export const exportToCSV = (data: ExportData, filename: string, type: 'registrat
       }
       if (data.teams) {
         csvContent += "TEAMS\n";
-        csvContent += Papa.unparse(data.teams);
+        const teamMemberRows: Record<string, unknown>[] = [];
+        
+        data.teams.forEach(team => {
+          if (team.members && team.members.length > 0) {
+            team.members.forEach(member => {
+              teamMemberRows.push({
+                'Team ID': team.teamId,
+                'Team Name': team.teamName,
+                'Problem Code': team.problemCode,
+                'Problem Statement': team.problemStatement,
+                'Member Name': member.name,
+                'Member Email': member.email,
+                'Department': member.department,
+                'Enrollment': member.enrollment,
+                'Role': member.isTeamAdmin ? 'Team Admin' : 'Member',
+                'Attended': member.attended ? 'Yes' : 'No',
+                'Team Size': team.memberCount,
+                'Has Submission': team.hasSubmission,
+                'Submission URL': team.submissionUrl
+              });
+            });
+          }
+        });
+        
+        csvContent += Papa.unparse(teamMemberRows);
       }
     }
 
@@ -113,8 +188,41 @@ export const exportToXLSX = (data: ExportData, filename: string, type: 'registra
       const worksheet = XLSX.utils.json_to_sheet(data.feedbacks);
       XLSX.utils.book_append_sheet(workbook, worksheet, 'Feedbacks');
     } else if (type === 'teams' && data.teams) {
-      const worksheet = XLSX.utils.json_to_sheet(data.teams);
-      XLSX.utils.book_append_sheet(workbook, worksheet, 'Teams');
+      // Create team overview sheet
+      const teamOverview = data.teams.map(team => ({
+        'Team ID': team.teamId,
+        'Team Name': team.teamName,
+        'Problem Code': team.problemCode,
+        'Problem Statement': team.problemStatement,
+        'Member Count': team.memberCount,
+        'Attended Members': team.attendedMembers,
+        'Has Submission': team.hasSubmission,
+        'Submission URL': team.submissionUrl
+      }));
+      const teamWs = XLSX.utils.json_to_sheet(teamOverview);
+      XLSX.utils.book_append_sheet(workbook, teamWs, 'Team Overview');
+      
+      // Create detailed members sheet with team admin first
+      const memberDetails: Record<string, unknown>[] = [];
+      data.teams.forEach(team => {
+        if (team.members && team.members.length > 0) {
+          team.members.forEach(member => {
+            memberDetails.push({
+              'Team ID': team.teamId,
+              'Team Name': team.teamName,
+              'Problem Code': team.problemCode,
+              'Member Name': member.name,
+              'Member Email': member.email,
+              'Department': member.department,
+              'Enrollment': member.enrollment,
+              'Role': member.isTeamAdmin ? 'Team Admin' : 'Member',
+              'Attended': member.attended ? 'Yes' : 'No'
+            });
+          });
+        }
+      });
+      const memberWs = XLSX.utils.json_to_sheet(memberDetails);
+      XLSX.utils.book_append_sheet(workbook, memberWs, 'Team Members');
     } else if (type === 'both') {
       if (data.registrations) {
         const regWorksheet = XLSX.utils.json_to_sheet(data.registrations);
@@ -125,8 +233,41 @@ export const exportToXLSX = (data: ExportData, filename: string, type: 'registra
         XLSX.utils.book_append_sheet(workbook, feedbackWorksheet, 'Feedbacks');
       }
       if (data.teams) {
-        const teamsWorksheet = XLSX.utils.json_to_sheet(data.teams);
-        XLSX.utils.book_append_sheet(workbook, teamsWorksheet, 'Teams');
+        // Create team overview sheet
+        const teamOverview = data.teams.map(team => ({
+          'Team ID': team.teamId,
+          'Team Name': team.teamName,
+          'Problem Code': team.problemCode,
+          'Problem Statement': team.problemStatement,
+          'Member Count': team.memberCount,
+          'Attended Members': team.attendedMembers,
+          'Has Submission': team.hasSubmission,
+          'Submission URL': team.submissionUrl
+        }));
+        const teamWs = XLSX.utils.json_to_sheet(teamOverview);
+        XLSX.utils.book_append_sheet(workbook, teamWs, 'Team Overview');
+        
+        // Create detailed members sheet
+        const memberDetails: Record<string, unknown>[] = [];
+        data.teams.forEach(team => {
+          if (team.members && team.members.length > 0) {
+            team.members.forEach(member => {
+              memberDetails.push({
+                'Team ID': team.teamId,
+                'Team Name': team.teamName,
+                'Problem Code': team.problemCode,
+                'Member Name': member.name,
+                'Member Email': member.email,
+                'Department': member.department,
+                'Enrollment': member.enrollment,
+                'Role': member.isTeamAdmin ? 'Team Admin' : 'Member',
+                'Attended': member.attended ? 'Yes' : 'No'
+              });
+            });
+          }
+        });
+        const memberWs = XLSX.utils.json_to_sheet(memberDetails);
+        XLSX.utils.book_append_sheet(workbook, memberWs, 'Team Members');
       }
     }
 
@@ -233,8 +374,10 @@ export const formatFeedbackData = (feedbacks: Record<string, unknown>[]): Feedba
  */
 export const formatTeamData = (teams: Record<string, unknown>[]): TeamExportData[] => {
   return teams.map(team => {
-    const members = (team.members as Array<{
+    const teamMembers = (team.members as Array<{
+      id?: string;
       student?: {
+        id?: string;
         user?: { firstName?: string; lastName?: string; email?: string };
         department?: { name?: string };
         enrollment?: string;
@@ -242,21 +385,28 @@ export const formatTeamData = (teams: Record<string, unknown>[]): TeamExportData
       attended?: boolean;
     }>) || [];
 
-    const memberNames = members.map(m => 
-      `${m.student?.user?.firstName || ''} ${m.student?.user?.lastName || ''}`.trim() || 'N/A'
-    ).join(', ');
+    // Sort members to put team admin (first member) first
+    const sortedMembers = [...teamMembers].sort((a, b) => {
+      // In most cases, the first member to join is the team admin (team creator)
+      // We'll use the member ID or creation order as proxy for this
+      return (a.id || '').localeCompare(b.id || '');
+    });
 
-    const memberEmails = members.map(m => 
-      m.student?.user?.email || 'N/A'
-    ).join(', ');
+    // Format individual member data
+    const members: TeamMemberData[] = sortedMembers.map((member, index) => ({
+      name: `${member.student?.user?.firstName || ''} ${member.student?.user?.lastName || ''}`.trim() || 'N/A',
+      email: member.student?.user?.email || 'N/A',
+      department: member.student?.department?.name || 'N/A',
+      enrollment: member.student?.enrollment || 'N/A',
+      attended: member.attended || false,
+      isTeamAdmin: index === 0 // First member is considered team admin
+    }));
 
-    const memberDepartments = members.map(m => 
-      m.student?.department?.name || 'N/A'
-    ).join(', ');
-
-    const memberEnrollments = members.map(m => 
-      m.student?.enrollment || 'N/A'
-    ).join(', ');
+    // Legacy concatenated strings for backward compatibility
+    const memberNames = members.map(m => m.name).join(', ');
+    const memberEmails = members.map(m => m.email).join(', ');
+    const memberDepartments = members.map(m => m.department).join(', ');
+    const memberEnrollments = members.map(m => m.enrollment).join(', ');
 
     const attendedMembers = members.filter(m => m.attended).length;
 
@@ -266,6 +416,7 @@ export const formatTeamData = (teams: Record<string, unknown>[]): TeamExportData
       problemStatement: (team.problemStatement as { title?: string })?.title || 'Not selected',
       problemCode: (team.problemStatement as { code?: string })?.code || 'N/A',
       memberCount: members.length,
+      members,
       memberNames,
       memberEmails,
       memberDepartments,

@@ -1,5 +1,5 @@
 import React from 'react';
-import { Text, View, StyleSheet, Font } from '@react-pdf/renderer';
+import { Text, View, StyleSheet, Font, Svg, Path, Rect } from '@react-pdf/renderer';
 
 Font.registerEmojiSource({
     format: 'png',
@@ -61,7 +61,55 @@ const styles = StyleSheet.create({
         width: 'auto',
         objectFit: 'contain',
     },
+    checkbox: {
+        width: 12,
+        height: 12,
+        alignItems: 'center',
+        justifyContent: 'center',
+    },
 });
+
+// Checkbox component for PDF exports
+interface CheckboxProps {
+  checked: boolean;
+  size?: number;
+}
+
+export const PDFCheckbox: React.FC<CheckboxProps> = ({ checked, size = 14 }) => (
+  <View style={[styles.checkbox, { width: size, height: size }]}>
+    <Svg width={size} height={size} viewBox="0 0 16 16">
+      {checked ? (
+        // Checked state
+        <>
+          <Path
+            d="M5 1h6c2.2 0 4 1.8 4 4v6c0 2.2-1.8 4-4 4H5c-2.2 0-4-1.8-4-4V5c0-2.2 1.8-4 4-4z"
+            fill="#EFF6FF"
+            stroke="#BFDBFE"
+            strokeWidth="1"
+            strokeLinejoin="round"
+          />
+          <Path
+            d="M11 6L7 10L5 8"
+            stroke="#2563EB"
+            strokeWidth="1.2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            fill="none"
+          />
+        </>
+      ) : (
+        // Unchecked state
+        <Path
+          d="M5 1h6c2.2 0 4 1.8 4 4v6c0 2.2-1.8 4-4 4H5c-2.2 0-4-1.8-4-4V5c0-2.2 1.8-4 4-4z"
+          fill="#FFFFFF"
+          stroke="#D1D5DB"
+          strokeWidth="1"
+          strokeLinejoin="round"
+        />
+      )}
+    </Svg>
+  </View>
+);
 
 export const PDFFooter = () => (
     <>

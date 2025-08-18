@@ -1,7 +1,7 @@
 import React from 'react';
 import { Document, Page, Text, View, StyleSheet } from '@react-pdf/renderer';
-import { TeamExportData } from '@/utils/functions/exportUtils';
-import { commonPDFStyles, PDFFooter } from './CommonPDFComponents';
+import { TeamExportData, TeamMemberData } from '@/utils/functions/exportUtils';
+import { commonPDFStyles, PDFFooter, PDFCheckbox } from './CommonPDFComponents';
 
 // Professional A4 stylesheet using common components
 const styles = StyleSheet.create({
@@ -115,73 +115,102 @@ interface HackathonExportPDFProps {
   exportType: 'teams';
 }
 
-// Column widths for team table
-const teamColumns = [
-  { header: 'Team Name', width: '15%' },
-  { header: 'Team ID', width: '10%' },
-  { header: 'Problem', width: '20%' },
-  { header: 'Members', width: '8%' },
-  { header: 'Names', width: '18%' },
-  { header: 'Departments', width: '12%' },
-  { header: 'Submission', width: '9%' },
-  { header: 'Attended', width: '8%' },
+// Column widths for team member table
+const memberColumns = [
+  { header: 'Team ID', width: '12%' },
+  { header: 'Team Name', width: '18%' },
+  { header: 'Member Name', width: '20%' },
+  { header: 'Email', width: '18%' },
+  { header: 'Department', width: '12%' },
+  { header: 'Role', width: '10%' },
+  { header: 'Attended', width: '10%' },
 ];
 
-const TeamsTable: React.FC<{ data: TeamExportData[] }> = ({ data }) => (
-  <View style={styles.table} minPresenceAhead={100}>
-    <View style={styles.tableHeader} wrap={false}>
-      {teamColumns.map((col, index) => (
-        <Text
-          key={col.header}
-          style={[
-            styles.tableHeaderCell,
-            { width: col.width },
-            ...(index === teamColumns.length - 1 ? [{ borderRight: 'none' }] : []),
-          ]}
-          wrap={false}
-        >
-          {col.header}
-        </Text>
-      ))}
-    </View>
-    {data.map((team, index) => (
-      <View
-        key={index}
-        style={[
-          styles.tableRow,
-          ...(index % 2 === 1 ? [styles.tableRowEven] : []),
-        ]}
-        wrap={false}
-        minPresenceAhead={30}
-      >
-        <Text style={[styles.tableCell, { width: '15%' }]} wrap={false}>
-          {team.teamName.substring(0, 20)}
-        </Text>
-        <Text style={[styles.tableCell, { width: '10%' }]} wrap={false}>
-          {team.teamId.substring(0, 12)}
-        </Text>
-        <Text style={[styles.tableCell, { width: '20%' }]} wrap={false}>
-          {`${team.problemCode}: ${team.problemStatement}`.substring(0, 30)}
-        </Text>
-        <Text style={[styles.tableCell, { width: '8%', textAlign: 'center' }]} wrap={false}>
-          {team.memberCount}
-        </Text>
-        <Text style={[styles.tableCell, { width: '18%' }]} wrap={false}>
-          {team.memberNames.substring(0, 25)}
-        </Text>
-        <Text style={[styles.tableCell, { width: '12%' }]} wrap={false}>
-          {team.memberDepartments.substring(0, 15)}
-        </Text>
-        <Text style={[styles.tableCell, { width: '9%', textAlign: 'center' }]} wrap={false}>
-          {team.hasSubmission}
-        </Text>
-        <Text style={[styles.tableCell, { width: '8%', textAlign: 'center', borderRight: 'none' }]} wrap={false}>
-          {team.attendedMembers}
-        </Text>
+const TeamMembersTable: React.FC<{ data: TeamExportData[] }> = ({ data }) => {
+  // Flatten all team members into a single array with team info
+  const allMembers: Array<{ team: TeamExportData; member: TeamMemberData }> = [];
+  
+  data.forEach(team => {
+    if (team.members && team.members.length > 0) {
+      team.members.forEach(member => {
+        allMembers.push({ team, member });
+      });
+    }
+  });
+
+  return (
+    <View style={styles.table} minPresenceAhead={100}>
+      <View style={styles.tableHeader} wrap={false}>
+        {memberColumns.map((col, index) => (
+          <Text
+            key={col.header}
+            style={[
+              styles.tableHeaderCell,
+              { width: col.width },
+              ...(index === memberColumns.length - 1 ? [{ borderRight: 'none' }] : []),
+            ]}
+            wrap={false}
+          >
+            {col.header}
+          </Text>
+        ))}
       </View>
-    ))}
-  </View>
-);
+      {allMembers.map((item, index) => {
+        const { team, member } = item;
+        const isTeamAdmin = member.isTeamAdmin;
+        
+        return (
+          <View
+            key={index}
+            style={[
+              styles.tableRow,
+              ...(index % 2 === 1 ? [styles.tableRowEven] : []),
+              ...(isTeamAdmin ? [{ backgroundColor: '#e5e7eb' }] : []), // Darker background for team admin
+            ]}
+            wrap={false}
+            minPresenceAhead={30}
+          >
+            <Text style={[styles.tableCell, { width: '12%' }]} wrap={false}>
+              {team.teamId}
+            </Text>
+            <Text style={[styles.tableCell, { width: '18%' }]} wrap={false}>
+              {team.teamName.substring(0, 15)}
+            </Text>
+            <Text 
+              style={[
+                styles.tableCell, 
+                { width: '20%' },
+                ...(isTeamAdmin ? [{ fontWeight: 600 }] : []) // Bold for team admin
+              ]} 
+              wrap={false}
+            >
+              {member.name.substring(0, 18)}
+            </Text>
+            <Text style={[styles.tableCell, { width: '18%' }]} wrap={false}>
+              {member.email.substring(0, 20)}
+            </Text>
+            <Text style={[styles.tableCell, { width: '12%' }]} wrap={false}>
+              {member.department.substring(0, 10)}
+            </Text>
+            <Text 
+              style={[
+                styles.tableCell, 
+                { width: '10%', textAlign: 'center' },
+                ...(isTeamAdmin ? [{ fontWeight: 600 }] : []) // Bold for team admin
+              ]} 
+              wrap={false}
+            >
+              {isTeamAdmin ? 'Admin' : 'Member'}
+            </Text>
+            <View style={[styles.tableCell, { width: '10%', alignItems: 'center', justifyContent: 'center', borderRight: 'none' }]} wrap={false}>
+              <PDFCheckbox checked={member.attended} size={12} />
+            </View>
+          </View>
+        );
+      })}
+    </View>
+  );
+};
 
 const HackathonExportPDF: React.FC<HackathonExportPDFProps> = ({
   hackathonName,
@@ -234,12 +263,44 @@ const HackathonExportPDF: React.FC<HackathonExportPDFProps> = ({
           </View>
         </View>
 
+        {/* Team Overview */}
+        {exportType === 'teams' && teams && teams.length > 0 && (
+          <View style={{ marginBottom: 20 }}>
+            <Text style={styles.sectionHeader}>Team Overview</Text>
+            {teams.map((team, index) => (
+              <View 
+                key={index} 
+                style={{
+                  marginBottom: 15,
+                  padding: 10,
+                  border: '1px solid #d1d5db',
+                  backgroundColor: index % 2 === 0 ? '#f9fafb' : '#ffffff'
+                }}
+              >
+                <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginBottom: 5 }}>
+                  <Text style={{ fontSize: 10, fontWeight: 600 }}>{team.teamName}</Text>
+                  <Text style={{ fontSize: 9, color: '#6b7280' }}>ID: {team.teamId}</Text>
+                </View>
+                <Text style={{ fontSize: 9, marginBottom: 3 }}>
+                  Problem: {team.problemCode} - {team.problemStatement.substring(0, 50)}...
+                </Text>
+                <Text style={{ fontSize: 9 }}>
+                  Members: {team.memberCount} | Attended: {team.attendedMembers} | Submission: {team.hasSubmission}
+                </Text>
+              </View>
+            ))}
+          </View>
+        )}
+
         {/* Teams Table */}
         {exportType === 'teams' && (
           <View>
-            <Text style={styles.sectionHeader}>Team Details</Text>
+            <Text style={styles.sectionHeader}>Team Member Details</Text>
+            <Text style={[styles.subtitle, { marginBottom: 10, fontSize: 10 }]}>
+              Team admins are highlighted with darker background and bold text
+            </Text>
             {teams && teams.length > 0 ? (
-              <TeamsTable data={teams} />
+              <TeamMembersTable data={teams} />
             ) : (
               <Text style={styles.noData}>No team data available</Text>
             )}

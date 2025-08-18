@@ -1,7 +1,7 @@
 import React from 'react';
 import { Document, Page, Text, View, StyleSheet } from '@react-pdf/renderer';
 import { RegistrationExportData, FeedbackExportData } from '@/utils/functions/exportUtils';
-import { commonPDFStyles, PDFFooter } from './CommonPDFComponents';
+import { commonPDFStyles, PDFFooter, PDFCheckbox } from './CommonPDFComponents';
 
 // Professional A4 stylesheet
 const styles = StyleSheet.create({
@@ -185,9 +185,9 @@ const RegistrationsTable: React.FC<{ data: RegistrationExportData[] }> = ({ data
                 <Text style={[styles.tableCell, { width: '7%', textAlign: 'center' }]} wrap={false}>
                     {reg.semester || 'N/A'}
                 </Text>
-                <Text style={[styles.tableCell, { width: '8%', textAlign: 'center' }]} wrap={false}>
-                    {reg.attended}
-                </Text>
+                <View style={[styles.tableCell, { width: '8%', alignItems: 'center', justifyContent: 'center' }]} wrap={false}>
+                    <PDFCheckbox checked={reg.attended === 'Yes'} size={12} />
+                </View>
                 <Text style={[styles.tableCell, { width: '10%', borderRight: 'none' }]} wrap={false}>
                     {reg.registrationDate}
                 </Text>
