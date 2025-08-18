@@ -148,7 +148,7 @@ export async function GET() {
     },
     _avg: { rating: true },
   });
-  const avgEventRating = avgRatingAgg._avg.rating || 0;
+  const avgEventRating = avgRatingAgg._avg?.rating || 0;
 
   // Cleanup Prisma connection
   await prisma.$disconnect();
