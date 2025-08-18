@@ -6,10 +6,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { fetcher } from "@/fetcher";
 import { useSetAtom } from "jotai";
 import { sidebarBreadcrumbs } from "@/store/sidebar";
-import { useEffect, useState } from "react";
-import { createClient } from "@/utils/supabase/client";
-import { toast } from "sonner";
-import { User } from "@supabase/supabase-js";
+import { useEffect } from "react";
 import { Heading } from "@/components/global/heading/Heading";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
@@ -17,6 +14,7 @@ import { KeyMetrics } from "@/components/section/master/overview/KeyMetrics";
 import { DistributionCharts } from "@/components/section/master/overview/DistributionCharts";
 import { EventCharts } from "@/components/section/master/overview/EventCharts";
 import { RecentActivity } from "@/components/section/master/overview/RecentActivity";
+import { useAuth } from "@/contexts/AuthContext";
 
 type MasterOverviewData = {
   totalStudents: number;
@@ -69,25 +67,11 @@ export default function MasterOverview() {
     fetcher
   );
   const setCurrentBreadcrumbs = useSetAtom(sidebarBreadcrumbs);
-  const supabase = createClient();
-  const [user, setUser] = useState<User | null>(null);
+  const { user } = useAuth(); // Use auth context instead of direct calls
 
   useEffect(() => {
-    async function checkUser() {
-      const {
-        data: { user },
-        error,
-      } = await supabase.auth.getUser();
-      if (error && !user) {
-        toast.error("Failed to fetch user data");
-        return;
-      }
-      setUser(user);
-    }
-
     setCurrentBreadcrumbs([{ label: "Dashboard", href: "/master" }]);
-    checkUser();
-  });
+  }, [setCurrentBreadcrumbs]);
 
   if (error) {
     return <div className="p-8">Error loading data: {error.message}</div>;

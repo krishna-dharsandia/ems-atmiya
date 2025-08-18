@@ -5,6 +5,7 @@ import { notFound, useParams } from "next/navigation";
 import HackathonDetail, { HackathonDetailProps, Team } from "@/components/section/student/hackathons/HackathonDetail";
 import { Skeleton } from "@/components/ui/skeleton";
 import { createClient } from "@/utils/supabase/client";
+import { useAuth } from "@/contexts/AuthContext";
 
 export default function HackathonDetailPage() {
   const params = useParams();
@@ -18,19 +19,16 @@ export default function HackathonDetailPage() {
   const [hackathonData, setHackathonData] = useState<HackathonData | null>(null);
   const [currentUser, setCurrentUser] = useState(null);
   const [error, setError] = useState<string | null>(null);
-  const supabase = createClient();
+  const { user: authUser } = useAuth(); // Use auth context
 
   useEffect(() => {
     const fetchHackathonAndUserData = async () => {
       try {
-        // Fetch current user data
-        const { data: authData, error: authError } = await supabase.auth.getUser();
-
-        if (authError || !authData.user) {
+        if (!authUser) {
           throw new Error("Failed to authenticate user");
         }
 
-        const userResponse = await fetch(`/api/student/${authData.user.id}`);
+        const userResponse = await fetch(`/api/student/${authUser.id}`);
         if (!userResponse.ok) {
           throw new Error("Failed to fetch user data");
         }
@@ -59,7 +57,7 @@ export default function HackathonDetailPage() {
     };
 
     fetchHackathonAndUserData();
-  }, [params.id, supabase.auth]);
+  }, [params.id, authUser?.id]);
 
   if (isLoading) {
     return (

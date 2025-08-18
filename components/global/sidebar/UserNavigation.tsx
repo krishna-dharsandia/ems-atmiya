@@ -21,6 +21,7 @@ import {
 import { createClient } from "@/utils/supabase/client";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
+import { useAuth } from "@/contexts/AuthContext";
 
 export function UserNavigation({
   user,
@@ -34,6 +35,7 @@ export function UserNavigation({
   const { isMobile } = useSidebar();
   const supabase = createClient();
   const router = useRouter();
+  const { user: authUser } = useAuth();
 
   const handleLogout = async () => {
     const response = await supabase.auth.signOut();
@@ -43,6 +45,14 @@ export function UserNavigation({
     } else {
       toast.success("Successfully logged out.");
       router.replace("/");
+    }
+  };
+
+  const handleAccountClick = () => {
+    const userRole = authUser?.user_metadata?.role;
+    if (userRole) {
+      const rolePath = userRole.toLowerCase();
+      router.push(`/${rolePath}/account`);
     }
   };
 
@@ -88,7 +98,7 @@ export function UserNavigation({
             </DropdownMenuLabel>
             <DropdownMenuSeparator />
             <DropdownMenuGroup>
-              <DropdownMenuItem>
+              <DropdownMenuItem onClick={handleAccountClick}>
                 <BadgeCheck />
                 Account
               </DropdownMenuItem>

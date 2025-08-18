@@ -17,6 +17,7 @@ import { Heading } from "@/components/global/heading/Heading";
 import { toast } from "sonner";
 import { createClient } from "@/utils/supabase/client";
 import { User } from "@supabase/supabase-js";
+import { useAuth } from "@/contexts/AuthContext";
 
 type AdminOverviewData = {
   totalStudents: number;
@@ -62,29 +63,11 @@ export default function AdminOverview() {
     fetcher
   );
   const setCurrentBreadcrumbs = useSetAtom(sidebarBreadcrumbs);
-  const supabase = createClient();
-  const [user, setUser] = useState<User | null>(null);
-
-  useEffect(() => {
-    async function checkUser() {
-      const {
-        data: { user },
-        error,
-      } = await supabase.auth.getUser();
-      if (error && !user) {
-        toast.error("Failed to fetch user data");
-        return;
-      }
-      setUser(user);
-    }
-
-    setCurrentBreadcrumbs([{ label: "Dashboard", href: "/master" }]);
-    checkUser();
-  });
+  const { user } = useAuth(); // Use auth context instead of direct calls
 
   useEffect(() => {
     setCurrentBreadcrumbs([{ label: "Dashboard", href: "/admin" }]);
-  });
+  }, [setCurrentBreadcrumbs]);
 
   if (error) return <div className="p-8">Error loading data</div>;
 

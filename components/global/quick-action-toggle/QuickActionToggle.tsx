@@ -8,24 +8,13 @@ import { Role } from "@prisma/client";
 import { User } from "@supabase/supabase-js";
 import { useSetAtom } from "jotai";
 import { PlusCircle } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useAuth } from "@/contexts/AuthContext";
 
 export default function QuickActionToggle() {
-  const supabase = createClient();
-
-  const [user, setUser] = useState<User | null>(null);
+  const { user } = useAuth(); // Use auth context instead of direct calls
   const setStudentDialog = useSetAtom(createStudentDialogAtom);
   const setAdminDialog = useSetAtom(createAdminDialogAtom);
   const setMasterDialog = useSetAtom(createMasterDialogAtom);
-
-  useEffect(() => {
-    async function fetchUser() {
-      const response = await supabase.auth.getUser();
-      setUser(response.data.user);
-    }
-
-    fetchUser();
-  });
 
   if (!user) return null;
 

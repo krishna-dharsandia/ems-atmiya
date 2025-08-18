@@ -11,25 +11,20 @@ import { getDashboardPath } from "@/utils/functions/getDashboardPath";
 import { GalleryVerticalEnd } from "lucide-react";
 import { PUBLIC_ROUTES } from "@/utils/supabase/middleware";
 import Link from "next/link";
+import { useAuth } from "@/contexts/AuthContext";
 
 export default function NavigationBar() {
-  const [user, setUser] = useState<User | null>(null);
   const [showNav, setShowNav] = useState(false);
   const supabase = createClient();
   const pathname = usePathname();
   const router = useRouter();
+  const { user } = useAuth(); // Use auth context instead of direct calls
 
   function isPublicRoute(pathname: string) {
     return PUBLIC_ROUTES.some((route) => pathname === route || pathname.startsWith(route + "/"));
   }
 
   useEffect(() => {
-    async function main() {
-      const { data } = await supabase.auth.getUser();
-      setUser(data.user);
-    }
-    main();
-
     setShowNav(isPublicRoute(pathname));
   }, [pathname]);
 

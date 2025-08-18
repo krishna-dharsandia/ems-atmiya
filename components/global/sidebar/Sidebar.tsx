@@ -19,6 +19,7 @@ import { createClient } from "@/utils/supabase/client";
 import { useEffect, useState } from "react";
 import { User } from "@supabase/supabase-js";
 import Link from "next/link";
+import { useAuth } from "@/contexts/AuthContext";
 
 interface AppSidebarProps {
   role: string;
@@ -33,22 +34,13 @@ interface AppSidebarProps {
 
 export function AppSidebar({ role, links }: AppSidebarProps) {
   const pathname = usePathname();
-  const supabase = createClient();
-  const [user, setUser] = useState<User | null>(null);
+  const { user } = useAuth(); // Use auth context instead of direct calls
 
   const isActive = (url: string) => {
     const cleanPath = pathname.replace(/\/$/, "");
     const cleanUrl = `/${role}${url}`.replace(/\/$/, "");
     return cleanPath === cleanUrl;
   };
-
-  useEffect(() => {
-    async function main() {
-      const { data } = await supabase.auth.getUser();
-      setUser(data.user);
-    }
-    main();
-  });
 
   return (
     <Sidebar>
