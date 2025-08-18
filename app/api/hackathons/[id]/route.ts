@@ -6,7 +6,10 @@ export async function GET(
   req: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
-  const { id } = await params;
+  const {id} = await params;
+  const searchParams = req.nextUrl.searchParams;
+  const includeMasterDetails = searchParams.get('includeMasterDetails') === 'true';
+
   const supabase = await createClient();
   const {
     data: { user },
@@ -21,11 +24,45 @@ export async function GET(
   try {
     const hackathonId = id;
 
+    // Different query based on if master details are requested
     const hackathon = await prisma.hackathon.findUnique({
       where: { id: hackathonId },
       include: {
         problemStatements: true,
         rules: true,
+        ...(includeMasterDetails ? {
+          teams: {
+            include: {
+              members: {
+                include: {
+                  student: {
+                    include: {
+                      user: {
+                        select: {
+                          firstName: true,
+                          lastName: true,
+                          email: true,
+                        },
+                      },
+                      department: {
+                        select: {
+                          name: true,
+                        },
+                      },
+                    },
+                  },
+                },
+              },
+              problemStatement: {
+                select: {
+                  id: true,
+                  code: true,
+                  title: true,
+                },
+              },
+            },
+          },
+        } : {}),
       },
     });
 

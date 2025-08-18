@@ -138,8 +138,9 @@ export default function HackathonForm({ id }: HackathonFormProps) {
           throw new Error("Failed to fetch hackathon data");
         }
 
-        const hackathonData = await response.json();
-
+        const data = await response.json();
+        const hackathonData = data.hackathon;
+        console.log("Fetched hackathon data:", hackathonData);
         // Populate form with hackathon data
         form.reset({
           name: hackathonData.name,
