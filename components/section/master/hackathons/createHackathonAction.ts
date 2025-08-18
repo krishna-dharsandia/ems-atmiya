@@ -3,6 +3,7 @@
 import { formattedHackathonSchema, FormattedHackathonSchema } from "@/schemas/hackathon";
 import { createClient } from "@/utils/supabase/server";
 import { PrismaClient } from "@prisma/client";
+import { QRCodeService } from "@/lib/qr-code";
 
 export async function createHackathonAction(data: FormattedHackathonSchema) {
   let prisma: PrismaClient | undefined;
@@ -65,10 +66,32 @@ export async function createHackathonAction(data: FormattedHackathonSchema) {
           })),
         },
         evaluationCriteria: validatedData.data.evaluationCriteria || [],
+        qrCode: "",
+        qrCodeData: "",
       },
     });
 
     console.log("Hackathon created successfully:", result.id);
+
+    // Generate QR code for the hackathon
+    try {
+      const { qrCode, qrCodeData } = await QRCodeService.generateHackathonURLQRCode(result.id);
+
+      // Update the hackathon with the generated QR code
+      await prisma.hackathon.update({
+        where: { id: result.id },
+        data: {
+          qrCode,
+          qrCodeData,
+        },
+      });
+
+      console.log("QR code generated successfully for hackathon:", result.id);
+    } catch (qrError) {
+      console.error("Failed to generate QR code for hackathon:", qrError);
+      // Don't fail the entire hackathon creation if QR code generation fails
+    }
+
     return { success: true, hackathonId: result.id };
   } catch (error) {
     console.error("Error creating hackathon:", error);

@@ -15,8 +15,16 @@ import {
   Download,
   FileSpreadsheet,
   Eye,
-  Award
+  Award,
+  FileText,
+  ChevronDown
 } from "lucide-react";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import {
   Table,
   TableBody,
@@ -26,6 +34,14 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { useRouter } from "next/navigation";
+import { toast } from "sonner";
+import { 
+  exportToCSV, 
+  exportToXLSX, 
+  exportToPDF, 
+  formatTeamData,
+  ExportData 
+} from "@/utils/functions/exportUtils";
 
 interface ProblemStatement {
   id: string;
@@ -89,12 +105,14 @@ export interface MasterHackathonDetailProps {
     team_size_limit: number | null;
     tags: string[];
     organizer_name: string;
-    organizer_contact: string | null;
-    evaluationCriteria: string[];
-    rules: Rule[];
-    problemStatements: ProblemStatement[];
-    created_at: string;
-    teams: HackathonTeam[];
+      organizer_contact: string | null;
+  evaluationCriteria: string[];
+  rules: Rule[];
+  problemStatements: ProblemStatement[];
+  created_at: string;
+  teams: HackathonTeam[];
+  qrCode?: string;
+  qrCodeData?: string;
   };
 }
 
@@ -102,6 +120,7 @@ export default function MasterHackathonDetail({
   hackathon,
 }: MasterHackathonDetailProps) {
   const [activeTab, setActiveTab] = useState("details");
+  const [isExporting, setIsExporting] = useState(false);
   const router = useRouter();
 
   const formatDateTime = (dateString: string, timeString: string) => {
@@ -115,8 +134,83 @@ export default function MasterHackathonDetail({
     router.push(`/master/hackathons/edit/${hackathon.id}`);
   };
 
-  const exportTeamData = () => {
-    alert("Export functionality to be implemented");
+  const handleExport = async (format: 'csv' | 'xlsx' | 'pdf') => {
+    if (!hackathon.teams || hackathon.teams.length === 0) {
+      toast.error("No team data available to export");
+      return;
+    }
+
+    setIsExporting(true);
+    
+    try {
+      // Format team data for export
+      const formattedTeams = formatTeamData(hackathon.teams as unknown as Record<string, unknown>[]);
+      
+      const exportData: ExportData = {
+        teams: formattedTeams
+      };
+
+      const filename = `${hackathon.name.replace(/[^a-z0-9]/gi, '_').toLowerCase()}_teams_${new Date().toISOString().split('T')[0]}`;
+
+      switch (format) {
+        case 'csv':
+          await exportToCSV(exportData, filename, 'teams');
+          toast.success("Team data exported to CSV successfully!");
+          break;
+        case 'xlsx':
+          await exportToXLSX(exportData, filename, 'teams');
+          toast.success("Team data exported to Excel successfully!");
+          break;
+        case 'pdf':
+          await exportToPDF(exportData, filename, 'teams', hackathon.name);
+          toast.success("Team data exported to PDF successfully!");
+          break;
+        default:
+          throw new Error('Unsupported export format');
+      }
+    } catch (error) {
+      console.error('Export error:', error);
+      toast.error(`Failed to export team data: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    } finally {
+      setIsExporting(false);
+    }
+  };
+
+  const handleDownloadHackathonQR = async () => {
+    try {
+      let qrCodeBase64 = hackathon.qrCode;
+
+      // If QR code doesn't exist, generate it
+      if (!qrCodeBase64) {
+        toast.loading("Generating QR code...");
+        
+        const response = await fetch(`/api/hackathons/${hackathon.id}/qr-code`, {
+          method: 'POST',
+        });
+
+        if (!response.ok) {
+          throw new Error('Failed to generate QR code');
+        }
+
+        const data = await response.json();
+        qrCodeBase64 = data.qrCode;
+        toast.dismiss();
+      }
+
+      // Create a downloadable link for the QR code
+      const link = document.createElement('a');
+      link.href = `data:image/png;base64,${qrCodeBase64}`;
+      link.download = `${hackathon.name.replace(/[^a-z0-9]/gi, '_').toLowerCase()}_qr_code.png`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      
+      toast.success("QR code downloaded successfully");
+    } catch (error) {
+      console.error("Error downloading QR code:", error);
+      toast.dismiss();
+      toast.error("Failed to download QR code");
+    }
   };
 
   const getStatusColor = (status: string) => {
@@ -141,10 +235,42 @@ export default function MasterHackathonDetail({
             <Edit className="mr-2 h-4 w-4" />
             Edit Hackathon
           </Button>
-          <Button onClick={exportTeamData}>
+          <Button variant="outline" onClick={handleDownloadHackathonQR}>
             <Download className="mr-2 h-4 w-4" />
-            Export Teams
+            Download QR
           </Button>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button disabled={isExporting || !hackathon.teams || hackathon.teams.length === 0}>
+                {isExporting ? (
+                  <div className="flex items-center">
+                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                    Exporting...
+                  </div>
+                ) : (
+                  <>
+                    <Download className="mr-2 h-4 w-4" />
+                    Export Teams
+                    <ChevronDown className="ml-2 h-4 w-4" />
+                  </>
+                )}
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              <DropdownMenuItem onClick={() => handleExport('csv')}>
+                <FileText className="mr-2 h-4 w-4" />
+                Export as CSV
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => handleExport('xlsx')}>
+                <FileSpreadsheet className="mr-2 h-4 w-4" />
+                Export as Excel
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => handleExport('pdf')}>
+                <Download className="mr-2 h-4 w-4" />
+                Export as PDF
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
         </div>
       </div>
 
@@ -300,10 +426,42 @@ export default function MasterHackathonDetail({
                 <CardHeader>
                   <div className="flex justify-between items-center">
                     <CardTitle>Registered Teams</CardTitle>
-                    <Button variant="outline" onClick={exportTeamData} size="sm">
-                      <FileSpreadsheet className="mr-2 h-4 w-4" />
-                      Export to Excel
-                    </Button>
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button 
+                          variant="outline" 
+                          size="sm"
+                          disabled={isExporting || !hackathon.teams || hackathon.teams.length === 0}
+                        >
+                          {isExporting ? (
+                            <div className="flex items-center">
+                              <div className="animate-spin rounded-full h-3 w-3 border-b-2 border-gray-600 mr-2"></div>
+                              Exporting...
+                            </div>
+                          ) : (
+                            <>
+                              <FileSpreadsheet className="mr-2 h-4 w-4" />
+                              Export
+                              <ChevronDown className="ml-2 h-4 w-4" />
+                            </>
+                          )}
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="end">
+                        <DropdownMenuItem onClick={() => handleExport('csv')}>
+                          <FileText className="mr-2 h-4 w-4" />
+                          CSV
+                        </DropdownMenuItem>
+                        <DropdownMenuItem onClick={() => handleExport('xlsx')}>
+                          <FileSpreadsheet className="mr-2 h-4 w-4" />
+                          Excel
+                        </DropdownMenuItem>
+                        <DropdownMenuItem onClick={() => handleExport('pdf')}>
+                          <Download className="mr-2 h-4 w-4" />
+                          PDF
+                        </DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
                   </div>
                 </CardHeader>
                 <CardContent>
@@ -465,10 +623,45 @@ export default function MasterHackathonDetail({
                   <Award className="mr-2 h-4 w-4" />
                   Manage Winners
                 </Button>
-                <Button variant="outline" className="w-full justify-start" onClick={exportTeamData}>
+                <Button variant="outline" className="w-full justify-start" onClick={handleDownloadHackathonQR}>
                   <Download className="mr-2 h-4 w-4" />
-                  Export Team Data
+                  Download QR Code
                 </Button>
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button 
+                      variant="outline" 
+                      className="w-full justify-start"
+                      disabled={isExporting || !hackathon.teams || hackathon.teams.length === 0}
+                    >
+                      {isExporting ? (
+                        <>
+                          <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-gray-600 mr-2"></div>
+                          Exporting...
+                        </>
+                      ) : (
+                        <>
+                          <Download className="mr-2 h-4 w-4" />
+                          Export Team Data
+                        </>
+                      )}
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="start" className="w-48">
+                    <DropdownMenuItem onClick={() => handleExport('csv')}>
+                      <FileText className="mr-2 h-4 w-4" />
+                      Export as CSV
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => handleExport('xlsx')}>
+                      <FileSpreadsheet className="mr-2 h-4 w-4" />
+                      Export as Excel
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => handleExport('pdf')}>
+                      <Download className="mr-2 h-4 w-4" />
+                      Export as PDF
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
               </div>
             </CardContent>
           </Card>

@@ -64,7 +64,7 @@ export function AccountProfile({ role }: AccountProfileProps) {
       loadUserProfile();
       fetchQRCode();
     }
-  }, [authUser?.id, authLoading]); // Only re-run when user ID changes or loading state changes
+  }, [authUser?.id, authLoading]);
 
   const loadUserProfile = async () => {
     try {
@@ -108,7 +108,7 @@ export function AccountProfile({ role }: AccountProfileProps) {
 
       toast.success("Profile updated successfully");
       setIsEditing(false);
-      loadUserProfile(); // Reload to get updated data
+      loadUserProfile();
     } catch (error) {
       console.error("Error updating profile:", error);
       toast.error("Failed to update profile");
@@ -296,23 +296,6 @@ export function AccountProfile({ role }: AccountProfileProps) {
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="phone">Phone Number</Label>
-              {isEditing ? (
-                <Input
-                  id="phone"
-                  value={formData.phone}
-                  onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-                  placeholder="Enter your phone number"
-                />
-              ) : (
-                <div className="flex items-center gap-2 p-3 bg-muted rounded-md">
-                  <Phone className="h-4 w-4 text-muted-foreground" />
-                  <span>{user.user_metadata?.phone || "Not provided"}</span>
-                </div>
-              )}
-            </div>
-
-            <div className="space-y-2">
               <Label htmlFor="role">Role</Label>
               <div className="flex items-center gap-2 p-3 bg-muted rounded-md">
                 <UserCheck className="h-4 w-4 text-muted-foreground" />
@@ -365,7 +348,7 @@ export function AccountProfile({ role }: AccountProfileProps) {
             Personal QR Code
           </CardTitle>
           <CardDescription>
-            Your unique QR code for event check-ins and identification
+            Your unique QR code for event and identification
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -416,7 +399,7 @@ export function AccountProfile({ role }: AccountProfileProps) {
 
               <div className="space-y-2">
                 <p className="text-sm text-muted-foreground">
-                  Show this QR code to event staff for quick check-in at any registered event.
+                  Show this QR code to event staff for quick access at any registered event.
                 </p>
                 <p className="text-xs text-muted-foreground">
                   QR code has lifetime validity and contains encrypted identification data.

@@ -32,7 +32,7 @@ export async function updateEventAction(
     });
 
     // Update the event and create new speakers
-    await prisma.event.update({
+    const event = await prisma.event.update({
       where: { id },
       data: {
         ...validatedData.data,
@@ -48,7 +48,7 @@ export async function updateEventAction(
       },
     });
 
-    return { success: true };
+    return { success: true, data: event };
   } catch (error) {
     console.error("Error updating event:", error);
     return { error: "Failed to update event" };

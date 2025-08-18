@@ -9,6 +9,8 @@ export async function POST(request: NextRequest) {
         const supabase = await createClient();
         const { data: { user }, error: authError } = await supabase.auth.getUser();
 
+        console.log(user);
+
         if (authError || !user) {
             return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
         }
@@ -186,6 +188,6 @@ async function handleEventQRScan(qrData: QRCodeData, scannerId: string, prisma: 
         event: event,
         scannedAt: new Date(),
         message: 'Event QR code scanned successfully. This code can be used to check in registered users.',
-        instructions: 'Users can now scan their personal QR codes or provide their information for manual check-in.'
+        instructions: 'Users can now scan their personal QR codes or provide their information for manual.'
     };
 }

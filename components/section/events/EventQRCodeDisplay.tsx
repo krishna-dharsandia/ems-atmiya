@@ -94,13 +94,13 @@ export function EventQRCodeDisplay({ eventId, eventName }: EventQRCodeProps) {
 
   const shareQRCode = async () => {
     const baseUrl = window.location.origin;
-    const eventUrl = `${baseUrl}/events/${eventId}/check-in`;
+    const eventUrl = `${baseUrl}/events/${eventId}`;
     
     if (navigator.share) {
       try {
         await navigator.share({
-          title: `${eventName} - Check-in`,
-          text: `Check-in for ${eventName}`,
+          title: `${eventName}`,
+          text: `${eventName}`,
           url: eventUrl,
         });
       } catch (error) {
@@ -130,7 +130,7 @@ export function EventQRCodeDisplay({ eventId, eventName }: EventQRCodeProps) {
             Event QR Code
           </CardTitle>
           <CardDescription>
-            Generate a QR code for {eventName} check-ins
+            Generate a QR code for {eventName}
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -165,14 +165,14 @@ export function EventQRCodeDisplay({ eventId, eventName }: EventQRCodeProps) {
           Event QR Code
         </CardTitle>
         <CardDescription>
-          QR codes for {qrData.event.name} check-ins
+          QR codes for {qrData.event.name}
         </CardDescription>
       </CardHeader>
       <CardContent>
         <Tabs defaultValue="url" className="w-full">
           <TabsList className="grid w-full grid-cols-2">
             <TabsTrigger value="url">Quick Access</TabsTrigger>
-            <TabsTrigger value="data">Secure Check-in</TabsTrigger>
+            <TabsTrigger value="data">Secure</TabsTrigger>
           </TabsList>
           
           <TabsContent value="url" className="space-y-4">
@@ -190,7 +190,7 @@ export function EventQRCodeDisplay({ eventId, eventName }: EventQRCodeProps) {
                 </div>
               )}
               <p className="text-sm text-muted-foreground mt-4">
-                Scan this QR code to go directly to the event check-in page. 
+                Scan this QR code to go directly to the event page. 
                 Perfect for printing on posters or sharing digitally.
               </p>
               <div className="flex gap-2 justify-center mt-4">
@@ -225,7 +225,7 @@ export function EventQRCodeDisplay({ eventId, eventName }: EventQRCodeProps) {
                 />
               </div>
               <p className="text-sm text-muted-foreground mt-4">
-                This QR code contains encrypted event data for secure check-ins. 
+                This QR code contains encrypted event data for secure access. 
                 Use this with the admin scanner app for automated attendance tracking.
               </p>
               <div className="flex gap-2 justify-center mt-4">

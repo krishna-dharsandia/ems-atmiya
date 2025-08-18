@@ -226,10 +226,10 @@ export default function EventForm({ id }: EventFormProps) {
           setSpeakers(
             event.speakers.length > 0
               ? event.speakers.map((speaker) => ({
-                  name: speaker.name,
-                  bio: speaker.bio || "",
-                  photo_url: speaker.photo_url || "",
-                }))
+                name: speaker.name,
+                bio: speaker.bio || "",
+                photo_url: speaker.photo_url || "",
+              }))
               : [{ name: "", bio: "", photo_url: "" }]
           );
 
@@ -271,8 +271,7 @@ export default function EventForm({ id }: EventFormProps) {
   async function handleSubmit(data: EventSchema) {
     console.log("Form submitted with data:", data);
     toast.success(
-      `Form submission started for ${
-        isEditMode ? "updating" : "creating"
+      `Form submission started for ${isEditMode ? "updating" : "creating"
       } event`
     );
 
@@ -400,7 +399,12 @@ export default function EventForm({ id }: EventFormProps) {
           setCurrentStep(1);
         }
 
-        router.push(`/events/${id}`);
+        if (!isEditMode) {
+          router.push(`/events/${response.data?.id}`);
+        } else {
+          router.push(`/events/${id}`);
+        }
+
       }
     } catch (error) {
       console.log(
@@ -732,15 +736,15 @@ export default function EventForm({ id }: EventFormProps) {
                   "shadow-md ring-2 ring-primary/10",
                 ],
                 isCompleted &&
-                  !isCurrent && [
-                    "border-green-500 bg-gradient-to-br from-green-50 to-emerald-50",
-                    "hover:border-green-600 hover:shadow-green-100",
-                  ],
+                !isCurrent && [
+                  "border-green-500 bg-gradient-to-br from-green-50 to-emerald-50",
+                  "hover:border-green-600 hover:shadow-green-100",
+                ],
                 !isCurrent &&
-                  !isCompleted && [
-                    "border-border bg-background",
-                    "hover:border-muted-foreground/40 hover:bg-muted/30",
-                  ]
+                !isCompleted && [
+                  "border-border bg-background",
+                  "hover:border-muted-foreground/40 hover:bg-muted/30",
+                ]
               )}
             >
               {/* Step Number Badge */}
@@ -748,11 +752,11 @@ export default function EventForm({ id }: EventFormProps) {
                 className={cn(
                   "absolute -top-2 -left-2 w-6 h-6 rounded-full border-2 flex items-center justify-center text-xs font-bold transition-colors",
                   isCurrent &&
-                    "bg-primary text-primary-foreground border-primary",
+                  "bg-primary text-primary-foreground border-primary",
                   isCompleted && "bg-green-500 text-white border-green-500",
                   !isCurrent &&
-                    !isCompleted &&
-                    "bg-muted text-muted-foreground border-muted-foreground/20"
+                  !isCompleted &&
+                  "bg-muted text-muted-foreground border-muted-foreground/20"
                 )}
               >
                 {isCompleted ? (
@@ -770,8 +774,8 @@ export default function EventForm({ id }: EventFormProps) {
                     isCurrent && "bg-primary/10 text-primary",
                     isCompleted && "bg-green-100 text-green-600",
                     !isCurrent &&
-                      !isCompleted &&
-                      "bg-muted/50 text-muted-foreground group-hover:bg-muted"
+                    !isCompleted &&
+                    "bg-muted/50 text-muted-foreground group-hover:bg-muted"
                   )}
                 >
                   <Icon className="h-4 w-4" />
@@ -783,8 +787,8 @@ export default function EventForm({ id }: EventFormProps) {
                       isCurrent && "text-primary",
                       isCompleted && "text-green-700",
                       !isCurrent &&
-                        !isCompleted &&
-                        "text-foreground group-hover:text-foreground"
+                      !isCompleted &&
+                      "text-foreground group-hover:text-foreground"
                     )}
                   >
                     {step.title}
@@ -799,8 +803,8 @@ export default function EventForm({ id }: EventFormProps) {
                   isCurrent && "text-primary/70",
                   isCompleted && "text-green-600/70",
                   !isCurrent &&
-                    !isCompleted &&
-                    "text-muted-foreground group-hover:text-muted-foreground/80"
+                  !isCompleted &&
+                  "text-muted-foreground group-hover:text-muted-foreground/80"
                 )}
               >
                 {step.description}
@@ -811,9 +815,9 @@ export default function EventForm({ id }: EventFormProps) {
                 className={cn(
                   "absolute bottom-0 left-0 h-1 rounded-b-xl transition-all duration-500",
                   isCurrent &&
-                    "w-full bg-gradient-to-r from-primary/60 to-primary",
+                  "w-full bg-gradient-to-r from-primary/60 to-primary",
                   isCompleted &&
-                    "w-full bg-gradient-to-r from-green-400 to-green-500",
+                  "w-full bg-gradient-to-r from-green-400 to-green-500",
                   !isCurrent && !isCompleted && "w-0 bg-muted-foreground/20"
                 )}
               />
@@ -1373,13 +1377,13 @@ export default function EventForm({ id }: EventFormProps) {
                                   "w-full pl-3 text-left font-normal",
                                   (!field.value ||
                                     !form.getValues("end_date")) &&
-                                    "text-muted-foreground"
+                                  "text-muted-foreground"
                                 )}
                               >
                                 {field.value && form.getValues("end_date") ? (
                                   `${format(field.value, "PPP")} - ${format(
                                     form.getValues("end_date")?.toString() ||
-                                      new Date().toString(),
+                                    new Date().toString(),
                                     "PPP"
                                   )}`
                                 ) : (

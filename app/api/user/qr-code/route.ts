@@ -15,7 +15,7 @@ export async function POST(request: NextRequest) {
 
     // Check if user already has a QR code
     const existingUser = await prisma.user.findUnique({
-      where: { supabaseId: user.id },
+      where: { id: user.id },
       select: { qrCode: true, qrCodeData: true }
     });
 

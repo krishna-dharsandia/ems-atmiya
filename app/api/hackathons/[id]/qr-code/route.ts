@@ -17,7 +17,7 @@ export async function POST(
             return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
         }
 
-        // Check if user has permission to generate QR code for events (Admin/Master only)
+        // Check if user has permission to generate QR code for hackathons (Admin/Master only)
         const userData = await prisma.user.findUnique({
             where: { supabaseId: user.id }, // Use supabaseId instead of id
             select: { role: true }
@@ -25,53 +25,46 @@ export async function POST(
 
         if (!userData || !['ADMIN', 'MASTER'].includes(userData.role)) {
             return NextResponse.json(
-                { error: 'Insufficient permissions. Only admins and masters can generate event QR codes.' },
+                { error: 'Insufficient permissions. Only admins and masters can generate hackathon QR codes.' },
                 { status: 403 }
             );
         }
 
-        // Get the event details
-        const event = await prisma.event.findUnique({
+        // Get the hackathon details
+        const hackathon = await prisma.hackathon.findUnique({
             where: { id: id },
             select: {
                 id: true,
                 name: true,
                 start_date: true,
-                createdById: true,
                 qrCode: true,
                 qrCodeData: true
             }
         });
 
-        if (!event) {
+        if (!hackathon) {
             return NextResponse.json(
-                { error: 'Event not found' },
+                { error: 'Hackathon not found' },
                 { status: 404 }
             );
         }
 
         // Check if QR code already exists
-        if (event.qrCode) {
+        if (hackathon.qrCode) {
             return NextResponse.json({
                 success: true,
                 status: 200,
                 message: 'QR code already exists',
-                qrCode: event.qrCode,
-                qrCodeData: event.qrCodeData
+                qrCode: hackathon.qrCode,
+                qrCodeData: hackathon.qrCodeData
             });
         }
 
-        // Generate QR code for the event
-        const { qrCode, qrCodeData } = await QRCodeService.generateEventQRCode(
-            id,
-            event.createdById
-        );
+        // Generate QR code for the hackathon using URL-based approach
+        const { qrCode, qrCodeData } = await QRCodeService.generateHackathonURLQRCode(id);
 
-        // Also generate a URL-based QR code for easy scanning
-        const { qrCode: urlQrCode } = await QRCodeService.generateEventURLQRCode(id);
-
-        // Update event with QR code
-        await prisma.event.update({
+        // Update hackathon with QR code
+        await prisma.hackathon.update({
             where: { id: id },
             data: {
                 qrCode,
@@ -85,15 +78,14 @@ export async function POST(
             message: 'QR code generated successfully',
             qrCode,
             qrCodeData,
-            urlQrCode, // URL-based QR code for easy access
-            event: {
-                name: event.name,
-                date: event.start_date
+            hackathon: {
+                name: hackathon.name,
+                date: hackathon.start_date
             }
         });
 
     } catch (error) {
-        console.error('Error generating event QR code:', error);
+        console.error('Error generating hackathon QR code:', error);
         return NextResponse.json(
             { error: 'Failed to generate QR code' },
             { status: 500 }
@@ -105,11 +97,11 @@ export async function POST(
 
 export async function GET(
     request: NextRequest,
-    { params }: { params: Promise<{ eventId: string }> }
+    { params }: { params: Promise<{ id: string }> }
 ) {
     const prisma = new PrismaClient();
     try {
-        const { eventId } = await params;
+        const { id } = await params;
         const supabase = await createClient();
         const { data: { user }, error: authError } = await supabase.auth.getUser();
 
@@ -117,9 +109,9 @@ export async function GET(
             return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
         }
 
-        // Get the event with QR code
-        const event = await prisma.event.findUnique({
-            where: { id: eventId },
+        // Get the hackathon with QR code
+        const hackathon = await prisma.hackathon.findUnique({
+            where: { id: id },
             select: {
                 id: true,
                 name: true,
@@ -128,30 +120,23 @@ export async function GET(
                 end_date: true,
                 start_time: true,
                 end_time: true,
-                address: true,
+                location: true,
                 mode: true,
                 qrCode: true,
                 qrCodeData: true,
                 poster_url: true,
                 organizer_name: true,
-                created_by: {
-                    select: {
-                        firstName: true,
-                        lastName: true,
-                        email: true
-                    }
-                }
             }
         });
 
-        if (!event) {
+        if (!hackathon) {
             return NextResponse.json(
-                { error: 'Event not found' },
+                { error: 'Hackathon not found' },
                 { status: 404 }
             );
         }
 
-        if (!event.qrCode) {
+        if (!hackathon.qrCode) {
             return NextResponse.json(
                 { error: 'QR code not found. Please generate one first.' },
                 { status: 404 }
@@ -159,26 +144,25 @@ export async function GET(
         }
 
         return NextResponse.json({
-            qrCode: event.qrCode,
-            qrCodeData: event.qrCodeData,
-            event: {
-                id: event.id,
-                name: event.name,
-                description: event.description,
-                start_date: event.start_date,
-                end_date: event.end_date,
-                start_time: event.start_time,
-                end_time: event.end_time,
-                address: event.address,
-                mode: event.mode,
-                poster_url: event.poster_url,
-                organizer_name: event.organizer_name
-            },
-            created_by: event.created_by
+            qrCode: hackathon.qrCode,
+            qrCodeData: hackathon.qrCodeData,
+            hackathon: {
+                id: hackathon.id,
+                name: hackathon.name,
+                description: hackathon.description,
+                start_date: hackathon.start_date,
+                end_date: hackathon.end_date,
+                start_time: hackathon.start_time,
+                end_time: hackathon.end_time,
+                location: hackathon.location,
+                mode: hackathon.mode,
+                poster_url: hackathon.poster_url,
+                organizer_name: hackathon.organizer_name
+            }
         });
 
     } catch (error) {
-        console.error('Error fetching event QR code:', error);
+        console.error('Error fetching hackathon QR code:', error);
         return NextResponse.json(
             { error: 'Failed to fetch QR code' },
             { status: 500 }

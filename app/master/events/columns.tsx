@@ -11,7 +11,7 @@ import {
 import { EventMode, EventStatus, EventType } from "@prisma/client";
 import { ColumnDef } from "@tanstack/react-table";
 import { format } from "date-fns";
-import { ArrowUpDown, ExternalLink, Eye, MoreHorizontal, Pencil, Trash2 } from "lucide-react";
+import { ArrowUpDown, Download, ExternalLink, Eye, MoreHorizontal, Pencil, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import { deleteEventAction } from "./actions";
 import { navigate } from "@/utils/functions/navigate";
@@ -35,6 +35,8 @@ export type Event = {
   ticket_price?: number;
   current_registration_count: number;
   feedback_score: number;
+  qrCode?: string;
+  qrCodeData?: string;
 };
 
 export const columns: ColumnDef<Event>[] = [{
@@ -300,6 +302,43 @@ export const columns: ColumnDef<Event>[] = [{
       navigate(`/master/events/edit/${event.id}`);
     }
 
+    async function handleDownloadQR() {
+      try {
+        let qrCodeBase64 = event.qrCode;
+
+        // If QR code doesn't exist, generate it
+        if (!qrCodeBase64) {
+          toast.loading("Generating QR code...");
+
+          const response = await fetch(`/api/events/${event.id}/qr-code`, {
+            method: 'POST',
+          });
+
+          if (!response.ok) {
+            throw new Error('Failed to generate QR code');
+          }
+
+          const data = await response.json();
+          qrCodeBase64 = data.qrCode;
+          toast.dismiss();
+        }
+
+        // Create a downloadable link for the QR code
+        const link = document.createElement('a');
+        link.href = `data:image/png;base64,${qrCodeBase64}`;
+        link.download = `${event.slug}-qr-code.png`;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+
+        toast.success("QR code downloaded successfully");
+      } catch (error) {
+        console.error("Error downloading QR code:", error);
+        toast.dismiss();
+        toast.error("Failed to download QR code");
+      }
+    }
+
     return (
       <div className="flex justify-end">
         <DropdownMenu>
@@ -317,6 +356,9 @@ export const columns: ColumnDef<Event>[] = [{
             </DropdownMenuItem>
             <DropdownMenuItem onClick={() => navigate(`/events/${event.id}`)}>
               <Eye /> View
+            </DropdownMenuItem>
+            <DropdownMenuItem onClick={handleDownloadQR}>
+              <Download /> Download QR
             </DropdownMenuItem>
             <DropdownMenuItem onClick={handleEdit}>
               <Pencil /> Edit

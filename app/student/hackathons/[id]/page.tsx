@@ -24,19 +24,7 @@ export default function HackathonDetailPage() {
   useEffect(() => {
     const fetchHackathonAndUserData = async () => {
       try {
-        if (!authUser) {
-          throw new Error("Failed to authenticate user");
-        }
-
-        const userResponse = await fetch(`/api/student/${authUser.id}`);
-        if (!userResponse.ok) {
-          throw new Error("Failed to fetch user data");
-        }
-
-        const userData = await userResponse.json();
-        setCurrentUser(userData.user);
-
-        // Fetch hackathon data
+        // Fetch hackathon data first (this should always work)
         const hackathonResponse = await fetch(`/api/hackathons/${params.id}`);
 
         if (!hackathonResponse.ok) {
@@ -48,6 +36,20 @@ export default function HackathonDetailPage() {
 
         const data = await hackathonResponse.json();
         setHackathonData(data);
+
+        // Only fetch user data if user is authenticated
+        if (authUser) {
+          try {
+            const userResponse = await fetch(`/api/student/${authUser.id}`);
+            if (userResponse.ok) {
+              const userData = await userResponse.json();
+              setCurrentUser(userData.user);
+            }
+          } catch (userError) {
+            console.warn("Failed to fetch user data:", userError);
+            // Don't fail the entire page if user data fails
+          }
+        }
       } catch (err) {
         console.error("Error fetching data:", err);
         setError("Failed to load hackathon details. Please try again later.");
@@ -102,7 +104,7 @@ export default function HackathonDetailPage() {
     );
   }
 
-  if (!hackathonData || !currentUser) return null;
+  if (!hackathonData) return null;
 
   return (
     <HackathonDetail

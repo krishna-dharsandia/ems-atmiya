@@ -22,7 +22,9 @@ import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
 import { format } from "date-fns";
-import { PlusCircle, Search, Edit, ExternalLink } from "lucide-react";
+import { PlusCircle, Search, Edit, ExternalLink, Download, MoreVertical } from "lucide-react";
+import { toast } from "sonner";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 
 interface Hackathon {
   id: string;
@@ -34,6 +36,8 @@ interface Hackathon {
   registration_end_date: string;
   status: "UPCOMING" | "COMPLETED" | "CANCELLED" | "OTHER";
   created_at: string;
+  qrCode?: string;
+  qrCodeData?: string;
 }
 
 export default function ManageHackathonsPage() {
@@ -84,6 +88,43 @@ export default function ManageHackathonsPage() {
 
   const viewHackathon = (id: string) => {
     router.push(`/master/hackathons/${id}`);
+  };
+
+  const handleDownloadQR = async (hackathon: Hackathon) => {
+    try {
+      let qrCodeBase64 = hackathon.qrCode;
+
+      // If QR code doesn't exist, generate it
+      if (!qrCodeBase64) {
+        toast.loading("Generating QR code...");
+        
+        const response = await fetch(`/api/hackathons/${hackathon.id}/qr-code`, {
+          method: 'POST',
+        });
+
+        if (!response.ok) {
+          throw new Error('Failed to generate QR code');
+        }
+
+        const data = await response.json();
+        qrCodeBase64 = data.qrCode;
+        toast.dismiss();
+      }
+
+      // Create a downloadable link for the QR code
+      const link = document.createElement('a');
+      link.href = `data:image/png;base64,${qrCodeBase64}`;
+      link.download = `${hackathon.name.replace(/[^a-z0-9]/gi, '_').toLowerCase()}_qr_code.png`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      
+      toast.success("QR code downloaded successfully");
+    } catch (error) {
+      console.error("Error downloading QR code:", error);
+      toast.dismiss();
+      toast.error("Failed to download QR code");
+    }
   };
 
   const getStatusColor = (status: string) => {
@@ -208,22 +249,27 @@ export default function ManageHackathonsPage() {
                       </TableCell>
                       <TableCell className="text-right">
                         <div className="flex justify-end gap-2">
-                          <Button
-                            variant="outline"
-                            size="icon"
-                            onClick={() => viewHackathon(hackathon.id)}
-                            title="View hackathon details"
-                          >
-                            <ExternalLink className="h-4 w-4" />
-                          </Button>
-                          <Button
-                            variant="outline"
-                            size="icon"
-                            onClick={() => editHackathon(hackathon.id)}
-                            title="Edit hackathon"
-                          >
-                            <Edit className="h-4 w-4" />
-                          </Button>
+                          <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                              <Button variant="ghost" size="icon">
+                                <MoreVertical className="h-4 w-4" />
+                              </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="end">
+                              <DropdownMenuItem onClick={() => viewHackathon(hackathon.id)}>
+                                <ExternalLink className="h-4 w-4 mr-2" />
+                                View Details
+                              </DropdownMenuItem>
+                              <DropdownMenuItem onClick={() => handleDownloadQR(hackathon)}>
+                                <Download className="h-4 w-4 mr-2" />
+                                Download QR Code
+                              </DropdownMenuItem>
+                              <DropdownMenuItem onClick={() => editHackathon(hackathon.id)}>
+                                <Edit className="h-4 w-4 mr-2" />
+                                Edit Hackathon
+                              </DropdownMenuItem>
+                            </DropdownMenuContent>
+                          </DropdownMenu>
                         </div>
                       </TableCell>
                     </TableRow>

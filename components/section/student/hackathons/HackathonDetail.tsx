@@ -85,9 +85,9 @@ export interface HackathonDetailProps {
     problemStatements: ProblemStatement[];
     created_at: string;
   };
-  currentUser: User & {
+  currentUser: (User & {
     students: Student[];
-  };
+  }) | null;
   userTeam: Team | null;
   pendingInvites: { teamId: string; teamName: string }[];
 }
@@ -108,7 +108,7 @@ export default function HackathonDetail({
   };
 
   const isStudent = currentUser?.role === "STUDENT";
-  const studentId = currentUser?.students[0]?.id;
+  const studentId = currentUser?.students?.[0]?.id;
   const isTeamMember = userTeam !== null;
 
   // Determine if the current user is the team owner (first member)

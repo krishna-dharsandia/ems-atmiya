@@ -6,10 +6,10 @@ export async function GET(
 ) {
     const { id } = await params;
 
-    // Create a URL for the event check-in page
+    // Create a URL for the event page
     const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000';
-    const checkInUrl = `${baseUrl}/events/${id}/check-in`;
+    const checkInUrl = `${baseUrl}/events/${id}`;
 
-    // Redirect to the event check-in page
+    // Redirect to the event page
     return NextResponse.redirect(checkInUrl);
 }

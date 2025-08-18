@@ -60,7 +60,7 @@ export class QRCodeService {
       id: crypto.randomUUID(),
       type: 'event',
       userId: createdById,
-      eventId,
+      eventId: eventId,
       timestamp: Date.now(),
     };
 
@@ -136,13 +136,32 @@ export class QRCodeService {
     qrCodeData: string;
   }> {
     const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000';
-    const eventUrl = `${baseUrl}/events/${eventId}/check-in`;
+    const eventUrl = `${baseUrl}/events/${eventId}`;
     
     const qrCode = await this.generateDisplayQRCode(eventUrl);
     
     return {
       qrCode,
       qrCodeData: eventUrl,
+    };
+  }
+  /**
+   * Generate QR code for hackathon with URL (for direct scanning to hackathon page)
+   */
+  public static async generateHackathonURLQRCode(
+    hackathonId: string
+  ): Promise<{
+    qrCode: string;
+    qrCodeData: string;
+  }> {
+    const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000';
+    const hackathonUrl = `${baseUrl}/hackathons/${hackathonId}`;
+    
+    const qrCode = await this.generateDisplayQRCode(hackathonUrl);
+    
+    return {
+      qrCode,
+      qrCodeData: hackathonUrl,
     };
   }
   /**

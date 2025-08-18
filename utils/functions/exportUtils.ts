@@ -3,10 +3,12 @@ import Papa from 'papaparse';
 import { pdf } from '@react-pdf/renderer';
 import React from 'react';
 import EventExportPDF from '@/components/export/EventExportPDF';
+import HackathonExportPDF from '@/components/export/HackathonExportPDF';
 
 export interface ExportData {
   registrations?: RegistrationExportData[];
   feedbacks?: FeedbackExportData[];
+  teams?: TeamExportData[];
 }
 
 export interface RegistrationExportData {
@@ -30,10 +32,25 @@ export interface FeedbackExportData {
   feedbackDate: string;
 }
 
+export interface TeamExportData {
+  teamName: string;
+  teamId: string;
+  problemStatement: string;
+  problemCode: string;
+  memberCount: number;
+  memberNames: string;
+  memberEmails: string;
+  memberDepartments: string;
+  memberEnrollments: string;
+  submissionUrl: string;
+  hasSubmission: string;
+  attendedMembers: string;
+}
+
 /**
  * Export data to CSV format
  */
-export const exportToCSV = (data: ExportData, filename: string, type: 'registrations' | 'feedbacks' | 'both') => {
+export const exportToCSV = (data: ExportData, filename: string, type: 'registrations' | 'feedbacks' | 'teams' | 'both') => {
   try {
     let csvData: unknown[] = [];
     let csvContent = '';
@@ -43,6 +60,9 @@ export const exportToCSV = (data: ExportData, filename: string, type: 'registrat
       csvContent = Papa.unparse(csvData);
     } else if (type === 'feedbacks' && data.feedbacks) {
       csvData = data.feedbacks;
+      csvContent = Papa.unparse(csvData);
+    } else if (type === 'teams' && data.teams) {
+      csvData = data.teams;
       csvContent = Papa.unparse(csvData);
     } else if (type === 'both') {
       // For both, create separate sections
@@ -54,6 +74,11 @@ export const exportToCSV = (data: ExportData, filename: string, type: 'registrat
       if (data.feedbacks) {
         csvContent += "FEEDBACKS\n";
         csvContent += Papa.unparse(data.feedbacks);
+        csvContent += "\n\n";
+      }
+      if (data.teams) {
+        csvContent += "TEAMS\n";
+        csvContent += Papa.unparse(data.teams);
       }
     }
 
@@ -77,7 +102,7 @@ export const exportToCSV = (data: ExportData, filename: string, type: 'registrat
 /**
  * Export data to XLSX format
  */
-export const exportToXLSX = (data: ExportData, filename: string, type: 'registrations' | 'feedbacks' | 'both') => {
+export const exportToXLSX = (data: ExportData, filename: string, type: 'registrations' | 'feedbacks' | 'teams' | 'both') => {
   try {
     const workbook = XLSX.utils.book_new();
 
@@ -87,6 +112,9 @@ export const exportToXLSX = (data: ExportData, filename: string, type: 'registra
     } else if (type === 'feedbacks' && data.feedbacks) {
       const worksheet = XLSX.utils.json_to_sheet(data.feedbacks);
       XLSX.utils.book_append_sheet(workbook, worksheet, 'Feedbacks');
+    } else if (type === 'teams' && data.teams) {
+      const worksheet = XLSX.utils.json_to_sheet(data.teams);
+      XLSX.utils.book_append_sheet(workbook, worksheet, 'Teams');
     } else if (type === 'both') {
       if (data.registrations) {
         const regWorksheet = XLSX.utils.json_to_sheet(data.registrations);
@@ -95,6 +123,10 @@ export const exportToXLSX = (data: ExportData, filename: string, type: 'registra
       if (data.feedbacks) {
         const feedbackWorksheet = XLSX.utils.json_to_sheet(data.feedbacks);
         XLSX.utils.book_append_sheet(workbook, feedbackWorksheet, 'Feedbacks');
+      }
+      if (data.teams) {
+        const teamsWorksheet = XLSX.utils.json_to_sheet(data.teams);
+        XLSX.utils.book_append_sheet(workbook, teamsWorksheet, 'Teams');
       }
     }
 
@@ -111,7 +143,7 @@ export const exportToXLSX = (data: ExportData, filename: string, type: 'registra
 export const exportToPDF = async (
   data: ExportData, 
   filename: string, 
-  type: 'registrations' | 'feedbacks' | 'both',
+  type: 'registrations' | 'feedbacks' | 'teams' | 'both',
   eventName?: string
 ) => {
   try {
@@ -119,13 +151,25 @@ export const exportToPDF = async (
       throw new Error('PDF export is only available in browser environment');
     }
 
-    // Create the PDF document using React.createElement
-    const MyDocument = () => React.createElement(EventExportPDF, {
-      eventName: eventName || 'Event',
-      registrations: data.registrations,
-      feedbacks: data.feedbacks,
-      exportType: type
-    });
+    let MyDocument;
+
+    // Choose the appropriate PDF component based on export type
+    if (type === 'teams' || (type === 'both' && data.teams && !data.registrations && !data.feedbacks)) {
+      // Use HackathonExportPDF for team data
+      MyDocument = () => React.createElement(HackathonExportPDF, {
+        hackathonName: eventName || 'Hackathon',
+        teams: data.teams,
+        exportType: 'teams'
+      });
+    } else {
+      // Use EventExportPDF for event data (registrations/feedbacks)
+      MyDocument = () => React.createElement(EventExportPDF, {
+        eventName: eventName || 'Event',
+        registrations: data.registrations,
+        feedbacks: data.feedbacks,
+        exportType: type as 'registrations' | 'feedbacks' | 'both'
+      });
+    }
 
     // Generate PDF blob
     const blob = await pdf(React.createElement(MyDocument)).toBlob();
@@ -182,4 +226,53 @@ export const formatFeedbackData = (feedbacks: Record<string, unknown>[]): Feedba
     rating: (feedback.rating as number) || 0,
     feedbackDate: new Date(feedback.createdAt as string).toLocaleDateString('en-US')
   }));
+};
+
+/**
+ * Format team data for export
+ */
+export const formatTeamData = (teams: Record<string, unknown>[]): TeamExportData[] => {
+  return teams.map(team => {
+    const members = (team.members as Array<{
+      student?: {
+        user?: { firstName?: string; lastName?: string; email?: string };
+        department?: { name?: string };
+        enrollment?: string;
+      };
+      attended?: boolean;
+    }>) || [];
+
+    const memberNames = members.map(m => 
+      `${m.student?.user?.firstName || ''} ${m.student?.user?.lastName || ''}`.trim() || 'N/A'
+    ).join(', ');
+
+    const memberEmails = members.map(m => 
+      m.student?.user?.email || 'N/A'
+    ).join(', ');
+
+    const memberDepartments = members.map(m => 
+      m.student?.department?.name || 'N/A'
+    ).join(', ');
+
+    const memberEnrollments = members.map(m => 
+      m.student?.enrollment || 'N/A'
+    ).join(', ');
+
+    const attendedMembers = members.filter(m => m.attended).length;
+
+    return {
+      teamName: (team.teamName as string) || 'N/A',
+      teamId: (team.teamId as string) || 'N/A',
+      problemStatement: (team.problemStatement as { title?: string })?.title || 'Not selected',
+      problemCode: (team.problemStatement as { code?: string })?.code || 'N/A',
+      memberCount: members.length,
+      memberNames,
+      memberEmails,
+      memberDepartments,
+      memberEnrollments,
+      submissionUrl: (team.submissionUrl as string) || 'No submission',
+      hasSubmission: (team.submissionUrl as string) ? 'Yes' : 'No',
+      attendedMembers: `${attendedMembers}/${members.length}`
+    };
+  });
 };

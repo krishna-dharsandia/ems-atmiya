@@ -99,7 +99,7 @@ export function UserQRCodeDisplay() {
                         Your Personal QR Code
                     </CardTitle>
                     <CardDescription>
-                        Generate your personal QR code for event check-ins
+                        Generate your personal QR code for event
                     </CardDescription>
                 </CardHeader>
                 <CardContent>
@@ -135,7 +135,7 @@ export function UserQRCodeDisplay() {
                     Your Personal QR Code
                 </CardTitle>
                 <CardDescription>
-                    Use this QR code for quick event check-ins
+                    Use this QR code for quick event
                 </CardDescription>
             </CardHeader>
             <CardContent>
@@ -159,7 +159,7 @@ export function UserQRCodeDisplay() {
                         />
                     </div>                    <div className="space-y-2">
                         <p className="text-sm text-muted-foreground">
-                            Show this QR code to event staff for quick check-in at any registered event.
+                            Show this QR code to event staff for quick access at any registered event.
                         </p>
                         <p className="text-xs text-muted-foreground">
                             QR code has lifetime validity and contains encrypted identification data.

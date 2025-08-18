@@ -9,79 +9,79 @@ datasource db {
 
 model User {
   id                 String              @id @default(uuid())
-  supabaseId         String              @unique
   email              String              @unique
-  firstName          String
-  lastName           String
   role               Role
-  qrCode             String? // Base64 encoded QR code for the user
-  qrCodeData         String? // JSON data encoded in QR code
-  students           Student[]
-  admins             Admin[]
-  masters            Master[]
   createdAt          DateTime            @default(now())
   updatedAt          DateTime            @updatedAt
+  firstName          String
+  lastName           String
+  supabaseId         String              @unique
+  qrCode             String?
+  qrCodeData         String?
+  admins             Admin?
   events             Event[]
-  eventRegistrations EventRegistration[]
   eventFeedbacks     EventFeedback[]
+  eventRegistrations EventRegistration[]
+  masters            Master?
+  students           Student?
 }
 
 model Department {
   id       String    @id @default(uuid())
   name     String
   faculty  String
-  students Student[]
-  programs Program[]
   Admin    Admin[]
+  programs Program[]
+  students Student[]
 }
 
 model Program {
   id           String     @id @default(uuid())
   name         String
   departmentId String
+  admins       Admin[]
   department   Department @relation(fields: [departmentId], references: [id], onDelete: Cascade)
   students     Student[]
-  admins       Admin[]
 }
 
 model Student {
   id                  String                @id @default(uuid())
   userId              String                @unique
-  user                User                  @relation(fields: [userId], references: [supabaseId], onDelete: Cascade)
-  university          String?
   departmentId        String?
-  department          Department?           @relation(fields: [departmentId], references: [id], onDelete: Cascade)
   programId           String?
-  program             Program?              @relation(fields: [programId], references: [id], onDelete: Cascade)
   currentSemester     Int?
   currentYear         Int?
   registrationNumber  String?               @unique
   dateOfBirth         DateTime?
   createdAt           DateTime              @default(now())
   updatedAt           DateTime              @updatedAt
-  HackathonTeamMember HackathonTeamMember[]
+  university          String?
   HackathonTeamInvite HackathonTeamInvite[]
+  HackathonTeamMember HackathonTeamMember[]
+  department          Department?           @relation(fields: [departmentId], references: [id], onDelete: Cascade)
+  program             Program?              @relation(fields: [programId], references: [id], onDelete: Cascade)
+  user                User                  @relation(fields: [userId], references: [supabaseId], onDelete: Cascade)
 }
 
 model Admin {
   id           String      @id @default(uuid())
   userId       String      @unique
-  user         User        @relation(fields: [userId], references: [supabaseId], onDelete: Cascade)
   departmentId String?
-  department   Department? @relation(fields: [departmentId], references: [id], onDelete: Cascade)
   programId    String?
-  program      Program?    @relation(fields: [programId], references: [id], onDelete: Cascade)
   position     String
   createdAt    DateTime    @default(now())
   updatedAt    DateTime    @updatedAt
+  department   Department? @relation(fields: [departmentId], references: [id], onDelete: Cascade)
+  program      Program?    @relation(fields: [programId], references: [id], onDelete: Cascade)
+  user         User        @relation(fields: [userId], references: [supabaseId], onDelete: Cascade)
 }
 
 model Master {
   id        String   @id @default(uuid())
   userId    String   @unique
-  user      User     @relation(fields: [userId], references: [supabaseId], onDelete: Cascade)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+  user      User     @relation(fields: [userId], references: [supabaseId], onDelete: Cascade)
 }
 
 model Event {
@@ -112,15 +112,15 @@ model Event {
   ticket_price               Int?
   current_registration_count Int                 @default(0)
   feedback_score             Float?
-  qrCode                     String? // Base64 encoded QR code for the event
-  qrCodeData                 String? // JSON data encoded in QR code for the event
-  createdById                String
-  created_by                 User                @relation(fields: [createdById], references: [supabaseId], onDelete: Cascade)
   created_at                 DateTime            @default(now())
   updated_at                 DateTime            @updatedAt
-  speakers                   EventSpeaker[]
-  registrations              EventRegistration[]
+  createdById                String
+  qrCode                     String?
+  qrCodeData                 String?
+  created_by                 User                @relation(fields: [createdById], references: [supabaseId], onDelete: Cascade)
   feedbacks                  EventFeedback[]
+  registrations              EventRegistration[]
+  speakers                   EventSpeaker[]
 }
 
 model EventSpeaker {
@@ -129,34 +129,34 @@ model EventSpeaker {
   bio       String?
   photo_url String?
   eventId   String
-  event     Event    @relation(fields: [eventId], references: [id], onDelete: Cascade)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+  event     Event    @relation(fields: [eventId], references: [id], onDelete: Cascade)
 }
 
 model EventRegistration {
   id          String    @id @default(uuid())
   userId      String
-  user        User      @relation(fields: [userId], references: [supabaseId], onDelete: Cascade)
   eventId     String
-  event       Event     @relation(fields: [eventId], references: [id], onDelete: Cascade)
-  attended    Boolean   @default(false)
-  checkedInAt DateTime? // When the user checked in using QR code
-  checkedInBy String? // Who verified the QR code
   createdAt   DateTime  @default(now())
   updatedAt   DateTime  @updatedAt
+  attended    Boolean   @default(false)
+  checkedInAt DateTime?
+  checkedInBy String?
+  event       Event     @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  user        User      @relation(fields: [userId], references: [supabaseId], onDelete: Cascade)
 }
 
 model EventFeedback {
   id        String   @id @default(uuid())
   userId    String
-  user      User     @relation(fields: [userId], references: [supabaseId], onDelete: Cascade)
   eventId   String
-  event     Event    @relation(fields: [eventId], references: [id], onDelete: Cascade)
   rating    Int      @default(0)
   comment   String?
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+  event     Event    @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  user      User     @relation(fields: [userId], references: [supabaseId], onDelete: Cascade)
 }
 
 model Hackathon {
@@ -174,67 +174,69 @@ model Hackathon {
   registration_limit      Int?
   mode                    EventMode
   status                  EventStatus
-  problemStatements       HackathonProblemStatement[]
   tags                    String[]
   organizer_name          String
   organizer_contact       String?
-  rules                   HackathonRules[]
   evaluationCriteria      String[]
   team_size_limit         Int?
-  teams                   HackathonTeam[]
   created_at              DateTime                    @default(now())
   updated_at              DateTime                    @updatedAt
+  qrCode                  String?
+  qrCodeData              String?
+  problemStatements       HackathonProblemStatement[]
+  rules                   HackathonRules[]
+  teams                   HackathonTeam[]
 }
 
 model HackathonProblemStatement {
   id          String          @id @default(uuid())
   hackathonId String
-  hackathon   Hackathon       @relation(fields: [hackathonId], references: [id], onDelete: Cascade)
   code        String
   title       String
   description String
   created_at  DateTime        @default(now())
   updated_at  DateTime        @updatedAt
+  hackathon   Hackathon       @relation(fields: [hackathonId], references: [id], onDelete: Cascade)
   teams       HackathonTeam[]
 }
 
 model HackathonRules {
   id          String    @id @default(uuid())
   hackathonId String
-  hackathon   Hackathon @relation(fields: [hackathonId], references: [id], onDelete: Cascade)
   rule        String
   created_at  DateTime  @default(now())
   updated_at  DateTime  @updatedAt
+  hackathon   Hackathon @relation(fields: [hackathonId], references: [id], onDelete: Cascade)
 }
 
 model HackathonTeam {
   id                 String                     @id @default(uuid())
   hackathonId        String
-  hackathon          Hackathon                  @relation(fields: [hackathonId], references: [id])
   problemStatementId String?
-  problemStatement   HackathonProblemStatement? @relation(fields: [problemStatementId], references: [id], onDelete: Cascade)
   teamName           String
   teamId             String?
-  members            HackathonTeamMember[]
+  hackathon          Hackathon                  @relation(fields: [hackathonId], references: [id])
+  problemStatement   HackathonProblemStatement? @relation(fields: [problemStatementId], references: [id], onDelete: Cascade)
   invites            HackathonTeamInvite[]
+  members            HackathonTeamMember[]
 }
 
 model HackathonTeamMember {
   id        String        @id @default(uuid())
   teamId    String
-  team      HackathonTeam @relation(fields: [teamId], references: [id])
   studentId String
-  student   Student       @relation(fields: [studentId], references: [id])
   attended  Boolean       @default(false)
+  student   Student       @relation(fields: [studentId], references: [id])
+  team      HackathonTeam @relation(fields: [teamId], references: [id])
 }
 
 model HackathonTeamInvite {
   id        String        @id @default(uuid())
   teamId    String
-  team      HackathonTeam @relation(fields: [teamId], references: [id])
   studentId String
-  student   Student       @relation(fields: [studentId], references: [id])
   status    InviteStatus  @default(PENDING)
+  student   Student       @relation(fields: [studentId], references: [id])
+  team      HackathonTeam @relation(fields: [teamId], references: [id])
 }
 
 enum InviteStatus {

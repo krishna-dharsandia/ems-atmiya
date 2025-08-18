@@ -66,11 +66,27 @@ export async function inviteTeamMemberAction(teamId: string, studentEmail: strin
       },
     });
 
-    if (!invitedUser || invitedUser.students.length === 0) {
-      return { error: "Student not found with that email" };
+    if (!invitedUser) {
+      return { error: "User not found with that email" };
+    }
+
+    console.log("DEBUG - invitedUser:", {
+      id: invitedUser.id,
+      email: invitedUser.email,
+      role: invitedUser.role,
+      studentsLength: invitedUser.students ? invitedUser.students.length : 'null/undefined',
+      students: invitedUser.students
+    });
+
+    if (!invitedUser.students || invitedUser.students.length === 0) {
+      return { 
+        error: `Student profile not found for ${studentEmail}. This user exists but has no student record. Please ask an administrator to complete their student profile setup.` 
+      };
     }
 
     const invitedStudent = invitedUser.students[0];
+    
+    console.log("DEBUG - invitedStudent:", invitedStudent);
 
     // Check if student is already a member of the team
     const isAlreadyMember = team.members.some(
