@@ -30,12 +30,13 @@ import { CheckIcon, EyeIcon, EyeOffIcon, Loader, XIcon } from "lucide-react";
 import { AnimatePresence, motion } from "framer-motion";
 import { cn } from "@/lib/utils";
 import { signInWithGoogleAction } from "../register/loginWithGoogleAction";
+import { useAuth } from "@/contexts/AuthContext";
 
 export default function LoginForm() {
   const [captchaToken, setCaptchaToken] = useState("");
   const [googleLoading, setGoogleLoading] = useState(false); // Add loading state
   const [showPassword, setShowPassword] = useState(false);
-
+  const {refreshUser} = useAuth();
   const router = useRouter();
   const form = useForm<LoginSchema>({
     resolver: zodResolver(loginSchema),
@@ -50,6 +51,7 @@ export default function LoginForm() {
     if (response.error) {
       toast.error(response.error);
     } else {
+      await refreshUser(); // Refresh user context after login
       toast.success("Logged in successfully");
       const dashboardPath = getDashboardPath(response.message);
       router.push(dashboardPath);

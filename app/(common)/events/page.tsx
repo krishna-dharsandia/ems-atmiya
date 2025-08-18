@@ -10,6 +10,8 @@ import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@
 import { Button } from "@/components/ui/button";
 import { LandingHeader } from "@/components/global/navigation-bar/LandingHeader";
 
+import { HackathonList } from "@/components/section/student/hackathons/HackathonList";
+
 type Event = {
   id: string;
   name: string;
@@ -32,6 +34,25 @@ export default function Page() {
   const [type, setType] = useState<string>("");
   const [status, setStatus] = useState<string>("");
 
+  // Hackathons state
+  const { data: hackathonData, isLoading: isHackathonsLoading, error: hackathonsError } = useSWR<any>("/api/hackathons", fetcher);
+  const [hackathonSearch, setHackathonSearch] = useState("");
+  const [hackathonMode, setHackathonMode] = useState<string>("");
+  const [hackathonType, setHackathonType] = useState<string>("");
+  const [hackathonStatus, setHackathonStatus] = useState<string>("");
+
+  // Filtered hackathons
+  const filteredHackathons = useMemo(() => {
+    if (!hackathonData || !hackathonData.hackathons) return [];
+    return hackathonData.hackathons.filter((hackathon: any) => {
+      const matchesSearch = hackathon.name.toLowerCase().includes(hackathonSearch.toLowerCase()) || (hackathon.description?.toLowerCase().includes(hackathonSearch.toLowerCase()) ?? false);
+      const matchesMode = hackathonMode === "all" || hackathonMode === "" ? true : hackathon.mode === hackathonMode;
+      const matchesType = hackathonType === "all" || hackathonType === "" ? true : hackathon.type === hackathonType;
+      const matchesStatus = hackathonStatus === "all" || hackathonStatus === "" ? true : hackathon.status === hackathonStatus;
+      return matchesSearch && matchesMode && matchesType && matchesStatus;
+    });
+  }, [hackathonData, hackathonSearch, hackathonMode, hackathonType, hackathonStatus]);
+
   // Filter and search logic
   const filteredEvents = useMemo(() => {
     if (!data) return [];
@@ -45,91 +66,164 @@ export default function Page() {
   }, [data, search, mode, type, status]);
 
   return (
-    <div className="min-h-svh">
+    <div className="">
       <LandingHeader />
-      <div className="bg-background pt-6 px-4 pb-12">
-        <div className="max-w-screen-xl mx-auto">
-          <div className="mb-8 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-            <div className="flex flex-col sm:flex-row gap-4 w-full">
-              <Input placeholder="Search events..." value={search} onChange={(e) => setSearch(e.target.value)} className="w-full sm:w-64 rounded-full" />
-              <Select value={mode} onValueChange={setMode}>
-                <SelectTrigger className="w-full sm:w-40 rounded-full">
-                  <SelectValue placeholder="Mode" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All Modes</SelectItem>
-                  <SelectItem value="ONLINE">Online</SelectItem>
-                  <SelectItem value="OFFLINE">Offline</SelectItem>
-                  <SelectItem value="HYBRID">Hybrid</SelectItem>
-                </SelectContent>
-              </Select>
-              <Select value={type} onValueChange={setType}>
-                <SelectTrigger className="w-full sm:w-40 rounded-full">
-                  <SelectValue placeholder="Type" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All Types</SelectItem>
-                  <SelectItem value="TECHNICAL">Technical</SelectItem>
-                  <SelectItem value="CULTURAL">Cultural</SelectItem>
-                  <SelectItem value="SPORTS">Sports</SelectItem>
-                  <SelectItem value="OTHER">Other</SelectItem>
-                </SelectContent>
-              </Select>
-              <Select value={status} onValueChange={setStatus}>
-                <SelectTrigger className="w-full sm:w-40 rounded-full">
-                  <SelectValue placeholder="Status" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All Status</SelectItem>
-                  <SelectItem value="UPCOMING">Upcoming</SelectItem>
-                  <SelectItem value="ONGOING">Ongoing</SelectItem>
-                  <SelectItem value="COMPLETED">Completed</SelectItem>
-                  <SelectItem value="CANCELLED">Cancelled</SelectItem>
-                </SelectContent>
-              </Select>
+      <main className="pt-10 px-2 pb-20">
+        <div className="max-w-screen-xl mx-auto space-y-16">
+          {/* Events Section */}
+            <div className="mb-8 flex flex-col md:flex-row md:items-center md:justify-between gap-6" id="events">
+              <div className="flex flex-col sm:flex-row gap-4 w-full">
+                <Input placeholder="Search events..." value={search} onChange={(e) => setSearch(e.target.value)} className="w-full sm:w-64" />
+                <Select value={mode} onValueChange={setMode}>
+                  <SelectTrigger className="w-full sm:w-40" >
+                    <SelectValue placeholder="Mode" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All Modes</SelectItem>
+                    <SelectItem value="ONLINE">Online</SelectItem>
+                    <SelectItem value="OFFLINE">Offline</SelectItem>
+                    <SelectItem value="HYBRID">Hybrid</SelectItem>
+                  </SelectContent>
+                </Select>
+                <Select value={type} onValueChange={setType}>
+                  <SelectTrigger className="w-full sm:w-40" >
+                    <SelectValue placeholder="Type" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All Types</SelectItem>
+                    <SelectItem value="TECHNICAL">Technical</SelectItem>
+                    <SelectItem value="CULTURAL">Cultural</SelectItem>
+                    <SelectItem value="SPORTS">Sports</SelectItem>
+                    <SelectItem value="OTHER">Other</SelectItem>
+                  </SelectContent>
+                </Select>
+                <Select value={status} onValueChange={setStatus}>
+                  <SelectTrigger className="w-full sm:w-40" >
+                    <SelectValue placeholder="Status" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All Status</SelectItem>
+                    <SelectItem value="UPCOMING">Upcoming</SelectItem>
+                    <SelectItem value="ONGOING">Ongoing</SelectItem>
+                    <SelectItem value="COMPLETED">Completed</SelectItem>
+                    <SelectItem value="CANCELLED">Cancelled</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="flex gap-2 justify-end">
+                <Button
+                  variant="outline"
+                  onClick={() => {
+                    setSearch("");
+                    setMode("");
+                    setType("");
+                    setStatus("");
+                  }}
+                >
+                  Clear Filters
+                </Button>
+              </div>
             </div>
-            <div className="flex gap-2">
-              <Button
-                variant="outline"
-                onClick={() => {
-                  setSearch("");
-                  setMode("");
-                  setType("");
-                  setStatus("");
-                }}
-                className="rounded-full"
-              >
-                Clear Filters
-              </Button>
+            <div className="mb-8">
+              <h2 className="text-2xl md:text-3xl font-bold tracking-tight text-gray-900 dark:text-white">Events</h2>
+              <p className="text-gray-500 dark:text-gray-400 mt-1">Discover and participate in a variety of events.</p>
             </div>
-          </div>
-          {isLoading || !data ? (
-            <div className="flex justify-center items-center h-64 text-lg font-medium">Loading events...</div>
-          ) : error ? (
-            <div className="flex justify-center items-center h-64 text-lg font-medium text-destructive">Failed to load events data</div>
-          ) : (
-            <div className="grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-3">
-              {filteredEvents.length === 0 ? (
-                <div className="col-span-full text-center text-muted-foreground py-16">No events found.</div>
-              ) : (
-                filteredEvents.map((event) => (
-                  <EventCard
-                    key={event.id}
-                    id={event.id}
-                    name={event.name}
-                    description={event.description}
-                    poster_url={event.poster_url}
-                    address={event.address}
-                    start_date={event.start_date}
-                    mode={event.mode}
-                    price={event.ticket_price}
-                  />
-                ))
-              )}
+            {isLoading || !data ? (
+              <div className="flex justify-center items-center h-64 text-lg font-medium text-gray-500 dark:text-gray-400">Loading events...</div>
+            ) : error ? (
+              <div className="flex justify-center items-center h-64 text-lg font-medium text-destructive">Failed to load events data</div>
+            ) : (
+              <div className="grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-3">
+                {filteredEvents.length === 0 ? (
+                  <div className="col-span-full text-center text-muted-foreground py-16">No events found.</div>
+                ) : (
+                  filteredEvents.map((event) => (
+                    <EventCard
+                      key={event.id}
+                      id={event.id}
+                      name={event.name}
+                      description={event.description}
+                      poster_url={event.poster_url}
+                      address={event.address}
+                      start_date={event.start_date}
+                      mode={event.mode}
+                      price={event.ticket_price}
+                    />
+                  ))
+                )}
+              </div>
+            )}
+
+          {/* Hackathons Section */}
+            <div className="mb-8 flex flex-col md:flex-row md:items-center md:justify-between gap-6" id="hackathons">
+              <div className="flex flex-col sm:flex-row gap-4 w-full">
+                <Input placeholder="Search hackathons..." value={hackathonSearch} onChange={(e) => setHackathonSearch(e.target.value)} className="w-full sm:w-64" />
+                <Select value={hackathonMode} onValueChange={setHackathonMode}>
+                  <SelectTrigger className="w-full sm:w-40" >
+                    <SelectValue placeholder="Mode" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All Modes</SelectItem>
+                    <SelectItem value="ONLINE">Online</SelectItem>
+                    <SelectItem value="OFFLINE">Offline</SelectItem>
+                    <SelectItem value="HYBRID">Hybrid</SelectItem>
+                  </SelectContent>
+                </Select>
+                <Select value={hackathonType} onValueChange={setHackathonType}>
+                  <SelectTrigger className="w-full sm:w-40" >
+                    <SelectValue placeholder="Type" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All Types</SelectItem>
+                    <SelectItem value="TECHNICAL">Technical</SelectItem>
+                    <SelectItem value="CULTURAL">Cultural</SelectItem>
+                    <SelectItem value="SPORTS">Sports</SelectItem>
+                    <SelectItem value="OTHER">Other</SelectItem>
+                  </SelectContent>
+                </Select>
+                <Select value={hackathonStatus} onValueChange={setHackathonStatus}>
+                  <SelectTrigger className="w-full sm:w-40" >
+                    <SelectValue placeholder="Status" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All Status</SelectItem>
+                    <SelectItem value="UPCOMING">Upcoming</SelectItem>
+                    <SelectItem value="ONGOING">Ongoing</SelectItem>
+                    <SelectItem value="COMPLETED">Completed</SelectItem>
+                    <SelectItem value="CANCELLED">Cancelled</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="flex gap-2 justify-end">
+                <Button
+                  variant="outline"
+                  onClick={() => {
+                    setHackathonSearch("");
+                    setHackathonMode("");
+                    setHackathonType("");
+                    setHackathonStatus("");
+                  }}
+                >
+                  Clear Filters
+                </Button>
+              </div>
             </div>
-          )}
+            <div className="mb-8">
+              <h2 className="text-2xl md:text-3xl font-bold tracking-tight text-gray-900 dark:text-white">Hackathons</h2>
+              <p className="text-gray-500 dark:text-gray-400 mt-1">Showcase your skills and win prizes in upcoming hackathons.</p>
+            </div>
+            {isHackathonsLoading || !hackathonData ? (
+              <div className="flex justify-center items-center h-64 text-lg font-medium text-gray-500 dark:text-gray-400">Loading hackathons...</div>
+            ) : hackathonsError ? (
+              <div className="flex justify-center items-center h-64 text-lg font-medium text-destructive">Failed to load hackathons data</div>
+            ) : (
+              <HackathonList
+                hackathons={filteredHackathons}
+                userRegistrations={hackathonData.userRegistrations || {}}
+              />
+            )}
         </div>
-      </div>
+      </main>
     </div>
   );
 }

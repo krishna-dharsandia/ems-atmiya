@@ -3,7 +3,6 @@ export const adminSidebarLinks = [
     title: "Dashboard",
     items: [
       { title: "Overview", url: "/" },
-      { title: "Statistics", url: "/statistics" },
     ],
   },
   {
