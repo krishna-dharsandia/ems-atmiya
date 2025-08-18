@@ -127,7 +127,6 @@ export default function LoginForm() {
                   )}
                 />
                 <FormField
-                  disabled={form.formState.isSubmitting}
                   control={form.control}
                   name="password"
                   render={({ field }) => {
