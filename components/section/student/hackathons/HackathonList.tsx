@@ -170,46 +170,6 @@ export function HackathonList({
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-col md:flex-row gap-4">
-        <div className="flex-grow">
-          <Input
-            placeholder="Search hackathons by name, description or tag"
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-          />
-        </div>
-        <div className="flex gap-2">
-          <Select
-            value={statusFilter}
-            onValueChange={(value) => setStatusFilter(value)}
-          >
-            <SelectTrigger className="w-36">
-              <SelectValue placeholder="Status" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="ALL">All Statuses</SelectItem>
-              <SelectItem value="UPCOMING">Upcoming</SelectItem>
-              <SelectItem value="COMPLETED">Completed</SelectItem>
-              <SelectItem value="CANCELLED">Cancelled</SelectItem>
-            </SelectContent>
-          </Select>
-
-          <Select
-            value={modeFilter}
-            onValueChange={(value) => setModeFilter(value)}
-          >
-            <SelectTrigger className="w-36">
-              <SelectValue placeholder="Mode" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="ALL">All Modes</SelectItem>
-              <SelectItem value="ONLINE">Online</SelectItem>
-              <SelectItem value="OFFLINE">Offline</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
-      </div>
-
       {filteredHackathons.length === 0 ? (
         <div className="text-center py-10">
           <p className="text-muted-foreground">No hackathons found matching your filters.</p>
