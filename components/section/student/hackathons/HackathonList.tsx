@@ -11,14 +11,6 @@ import {
 } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import { Input } from "@/components/ui/input";
 import { format } from "date-fns";
 import { Calendar, MapPin, Users } from "lucide-react";
 
@@ -63,7 +55,7 @@ function HackathonCard({ hackathon, isRegistered }: HackathonCardProps) {
   };
 
   const handleViewDetails = () => {
-    router.push(`/student/hackathons/${hackathon.id}`);
+    router.push(`/hackathons/${hackathon.id}`);
   };
 
   return (
