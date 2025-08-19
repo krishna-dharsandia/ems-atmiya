@@ -15,10 +15,6 @@ export async function GET(
     data: { user },
   } = await supabase.auth.getUser();
 
-  if (!user) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  }
-
   const prisma = new PrismaClient();
 
   try {
@@ -77,7 +73,7 @@ export async function GET(
     // Find the student record
     const student = await prisma.student.findFirst({
       where: {
-        userId: user.id,
+        userId: user?.id,
       },
       select: {
         id: true,

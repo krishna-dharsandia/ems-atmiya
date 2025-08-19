@@ -4,7 +4,7 @@ import { Input } from "@/components/ui/input";
 import { RegisterStudentSchema, registerStudentSchema } from "@/schemas/registerSchema";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Turnstile } from "@marsidev/react-turnstile";
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { registerStudent } from "./registerAction";
@@ -18,6 +18,7 @@ import Link from "next/link";
 
 export default function RegisterForm() {
   const [captchaToken, setCaptchaToken] = useState("");
+  const turnstileRef = useRef<any>(null);
   const [googleLoading, setGoogleLoading] = useState(false); // Add loading state
   const [showPasswordRequirements, setShowPasswordRequirements] = useState(true);
   const [showPassword, setShowPassword] = useState(false)
@@ -46,12 +47,16 @@ export default function RegisterForm() {
 
     const response = await registerStudent(data, captchaToken);
 
+    if (turnstileRef.current) {
+      turnstileRef.current.reset();
+      setCaptchaToken("");
+    }
+
     if (response.error) {
       toast.error(response.error);
     } else {
       toast.success("Registration successful! Please check your email for verification.");
       form.reset();
-      setCaptchaToken("");
       setShowPasswordRequirements(false);
     }
   }
@@ -280,6 +285,7 @@ export default function RegisterForm() {
                 />
 
                 <Turnstile
+                  ref={turnstileRef}
                   siteKey="0x4AAAAAABeFnZ4TqqZ1FHIk"
                   onSuccess={(token) => {
                     setCaptchaToken(token);

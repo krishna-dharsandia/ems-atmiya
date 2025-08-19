@@ -17,7 +17,7 @@ import { login } from "./loginAction";
 import { toast } from "sonner";
 import { getDashboardPath } from "@/utils/functions/getDashboardPath";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useState, useRef } from "react";
 import {
   Card,
   CardContent,
@@ -34,9 +34,10 @@ import { useAuth } from "@/contexts/AuthContext";
 
 export default function LoginForm() {
   const [captchaToken, setCaptchaToken] = useState("");
+  const turnstileRef = useRef<any>(null);
   const [googleLoading, setGoogleLoading] = useState(false); // Add loading state
   const [showPassword, setShowPassword] = useState(false);
-  const {refreshUser} = useAuth();
+  const { refreshUser } = useAuth();
   const router = useRouter();
   const form = useForm<LoginSchema>({
     resolver: zodResolver(loginSchema),
@@ -48,6 +49,10 @@ export default function LoginForm() {
 
   async function onSubmit(data: LoginSchema) {
     const response = await login(data, captchaToken);
+    if (turnstileRef.current) {
+      turnstileRef.current.reset();
+      setCaptchaToken("");
+    }
     if (response.error) {
       toast.error(response.error);
     } else {
@@ -270,11 +275,10 @@ export default function LoginForm() {
                                       />
                                     )}
                                     <span
-                                      className={`text-xs ${
-                                        req.met
+                                      className={`text-xs ${req.met
                                           ? "text-emerald-600"
                                           : "text-muted-foreground"
-                                      }`}
+                                        }`}
                                     >
                                       {req.text}
                                       <span className="sr-only">
@@ -296,7 +300,11 @@ export default function LoginForm() {
                 />
 
                 <Turnstile
+                  ref={turnstileRef}
                   siteKey="0x4AAAAAABeFnZ4TqqZ1FHIk"
+                  options={{
+                    retry: "auto",
+                  }}
                   onSuccess={(token) => {
                     setCaptchaToken(token);
                   }}

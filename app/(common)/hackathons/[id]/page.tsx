@@ -5,6 +5,8 @@ import { notFound, useParams } from "next/navigation";
 import HackathonDetail, { HackathonDetailProps, Team } from "@/components/section/student/hackathons/HackathonDetail";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useAuth } from "@/contexts/AuthContext";
+import { LandingHeader } from "@/components/global/navigation-bar/LandingHeader";
+import { LandingFooter } from "@/components/global/LandingFooter";
 
 export default function HackathonDetailPage() {
   const params = useParams();
@@ -106,11 +108,15 @@ export default function HackathonDetailPage() {
   if (!hackathonData) return null;
 
   return (
-    <HackathonDetail
-      hackathon={hackathonData.hackathon}
-      currentUser={currentUser}
-      userTeam={hackathonData.userTeam || null}
-      pendingInvites={hackathonData.pendingInvites || []}
-    />
+    <div>
+      <LandingHeader />
+      <HackathonDetail
+        hackathon={hackathonData.hackathon}
+        currentUser={currentUser}
+        userTeam={hackathonData.userTeam || null}
+        pendingInvites={hackathonData.pendingInvites || []}
+      />
+      <LandingFooter />
+    </div>
   );
 }
