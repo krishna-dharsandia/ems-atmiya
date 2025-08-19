@@ -42,11 +42,11 @@ export default function LoginPage() {
             <Image
               width={40}
               height={40}
-              src="/avatar.png"
+              src="https://i.pravatar.cc/40"
               alt="User avatar"
               className="w-10 h-10 rounded-full bg-muted"
             />
-            <span className="opacity-80">@YourUser</span>
+            <span className="opacity-80">@ADSC</span>
           </div>
         </div>
       </div>

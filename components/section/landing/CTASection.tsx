@@ -15,7 +15,7 @@ export function CTASection() {
       <div className="absolute inset-0 bg-black/10 dark:bg-black/20" />
       <div className="absolute top-0 left-0 w-96 h-96 bg-primary-foreground/10 rounded-full -translate-x-1/2 -translate-y-1/2" />
       <div className="absolute bottom-0 right-0 w-96 h-96 bg-primary-foreground/10 rounded-full translate-x-1/2 translate-y-1/2" />
-      
+
       <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="text-center">
           {/* University Badge */}
@@ -32,7 +32,7 @@ export function CTASection() {
 
           {/* Subtitle */}
           <p className="text-xl md:text-2xl text-primary-foreground/80 mb-12 max-w-3xl mx-auto leading-relaxed">
-            Connect with your campus community, discover amazing events, and make the most of your 
+            Connect with your campus community, discover amazing events, and make the most of your
             university life at Atmiya University.
           </p>
 
@@ -74,15 +74,15 @@ export function CTASection() {
         <div className="mt-16 bg-primary-foreground/10 backdrop-blur-sm rounded-2xl p-8 border border-primary-foreground/20">
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-8 text-center">
             <div>
-              <div className="text-3xl font-bold text-primary-foreground mb-2">15,000+</div>
+              <div className="text-3xl font-bold text-primary-foreground mb-2">1,000+</div>
               <div className="text-primary-foreground/70">Active students</div>
             </div>
             <div>
-              <div className="text-3xl font-bold text-primary-foreground mb-2">50+</div>
+              <div className="text-3xl font-bold text-primary-foreground mb-2">15+</div>
               <div className="text-primary-foreground/70">Student clubs & societies</div>
             </div>
             <div>
-              <div className="text-3xl font-bold text-primary-foreground mb-2">500+</div>
+              <div className="text-3xl font-bold text-primary-foreground mb-2">100+</div>
               <div className="text-primary-foreground/70">Events annually</div>
             </div>
           </div>

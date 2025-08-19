@@ -29,7 +29,7 @@ export function HeroSection() {
 
           {/* Subtitle */}
           <p className="text-xl md:text-2xl text-muted-foreground mb-10 max-w-3xl mx-auto leading-relaxed">
-            Stay connected with Atmiya University&apos;s vibrant campus life. Discover workshops, seminars, 
+            Stay connected with Atmiya University&apos;s vibrant campus life. Discover workshops, seminars,
             cultural events, and academic competitions happening around you.
           </p>
 
@@ -65,7 +65,7 @@ export function HeroSection() {
               <div className="text-muted-foreground">Student Participants</div>
             </div>
             <div className="text-center">
-              <div className="text-3xl font-bold text-foreground mb-2">50+</div>
+              <div className="text-3xl font-bold text-foreground mb-2">15+</div>
               <div className="text-muted-foreground">Active Clubs</div>
             </div>
           </div>

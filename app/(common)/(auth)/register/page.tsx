@@ -46,7 +46,7 @@ export default function RegisterPage() {
               alt="User avatar"
               className="w-10 h-10 rounded-full bg-muted"
             />
-            <span className="opacity-80">@YourUser</span>
+            <span className="opacity-80">@ADSC</span>
           </div>
         </div>
       </div>
