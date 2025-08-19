@@ -317,7 +317,7 @@ export default function EventForm({ id }: EventFormProps) {
           toast.error("Failed to upload poster image");
           return;
         }
-        posterUrl = `posters/${posterId.toString()}.jpg`;
+        posterUrl = `posters/${posterId.toString()}.${posterFile.name.split(".").pop()}`;
       } else if (!isEditMode) {
         toast.error("Please upload a poster image");
         return;

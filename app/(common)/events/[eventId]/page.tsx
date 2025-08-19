@@ -154,10 +154,6 @@ export default function Page() {
     return <LoadingSkeleton />;
   }
 
-  const {
-    data: { publicUrl },
-  } = supabase.storage.from("event-posters").getPublicUrl(event.poster_url);
-
   const getStatusColor = (status: string) => {
     switch (status.toLowerCase()) {
       case "active":
@@ -192,7 +188,7 @@ export default function Page() {
           <div className="absolute inset-0 bg-gradient-to-r from-black/60 via-black/40 to-black/60 z-10" />
           <div className="relative h-[70vh] overflow-hidden">
             <Image
-              src={publicUrl || "/placeholder.svg"}
+              src={event.poster_url || "/placeholder.svg"}
               alt={event.name}
               fill
               className="object-cover"
