@@ -89,9 +89,7 @@ export async function GET() {
   const recentRegistrations = await prisma.eventRegistration.findMany({
     where: {
       user: {
-        students: {
-          some: departmentFilter,
-        },
+        students: departmentFilter,
       },
     },
     orderBy: { createdAt: "desc" },
@@ -108,9 +106,8 @@ export async function GET() {
   const recentFeedback = await prisma.eventFeedback.findMany({
     where: {
       user: {
-        students: {
-          some: departmentFilter,
-        },
+        students:
+          departmentFilter,
       },
     },
     orderBy: { createdAt: "desc" },
@@ -141,9 +138,7 @@ export async function GET() {
   const avgRatingAgg = await prisma.eventFeedback.aggregate({
     where: {
       user: {
-        students: {
-          some: departmentFilter,
-        },
+        students: departmentFilter,
       },
     },
     _avg: { rating: true },

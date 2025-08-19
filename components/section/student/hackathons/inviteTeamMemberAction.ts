@@ -70,13 +70,13 @@ export async function inviteTeamMemberAction(teamId: string, studentEmail: strin
       return { error: "User not found with that email" };
     }
 
-    if (!invitedUser.students || invitedUser.students.length === 0) {
-      return { 
-        error: `Student profile not found for ${studentEmail}. This user exists but has no student record. Please ask an administrator to complete their student profile setup.` 
+    if (!invitedUser.students || !invitedUser.students) {
+      return {
+        error: `Student profile not found for ${studentEmail}. This user exists but has no student record. Please ask an administrator to complete their student profile setup.`
       };
     }
 
-    const invitedStudent = invitedUser.students[0];
+    const invitedStudent = invitedUser.students;
 
     // Check if student is already a member of the team
     const isAlreadyMember = team.members.some(

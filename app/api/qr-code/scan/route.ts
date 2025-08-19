@@ -100,7 +100,7 @@ async function handleUserQRScan(
         }
     });
 
-    if (!userData) {
+    if (!userData || !userData.students) {
         throw new Error('User not found');
     }
 
@@ -149,7 +149,7 @@ async function handleUserQRScan(
             name: `${userData.firstName} ${userData.lastName}`,
             email: userData.email,
             role: userData.role,
-            student: userData.students[0] || null
+            student: userData.students,
         },
         registration: registrationInfo,
         scannedAt: new Date()

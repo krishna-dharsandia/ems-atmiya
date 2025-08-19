@@ -12,7 +12,8 @@ import { Separator } from "@/components/ui/separator";
 import { StudentKeyMetrics } from "@/components/section/student/overview/KeyMetrics";
 import { StudentRecentActivity } from "@/components/section/student/overview/RecentActivity";
 import { StudentCompletedEvents } from "@/components/section/student/overview/CompletedEvents";
-import { ChartArea } from "lucide-react";
+import { Calendar, Router } from "lucide-react";
+import { useRouter } from "next/navigation";
 
 interface Event {
   event: {
@@ -49,6 +50,7 @@ type StudentOverviewData = {
 };
 
 export default function StudentDashboard() {
+  const router = useRouter();
   const { data, error, isLoading } = useSWR<StudentOverviewData>(
     "/api/student/overview",
     fetcher
@@ -78,8 +80,8 @@ export default function StudentDashboard() {
               : "Your personalized dashboard overview."
           }
         />
-        <Button className="mb-4">
-          <ChartArea className="mr-2 h-4 w-4" /> More Insights
+        <Button className="mb-4" onClick={() => router.push("/events")}>
+          <Calendar className="mr-2 h-4 w-4" /> Events
         </Button>
       </div>
 
