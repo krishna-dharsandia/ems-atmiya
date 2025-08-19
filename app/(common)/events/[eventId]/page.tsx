@@ -671,6 +671,7 @@ export default function Page() {
                 <FacebookShareButton
                   url={window.location.href}
                   hashtag="#atmiyauniversity"
+                  content={event.description}
                 >
                   <Button variant="outline" size={"icon"}>
                     <FacebookIcon borderRadius={18} />
@@ -685,6 +686,7 @@ export default function Page() {
                   url={window.location.href}
                   title={event.name}
                   hashtags={["atmiyauniversity"]}
+                  content={event.description}
                 >
                   <Button variant="outline" size={"icon"}>
                     <TwitterIcon borderRadius={18} />
@@ -699,6 +701,7 @@ export default function Page() {
                   url={window.location.href}
                   title={event.name}
                   summary={event.description}
+                  content={event.description}
                 >
                   <Button variant="outline" size={"icon"}>
                     <LinkedinIcon borderRadius={18} />
@@ -713,6 +716,7 @@ export default function Page() {
                   url={window.location.href}
                   subject={event.name}
                   body={event.description}
+                  content={event.description}
                 >
                   <Button variant="outline" size={"icon"}>
                     <EmailIcon borderRadius={18} />
@@ -726,6 +730,7 @@ export default function Page() {
                 <WhatsappShareButton
                   url={window.location.href}
                   title={event.name}
+                  content={event.description}
                 >
                   <Button variant="outline" size={"icon"}>
                     <WhatsappIcon borderRadius={18} />
