@@ -422,7 +422,7 @@ export default function Page() {
                         className="flex items-center gap-2 text-primary hover:underline"
                       >
                         <ExternalLink className="h-4 w-4" />
-                        Register Here
+                        Submissions Here
                       </Link>
                     )}
 
