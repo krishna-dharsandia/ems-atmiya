@@ -6,6 +6,7 @@ import { format } from "date-fns";
 import { Calendar, MapPin } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
+import { createClient } from "@/utils/supabase/client";
 
 export interface Event {
   id: string;
@@ -19,10 +20,14 @@ export interface Event {
 }
 
 export default function EventCard({ id, name, description, start_date, address, poster_url, price, mode }: Event) {
+  const supabase = createClient();
+  const { data: { publicUrl } } = supabase.storage.from("event-posters").getPublicUrl(poster_url);
+
+
   return (
     <Card className="overflow-hidden pt-0 z-10">
       <div className="relative h-48">
-        <Image src={poster_url} alt={name} fill className="object-cover" />
+        <Image src={publicUrl} alt={name} fill className="object-cover" />
         <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/60 to-transparent p-4">
           <Badge className="bg-primary text-primary-foreground">{mode}</Badge>
         </div>
