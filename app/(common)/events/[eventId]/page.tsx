@@ -22,6 +22,7 @@ import {
   Mail,
   Globe,
   Circle,
+  Router,
 } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
@@ -30,7 +31,7 @@ import useSWR from "swr";
 import type { Event } from "@prisma/client";
 import { createClient } from "@/utils/supabase/client";
 import { format } from "date-fns";
-import { useParams } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import { useState } from "react";
 import {
   Dialog,
@@ -58,6 +59,8 @@ import {
 } from "@/components/ui/tooltip";
 import { registerInEventAction } from "@/components/section/events/registerInEventAction";
 import { toast } from "sonner";
+import { LandingHeader } from "@/components/global/navigation-bar/LandingHeader";
+import { LandingFooter } from "@/components/global/LandingFooter";
 
 type EventWithSpeakers = Event & {
   speakers?: {
@@ -112,6 +115,7 @@ function ErrorState({ message }: { message: string }) {
 }
 
 export default function Page() {
+  const router = useRouter();
   const params = useParams();
   const id = params.eventId as string;
   const [open, setOpen] = useState(false);
@@ -126,6 +130,9 @@ export default function Page() {
         toast.success("Successfully registered for the event!");
       } else {
         toast.error(response.error);
+        if (response.error == "User not authenticated") {
+          router.push("/login");
+        }
       }
       setConfirmOpen(false);
     } finally {
@@ -146,12 +153,22 @@ export default function Page() {
 
   if (error) {
     return (
-      <ErrorState message="Failed to load event details. Please try again later." />
+      <div>
+        <LandingHeader />
+        <ErrorState message="Failed to load event details. Please try again later." />
+        <LandingFooter />
+      </div>
     );
   }
 
   if (isLoading || !event) {
-    return <LoadingSkeleton />;
+    return (
+      <div>
+        <LandingHeader />
+        <LoadingSkeleton />
+        <LandingFooter />
+      </div>
+    );
   }
 
   const getStatusColor = (status: string) => {
@@ -181,7 +198,8 @@ export default function Page() {
   };
 
   return (
-    <>
+    <div>
+      <LandingHeader />
       <div className="min-h-screen">
         {/* Hero Section */}
         <div className="relative">
@@ -235,12 +253,12 @@ export default function Page() {
                       <p className="font-semibold">
                         {event.end_date
                           ? `${format(
-                              new Date(event.start_date),
-                              "MMM dd"
-                            )} - ${format(
-                              new Date(event.end_date),
-                              "MMM dd, yyyy"
-                            )}`
+                            new Date(event.start_date),
+                            "MMM dd"
+                          )} - ${format(
+                            new Date(event.end_date),
+                            "MMM dd, yyyy"
+                          )}`
                           : format(new Date(event.start_date), "MMM dd, yyyy")}
                       </p>
                     </div>
@@ -255,9 +273,9 @@ export default function Page() {
                       <p className="font-semibold">
                         {event.end_time
                           ? `${format(
-                              new Date(event.start_time),
-                              "hh:mm a"
-                            )} - ${format(new Date(event.end_time), "hh:mm a")}`
+                            new Date(event.start_time),
+                            "hh:mm a"
+                          )} - ${format(new Date(event.end_time), "hh:mm a")}`
                           : format(new Date(event.start_time), "hh:mm a")}
                       </p>
                     </div>
@@ -582,16 +600,16 @@ export default function Page() {
                             <p className="text-muted-foreground">
                               {event.end_date
                                 ? `${format(
-                                    new Date(event.start_date),
-                                    "MMM dd"
-                                  )} - ${format(
-                                    new Date(event.end_date),
-                                    "MMM dd, yyyy"
-                                  )}`
+                                  new Date(event.start_date),
+                                  "MMM dd"
+                                )} - ${format(
+                                  new Date(event.end_date),
+                                  "MMM dd, yyyy"
+                                )}`
                                 : format(
-                                    new Date(event.start_date),
-                                    "MMM dd, yyyy"
-                                  )}
+                                  new Date(event.start_date),
+                                  "MMM dd, yyyy"
+                                )}
                             </p>
                           </div>
                         </div>
@@ -603,12 +621,12 @@ export default function Page() {
                             <p className="text-muted-foreground">
                               {event.end_time
                                 ? `${format(
-                                    new Date(event.start_time),
-                                    "hh:mm a"
-                                  )} - ${format(
-                                    new Date(event.end_time),
-                                    "hh:mm a"
-                                  )}`
+                                  new Date(event.start_time),
+                                  "hh:mm a"
+                                )} - ${format(
+                                  new Date(event.end_time),
+                                  "hh:mm a"
+                                )}`
                                 : format(new Date(event.start_time), "hh:mm a")}
                             </p>
                           </div>
@@ -776,6 +794,7 @@ export default function Page() {
           </div>
         </DialogContent>
       </Dialog>
-    </>
+      <LandingFooter />
+    </div>
   );
 }
