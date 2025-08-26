@@ -145,6 +145,7 @@ model EventRegistration {
   checkedInBy String?
   event       Event     @relation(fields: [eventId], references: [id], onDelete: Cascade)
   user        User      @relation(fields: [userId], references: [supabaseId], onDelete: Cascade)
+  @@unique([userId, eventId])
 }
 
 model EventFeedback {
