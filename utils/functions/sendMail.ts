@@ -10,7 +10,7 @@ export interface SendMailProps {
 
 export async function sendMail(props: SendMailProps) {
   await transporter.sendMail({
-    from: process.env.EMAIL_USER,
+    from: "Atmiya University - EMS",
     to: props.to,
     subject: props.subject,
     html: props.html,
