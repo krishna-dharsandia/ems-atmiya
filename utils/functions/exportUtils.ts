@@ -67,7 +67,19 @@ export const exportToCSV = (data: ExportData, filename: string, type: 'registrat
 
     if (type === 'registrations' && data.registrations) {
       csvData = data.registrations;
-      csvContent = Papa.unparse(csvData);
+      
+      // Add summary information for incomplete profiles
+      const incompleteProfiles = data.registrations.filter(reg => 
+        reg.department === 'Profile incomplete' || 
+        reg.program === 'Profile incomplete' || 
+        reg.registrationNumber === 'Profile incomplete'
+      ).length;
+      
+      if (incompleteProfiles > 0) {
+        csvContent = `Note: ${incompleteProfiles} out of ${data.registrations.length} registrations have incomplete profiles (missing department, program, or registration number).\n\n`;
+      }
+      
+      csvContent += Papa.unparse(csvData);
     } else if (type === 'feedbacks' && data.feedbacks) {
       csvData = data.feedbacks;
       csvContent = Papa.unparse(csvData);
@@ -183,6 +195,25 @@ export const exportToXLSX = (data: ExportData, filename: string, type: 'registra
 
     if (type === 'registrations' && data.registrations) {
       const worksheet = XLSX.utils.json_to_sheet(data.registrations);
+      
+      // Add summary information for incomplete profiles
+      const incompleteProfiles = data.registrations.filter(reg => 
+        reg.department === 'Profile incomplete' || 
+        reg.program === 'Profile incomplete' || 
+        reg.registrationNumber === 'Profile incomplete'
+      ).length;
+      
+      if (incompleteProfiles > 0) {
+        // Add a summary sheet
+        const summaryData = [
+          { 'Summary': 'Total Registrations', 'Count': data.registrations.length },
+          { 'Summary': 'Incomplete Profiles', 'Count': incompleteProfiles },
+          { 'Summary': 'Note', 'Count': 'Users with incomplete profiles may need to complete their onboarding process' }
+        ];
+        const summaryWs = XLSX.utils.json_to_sheet(summaryData);
+        XLSX.utils.book_append_sheet(workbook, summaryWs, 'Summary');
+      }
+      
       XLSX.utils.book_append_sheet(workbook, worksheet, 'Registrations');
     } else if (type === 'feedbacks' && data.feedbacks) {
       const worksheet = XLSX.utils.json_to_sheet(data.feedbacks);
@@ -340,20 +371,47 @@ export const exportToPDF = async (
  * Format registration data for export
  */
 export const formatRegistrationData = (registrations: Record<string, unknown>[]): RegistrationExportData[] => {
-  return registrations.map(reg => ({
-    firstName: (reg.user as { firstName?: string })?.firstName || 'N/A',
-    lastName: (reg.user as { lastName?: string })?.lastName || 'N/A',
-    email: (reg.user as { email?: string })?.email || 'N/A',
-    registrationNumber: (reg.user as { students?: Array<{ registrationNumber?: string }> })?.students?.[0]?.registrationNumber || 'N/A',
-    department: (reg.user as { students?: Array<{ department?: { name?: string } }>, admins?: Array<{ department?: { name?: string } }> })?.students?.[0]?.department?.name || 
-                (reg.user as { students?: Array<{ department?: { name?: string } }>, admins?: Array<{ department?: { name?: string } }> })?.admins?.[0]?.department?.name || 'N/A',
-    program: (reg.user as { students?: Array<{ program?: { name?: string } }>, admins?: Array<{ program?: { name?: string } }> })?.students?.[0]?.program?.name || 
-             (reg.user as { students?: Array<{ program?: { name?: string } }>, admins?: Array<{ program?: { name?: string } }> })?.admins?.[0]?.program?.name || 'N/A',
-    semester: (reg.user as { students?: Array<{ currentSemester?: number }> })?.students?.[0]?.currentSemester?.toString() || 'N/A',
-    year: (reg.user as { students?: Array<{ currentYear?: number }> })?.students?.[0]?.currentYear?.toString() || 'N/A',
-    attended: (reg.attended as boolean) ? 'Yes' : 'No',
-    registrationDate: new Date(reg.createdAt as string).toLocaleDateString('en-US')
-  }));
+  return registrations.map(reg => {
+    const user = reg.user as {
+      firstName?: string;
+      lastName?: string;
+      email?: string;
+      students?: {
+        registrationNumber?: string;
+        department?: { name?: string };
+        program?: { name?: string };
+        currentSemester?: number;
+        currentYear?: number;
+      };
+      admins?: {
+        department?: { name?: string };
+        program?: { name?: string };
+      };
+    };
+
+    // Check if user has student or admin profile
+    const student = user.students;
+    const admin = user.admins;
+
+    // Determine if user has completed profile
+    const hasStudentProfile = student && (student.department || student.program || student.registrationNumber);
+    const hasAdminProfile = admin && (admin.department || admin.program);
+
+    return {
+      firstName: user.firstName || 'N/A',
+      lastName: user.lastName || 'N/A',
+      email: user.email || 'N/A',
+      registrationNumber: hasStudentProfile ? (student?.registrationNumber || 'Not provided') : 'Profile incomplete',
+      department: hasStudentProfile ? (student?.department?.name || 'Not provided') : 
+                  hasAdminProfile ? (admin?.department?.name || 'Not provided') : 'Profile incomplete',
+      program: hasStudentProfile ? (student?.program?.name || 'Not provided') : 
+               hasAdminProfile ? (admin?.program?.name || 'Not provided') : 'Profile incomplete',
+      semester: hasStudentProfile ? (student?.currentSemester?.toString() || 'Not provided') : 'Profile incomplete',
+      year: hasStudentProfile ? (student?.currentYear?.toString() || 'Not provided') : 'Profile incomplete',
+      attended: (reg.attended as boolean) ? 'Yes' : 'No',
+      registrationDate: new Date(reg.createdAt as string).toLocaleDateString('en-US')
+    };
+  });
 };
 
 /**
@@ -426,4 +484,83 @@ export const formatTeamData = (teams: Record<string, unknown>[]): TeamExportData
       attendedMembers: `${attendedMembers}/${members.length}`
     };
   });
+};
+
+/**
+ * Analyze registration data and provide recommendations for incomplete profiles
+ */
+export const analyzeRegistrationData = (registrations: Record<string, unknown>[]) => {
+  const analysis = {
+    totalRegistrations: registrations.length,
+    incompleteProfiles: 0,
+    missingDepartment: 0,
+    missingProgram: 0,
+    missingRegistrationNumber: 0,
+    missingSemester: 0,
+    missingYear: 0,
+    recommendations: [] as string[]
+  };
+
+  registrations.forEach(reg => {
+    const user = reg.user as {
+      students?: {
+        department?: { name?: string };
+        program?: { name?: string };
+        registrationNumber?: string;
+        currentSemester?: number;
+        currentYear?: number;
+      };
+      admins?: {
+        department?: { name?: string };
+        program?: { name?: string };
+      };
+    };
+
+    const student = user.students;
+    const admin = user.admins;
+    const hasStudentProfile = student && (student.department || student.program || student.registrationNumber);
+    const hasAdminProfile = admin && (admin.department || admin.program);
+
+    if (!hasStudentProfile && !hasAdminProfile) {
+      analysis.incompleteProfiles++;
+      analysis.missingDepartment++;
+      analysis.missingProgram++;
+      analysis.missingRegistrationNumber++;
+      analysis.missingSemester++;
+      analysis.missingYear++;
+    } else if (hasStudentProfile) {
+      if (!student.department?.name) analysis.missingDepartment++;
+      if (!student.program?.name) analysis.missingProgram++;
+      if (!student.registrationNumber) analysis.missingRegistrationNumber++;
+      if (!student.currentSemester) analysis.missingSemester++;
+      if (!student.currentYear) analysis.missingYear++;
+    }
+  });
+
+  // Generate recommendations
+  if (analysis.incompleteProfiles > 0) {
+    analysis.recommendations.push(
+      `${analysis.incompleteProfiles} users have completely incomplete profiles. These users may need to complete their onboarding process.`
+    );
+  }
+  
+  if (analysis.missingDepartment > 0) {
+    analysis.recommendations.push(
+      `${analysis.missingDepartment} users are missing department information.`
+    );
+  }
+  
+  if (analysis.missingProgram > 0) {
+    analysis.recommendations.push(
+      `${analysis.missingProgram} users are missing program information.`
+    );
+  }
+  
+  if (analysis.missingRegistrationNumber > 0) {
+    analysis.recommendations.push(
+      `${analysis.missingRegistrationNumber} users are missing registration numbers.`
+    );
+  }
+
+  return analysis;
 };

@@ -2,6 +2,7 @@ import React from 'react';
 import { Document, Page, Text, View, StyleSheet } from '@react-pdf/renderer';
 import { RegistrationExportData, FeedbackExportData } from '@/utils/functions/exportUtils';
 import { commonPDFStyles, PDFFooter, PDFCheckbox } from './CommonPDFComponents';
+import { Table, TR, TH, TD } from '@ag-media/react-pdf-table';
 
 // Professional A4 stylesheet
 const styles = StyleSheet.create({
@@ -32,29 +33,21 @@ const styles = StyleSheet.create({
         color: '#374151',
         marginBottom: 15,
         paddingBottom: 5,
-        borderBottom: '1px solid #d1d5db',
     },
     table: {
         marginBottom: 20,
     },
     tableHeader: {
-        flexDirection: 'row',
         backgroundColor: '#f3f4f6',
-        border: '1px solid #d1d5db',
-        borderBottom: 'none',
     },
     tableHeaderCell: {
-        padding: 8,
+        padding: 6,
         fontSize: 9,
         fontWeight: 600,
         color: '#374151',
-        borderRight: '1px solid #d1d5db',
         textAlign: 'center',
     },
     tableRow: {
-        flexDirection: 'row',
-        border: '1px solid #d1d5db',
-        borderTop: 'none',
     },
     tableRowEven: {
         backgroundColor: '#f9fafb',
@@ -63,9 +56,8 @@ const styles = StyleSheet.create({
         padding: 6,
         fontSize: 8,
         color: '#374151',
-        borderRight: '1px solid #d1d5db',
         textAlign: 'left',
-        overflow: 'hidden',
+        flex: 1,
     },
     summary: {
         marginTop: 30,
@@ -121,119 +113,79 @@ interface EventExportPDFProps {
     exportType: 'registrations' | 'feedbacks' | 'both';
 }
 
-// Column widths for different table types
-const registrationColumns = [
-    { header: 'Name', width: '16%' },     
-    { header: 'Email', width: '18%' },     
-    { header: 'Reg#', width: '12%' },     
-    { header: 'Dept', width: '13%' },     
-    { header: 'Program', width: '16%' },   
-    { header: 'Sem', width: '7%' },      
-    { header: 'Present', width: '8%' },   
-    { header: 'Date', width: '10%' },
-];
 
-const feedbackColumns = [
-    { header: 'Name', width: '25%' },
-    { header: 'Email', width: '30%' },
-    { header: 'Rating', width: '15%' },
-    { header: 'Date', width: '30%' },
-];
 
 const RegistrationsTable: React.FC<{ data: RegistrationExportData[] }> = ({ data }) => (
-    <View style={styles.table} minPresenceAhead={100}>
-        <View style={styles.tableHeader} wrap={false}>
-            {registrationColumns.map((col, index) => (
-                <Text
-                    key={col.header}
-                    style={[
-                        styles.tableHeaderCell,
-                        { width: col.width },
-                        ...(index === registrationColumns.length - 1 ? [{ borderRight: 'none' }] : []),
-                    ]}
-                    wrap={false}
-                >
-                    {col.header}
-                </Text>
+    <View style={styles.table}>
+        <Table>
+            <TR style={styles.tableHeader}>
+                <TD style={[styles.tableHeaderCell, { flex: 1.8 }]}>Name</TD>
+                <TD style={[styles.tableHeaderCell, { flex: 2 }]}>Email</TD>
+                <TD style={[styles.tableHeaderCell, { flex: 1.5 }]}>Reg#</TD>
+                <TD style={[styles.tableHeaderCell, { flex: 1.2 }]}>Dept</TD>
+                <TD style={[styles.tableHeaderCell, { flex: 1.2 }]}>Program</TD>
+                <TD style={[styles.tableHeaderCell, { flex: 0.3 }]}>Sem</TD>
+                <TD style={[styles.tableHeaderCell, { flex: 1.2 }]}>Date</TD>
+                <TD style={[styles.tableHeaderCell, { flex: 0.2 }]}></TD>
+            </TR>
+            {data.map((reg, index) => (
+                <TR key={index} style={index % 2 === 1 ? styles.tableRowEven : styles.tableRow}>
+                    <TD style={[styles.tableCell, { flex: 1.8 }]}>
+                        {`${reg.firstName} ${reg.lastName}`.substring(0, 18)}
+                    </TD>
+                    <TD style={[styles.tableCell, { flex: 2 }]}>
+                        {reg.email.substring(0, 20)}
+                    </TD>
+                    <TD style={[styles.tableCell, { flex: 1.5, fontSize: 7 }]}>
+                        {reg.registrationNumber || 'N/A'}
+                    </TD>
+                    <TD style={[styles.tableCell, { flex: 1.2 }]}>
+                        {(reg.department || 'N/A').substring(0, 12)}
+                    </TD>
+                    <TD style={[styles.tableCell, { flex: 1.2 }]}>
+                        {(reg.program || 'N/A').substring(0, 12)}
+                    </TD>
+                    <TD style={[styles.tableCell, { flex: 0.3, textAlign: 'center' }]}>
+                        {reg.semester || 'N/A'}
+                    </TD>
+                    <TD style={[styles.tableCell, { flex: 1.2 }]}>
+                        {reg.registrationDate}
+                    </TD>
+                    <TD style={[styles.tableCell, { flex: 0.2, textAlign: 'center' }]}>
+                        <PDFCheckbox checked={reg.attended === 'Yes'} size={12} />
+                    </TD>
+                </TR>
             ))}
-        </View>
-        {data.map((reg, index) => (
-            <View
-                key={index}
-                style={[
-                    styles.tableRow,
-                    ...(index % 2 === 1 ? [styles.tableRowEven] : []),
-                ]}
-                wrap={false}
-                minPresenceAhead={30}
-            >
-                <Text style={[styles.tableCell, { width: '16%' }]} wrap={false}>
-                    {`${reg.firstName} ${reg.lastName}`.substring(0, 18)}
-                </Text>
-                <Text style={[styles.tableCell, { width: '18%' }]} wrap={false}>
-                    {reg.email.substring(0, 20)}
-                </Text>
-                <Text style={[styles.tableCell, { width: '12%' }]} wrap={false}>
-                    {reg.registrationNumber || 'N/A'}
-                </Text>
-                <Text style={[styles.tableCell, { width: '13%' }]} wrap={false}>
-                    {(reg.department || 'N/A').substring(0, 12)}
-                </Text>
-                <Text style={[styles.tableCell, { width: '16%' }]} wrap={false}>
-                    {(reg.program || 'N/A').substring(0, 12)}
-                </Text>
-                <Text style={[styles.tableCell, { width: '7%', textAlign: 'center' }]} wrap={false}>
-                    {reg.semester || 'N/A'}
-                </Text>
-                <View style={[styles.tableCell, { width: '8%', alignItems: 'center', justifyContent: 'center' }]} wrap={false}>
-                    <PDFCheckbox checked={reg.attended === 'Yes'} size={12} />
-                </View>
-                <Text style={[styles.tableCell, { width: '10%', borderRight: 'none' }]} wrap={false}>
-                    {reg.registrationDate}
-                </Text>
-            </View>
-        ))}
+        </Table>
     </View>
 );
 
 const FeedbacksTable: React.FC<{ data: FeedbackExportData[] }> = ({ data }) => (
     <View style={styles.table}>
-        <View style={styles.tableHeader}>
-            {feedbackColumns.map((col, index) => (
-                <Text
-                    key={col.header}
-                    style={[
-                        styles.tableHeaderCell,
-                        { width: col.width },
-                        ...(index === feedbackColumns.length - 1 ? [{ borderRight: 'none' }] : []),
-                    ]}
-                >
-                    {col.header}
-                </Text>
+        <Table>
+            <TR style={styles.tableHeader}>
+                <TD style={[styles.tableHeaderCell, { flex: 2 }]}>Name</TD>
+                <TD style={[styles.tableHeaderCell, { flex: 2.5 }]}>Email</TD>
+                <TD style={[styles.tableHeaderCell, { flex: 0.8 }]}>Rating</TD>
+                <TD style={[styles.tableHeaderCell, { flex: 1.5 }]}>Date</TD>
+            </TR>
+            {data.map((feedback, index) => (
+                <TR key={index} style={index % 2 === 1 ? styles.tableRowEven : styles.tableRow}>
+                    <TD style={[styles.tableCell, { flex: 2 }]}>
+                        {`${feedback.firstName} ${feedback.lastName}`.substring(0, 25)}
+                    </TD>
+                    <TD style={[styles.tableCell, { flex: 2.5 }]}>
+                        {feedback.email.substring(0, 30)}
+                    </TD>
+                    <TD style={[styles.tableCell, { flex: 0.8, textAlign: 'center' }]}>
+                        {feedback.rating}/5 ⭐
+                    </TD>
+                    <TD style={[styles.tableCell, { flex: 1.5 }]}>
+                        {feedback.feedbackDate}
+                    </TD>
+                </TR>
             ))}
-        </View>
-        {data.map((feedback, index) => (
-            <View
-                key={index}
-                style={[
-                    styles.tableRow,
-                    ...(index % 2 === 1 ? [styles.tableRowEven] : []),
-                ]}
-            >
-                <Text style={[styles.tableCell, { width: '25%' }]}>
-                    {`${feedback.firstName} ${feedback.lastName}`.substring(0, 25)}
-                </Text>
-                <Text style={[styles.tableCell, { width: '30%' }]}>
-                    {feedback.email.substring(0, 30)}
-                </Text>
-                <Text style={[styles.tableCell, { width: '15%', textAlign: 'center' }]}>
-                    {feedback.rating}/5 ⭐
-                </Text>
-                <Text style={[styles.tableCell, { width: '30%', borderRight: 'none' }]}>
-                    {feedback.feedbackDate}
-                </Text>
-            </View>
-        ))}
+        </Table>
     </View>
 );
 
@@ -259,6 +211,13 @@ const EventExportPDF: React.FC<EventExportPDFProps> = ({
         ? (feedbacks.reduce((sum, f) => sum + f.rating, 0) / feedbacks.length).toFixed(1)
         : '0';
 
+    // Calculate incomplete profiles
+    const incompleteProfiles = registrations?.filter(reg =>
+        reg.department === 'Profile incomplete' ||
+        reg.program === 'Profile incomplete' ||
+        reg.registrationNumber === 'Profile incomplete'
+    ).length || 0;
+
     return (
         <Document>
             <Page size="A4" style={styles.page}>
@@ -273,6 +232,11 @@ const EventExportPDF: React.FC<EventExportPDFProps> = ({
                 {(exportType === 'registrations' || exportType === 'both') && (
                     <View>
                         <Text style={styles.sectionHeader}>Event Registrations</Text>
+                        {incompleteProfiles > 0 && (
+                            <Text style={[styles.subtitle, { marginBottom: 10, fontSize: 10, color: '#dc2626' }]}>
+                                ⚠️ Note: {incompleteProfiles} registrations have incomplete profiles (missing department, program, or registration number)
+                            </Text>
+                        )}
                         {registrations && registrations.length > 0 ? (
                             <RegistrationsTable data={registrations} />
                         ) : (
@@ -313,6 +277,12 @@ const EventExportPDF: React.FC<EventExportPDFProps> = ({
                                     {totalRegistrations > 0 ? `${((attendedCount / totalRegistrations) * 100).toFixed(1)}%` : '0%'}
                                 </Text>
                             </View>
+                            {incompleteProfiles > 0 && (
+                                <View style={styles.summaryItem}>
+                                    <Text style={styles.summaryLabel}>Incomplete Profiles:</Text>
+                                    <Text style={styles.summaryValue}>{incompleteProfiles}</Text>
+                                </View>
+                            )}
                         </>
                     )}
 

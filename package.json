@@ -9,6 +9,7 @@
     "lint": "next lint"
   },
   "dependencies": {
+    "@ag-media/react-pdf-table": "^2.0.3",
     "@hookform/resolvers": "^5.0.1",
     "@marsidev/react-turnstile": "^1.1.0",
     "@prisma/client": "^6.8.2",
