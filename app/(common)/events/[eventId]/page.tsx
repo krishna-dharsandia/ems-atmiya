@@ -133,6 +133,10 @@ export default function Page() {
         if (response.error == "User not authenticated") {
           router.push("/login");
         }
+
+        if (response.error == "User onboarding not complete") {
+          router.push("/onboarding");
+        }
       }
       setConfirmOpen(false);
     } finally {

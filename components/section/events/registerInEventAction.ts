@@ -59,6 +59,10 @@ export async function registerInEventAction(eventId: string) {
     return { error: "User not authenticated" };
   }
 
+  if (!user.user_metadata.onboarding_complete) {
+    return { error: "User onboarding not complete" };
+  }
+
   const prisma = new PrismaClient();
   try {
     // Fetch event to validate registration window / limits
