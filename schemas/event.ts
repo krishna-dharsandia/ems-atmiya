@@ -110,3 +110,10 @@ export const formattedEventSchema = z.object({
 });
 
 export type FormattedEventSchema = z.infer<typeof formattedEventSchema>;
+
+export const eventFeedbackSchema = z.object({
+  rating: z.number().int().min(1, "Rating must be at least 1").max(5, "Rating must be at most 5"),
+  comment: z.string().optional(),
+});
+
+export type EventFeedbackSchema = z.infer<typeof eventFeedbackSchema>;

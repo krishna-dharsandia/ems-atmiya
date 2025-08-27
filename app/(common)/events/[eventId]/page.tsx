@@ -58,6 +58,8 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { registerInEventAction } from "@/components/section/events/registerInEventAction";
+import { EventFeedbackForm } from "@/components/section/events/EventFeedbackForm";
+import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
 import { LandingHeader } from "@/components/global/navigation-bar/LandingHeader";
 import { LandingFooter } from "@/components/global/LandingFooter";
@@ -114,6 +116,33 @@ function ErrorState({ message }: { message: string }) {
   );
 }
 
+function hasEventEnded(event: EventWithSpeakers): boolean {
+  const now = new Date();
+  let eventEndDateTime: Date;
+
+  if (event.end_date && event.end_time) {
+    // If both end_date and end_time exist, use them
+    eventEndDateTime = new Date(event.end_date);
+    const endTime = new Date(event.end_time);
+    eventEndDateTime.setHours(endTime.getHours(), endTime.getMinutes(), endTime.getSeconds());
+  } else if (event.end_date) {
+    // If only end_date exists, use end of day
+    eventEndDateTime = new Date(event.end_date);
+    eventEndDateTime.setHours(23, 59, 59, 999);
+  } else if (event.end_time) {
+    // If only end_time exists, combine with start_date
+    eventEndDateTime = new Date(event.start_date);
+    const endTime = new Date(event.end_time);
+    eventEndDateTime.setHours(endTime.getHours(), endTime.getMinutes(), endTime.getSeconds());
+  } else {
+    // If neither exists, use end of start_date
+    eventEndDateTime = new Date(event.start_date);
+    eventEndDateTime.setHours(23, 59, 59, 999);
+  }
+
+  return now >= eventEndDateTime;
+}
+
 export default function Page() {
   const router = useRouter();
   const params = useParams();
@@ -121,6 +150,8 @@ export default function Page() {
   const [open, setOpen] = useState(false);
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [loading, setLoading] = useState(false);
+
+  const { user } = useAuth();
 
   const handleGetTicket = async () => {
     setLoading(true);
@@ -556,6 +587,17 @@ export default function Page() {
                   </div>
                 </CardContent>
               </Card>
+
+              {/* Event Feedback Form - Only for authenticated, onboarded users and after event has ended */}
+              {user && user.user_metadata?.onboarding_complete && event && hasEventEnded(event) && (
+                <EventFeedbackForm
+                  eventId={id}
+                  onSuccess={() => {
+                    // Optionally refresh the page or update the event data
+                    window.location.reload();
+                  }}
+                />
+              )}
             </div>
 
             {/* Right Column - Ticket Info */}
