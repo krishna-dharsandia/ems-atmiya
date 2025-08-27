@@ -4,6 +4,7 @@
     "": {
       "name": "ems-atmiya",
       "dependencies": {
+        "@ag-media/react-pdf-table": "^2.0.3",
         "@hookform/resolvers": "^5.0.1",
         "@marsidev/react-turnstile": "^1.1.0",
         "@prisma/client": "^6.8.2",
@@ -81,6 +82,8 @@
     },
   },
   "packages": {
+    "@ag-media/react-pdf-table": ["@ag-media/react-pdf-table@2.0.3", "", { "peerDependencies": { "@react-pdf/renderer": "^2.0.2 || ^3.0.0 || ^4.0.0", "@react-pdf/stylesheet": "^2.0.0 || ^3.0.0 || ^4.0.0 || ^5.0.0 || ^6.0.0", "react": "^16.8.6 || ^17.0.0 || ^18.0.0 || ^19.0.0" } }, "sha512-IscjfAOKwsyQok9YmzvuToe6GojN7J8hF0kb8C+K8qZX1DvhheGO+hRSAPxbv2nKMbSpvk7CIhSqJEkw++XVWg=="],
+
     "@alloc/quick-lru": ["@alloc/quick-lru@5.2.0", "", {}, "sha512-UrcABB+4bUrFABwbluTIBErXwvbsU/V7TZWfmbgJfbkwiBuziS9gxdODUyuiecfdGQ85jglMW6juS3+z5TsKLw=="],
 
     "@ampproject/remapping": ["@ampproject/remapping@2.3.0", "", { "dependencies": { "@jridgewell/gen-mapping": "^0.3.5", "@jridgewell/trace-mapping": "^0.3.24" } }, "sha512-30iZtAPgz+LTIYoeivqYo853f02jBYSd5uGnGpkFV0M3xOt9aN73erkgYAmZU43x4VfqcnLxW9Kpg3R5LC4YYw=="],
