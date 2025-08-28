@@ -67,7 +67,11 @@ export async function submitEventFeedback(eventId: string, data: EventFeedbackSc
     }
 
     if (now < eventEndDateTime) {
-      return { error: "Feedback can only be submitted after the event has ended" };
+      // Check if we're within 30 minutes before event ends
+      const thirtyMinutesBeforeEnd = new Date(eventEndDateTime.getTime() - 30 * 60 * 1000);
+      if (now < thirtyMinutesBeforeEnd) {
+        return { error: "Feedback can only be submitted within 30 minutes of the event ending" };
+      }
     }
 
     // Check if user is registered for the event

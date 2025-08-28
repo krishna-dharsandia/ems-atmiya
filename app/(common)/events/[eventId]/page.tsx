@@ -140,7 +140,10 @@ function hasEventEnded(event: EventWithSpeakers): boolean {
     eventEndDateTime.setHours(23, 59, 59, 999);
   }
 
-  return now >= eventEndDateTime;
+  // Allow feedback 30 minutes before event ends
+  const feedbackStartTime = new Date(eventEndDateTime.getTime() - 30 * 60 * 1000);
+
+  return now >= feedbackStartTime;
 }
 
 export default function Page() {
@@ -178,6 +181,7 @@ export default function Page() {
     data: event,
     error,
     isLoading,
+    mutate: mutateEvent,
   } = useSWR<EventWithSpeakers>(`/api/events/${id}`, fetcher);
 
   const supabase = createClient();
@@ -593,8 +597,8 @@ export default function Page() {
                 <EventFeedbackForm
                   eventId={id}
                   onSuccess={() => {
-                    // Optionally refresh the page or update the event data
-                    window.location.reload();
+                    mutateEvent();
+                    toast.success("Feedback submitted successfully!");
                   }}
                 />
               )}
