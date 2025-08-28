@@ -119,7 +119,7 @@ export async function registerInEventAction(eventId: string) {
         });
 
         const userQRCode = await prisma.user.findFirst({
-          where: { id: user.id },
+          where: { supabaseId: user.id },
           select: { qrCode: true }
         })
 
