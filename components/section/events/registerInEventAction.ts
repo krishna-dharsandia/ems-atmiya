@@ -4,7 +4,6 @@ import { createClient } from "@/utils/supabase/server";
 import { PrismaClient } from "@prisma/client";
 import { template as registrationConfirmationTemplate } from "@/components/section/events/email/registrationConfirmation";
 import { sendMail } from "@/utils/functions/sendMail";
-import { format } from "date-fns";
 import { getDashboardPath } from "@/utils/functions/getDashboardPath";
 
 type RegistrationEmailData = {
@@ -93,35 +92,6 @@ export async function registerInEventAction(eventId: string) {
     // If registration limit exists, check it
     if (event.registration_limit && event.current_registration_count >= event.registration_limit) {
       return { error: "Registration limit reached" };
-    }
-
-    // Helper to combine a date (part) and a time (part) into a single Date in Asia/Kolkata time zone
-    function combineDateAndTime(datePart?: Date | null, timePart?: Date | null) {
-      if (!datePart && !timePart) return null;
-
-      // Format the date in ISO format but adjust for Asia/Kolkata (IST) timezone
-      const dateStr = datePart ? format(datePart, 'yyyy-MM-dd') : format(new Date(), 'yyyy-MM-dd');
-
-      // Default time is midnight if not provided
-      const timeStr = timePart
-        ? format(timePart, 'HH:mm:ss')
-        : '00:00:00';
-
-      // Combine date and time with explicit IST timezone
-      const isoString = `${dateStr}T${timeStr}+05:30`;
-      return new Date(isoString);
-    }
-
-    // Get current time in Asia/Kolkata timezone
-    const istOptions = { timeZone: 'Asia/Kolkata' };
-    const now = new Date(new Date().toLocaleString('en-US', istOptions));
-
-    // Only disallow registration after the event end datetime has passed.
-    // Use end_date (fallback to start_date) with end_time to compute the end datetime.
-    const eventEnd = combineDateAndTime(event.end_date ?? event.start_date ?? null, event.end_time ?? null);
-
-    if (eventEnd && now > eventEnd) {
-      return { error: "Registration closed: event already ended" };
     }
 
     try {
