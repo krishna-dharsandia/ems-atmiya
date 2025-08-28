@@ -218,15 +218,15 @@ export default function Page({ params }: { params: Promise<{ id: string }> }) {
       setProcessingQr(true);
 
       // Parse the QR code data (assuming it contains a user ID)
-      const userId = qrData.trim();
+      const userData = JSON.parse(qrData.trim());
 
-      if (!userId) {
+      if (!userData) {
         toast.error("Invalid QR code data");
         return;
       }
 
       // Call the attendance API
-      const response = await fetch(`/api/events/attendance/${id}?id=${userId}`, {
+      const response = await fetch(`/api/events/attendance/${id}?id=${userData.userId}`, {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',
@@ -237,7 +237,6 @@ export default function Page({ params }: { params: Promise<{ id: string }> }) {
 
       if (data.success) {
         toast.success("Attendance marked successfully!");
-        // Refresh the registrations data
         mutateRegistrations();
       } else {
         toast.error(data.error || "Failed to mark attendance");
