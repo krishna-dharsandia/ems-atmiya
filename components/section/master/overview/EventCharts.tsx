@@ -7,12 +7,11 @@ type Props = {
   upcomingEvents: number;
   completedEvents: number;
   cancelledEvents: number;
-  userRoleStats: { name: string; count: number }[];
 };
 
-export function EventCharts({ upcomingEvents, completedEvents, cancelledEvents, userRoleStats }: Props) {
+export function EventCharts({ upcomingEvents, completedEvents, cancelledEvents }: Props) {
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-8">
+    <div className="grid grid-cols-1 gap-8 mb-8">
       {/* Event Status Bar Chart */}
       <Card>
         <CardHeader>
@@ -47,37 +46,6 @@ export function EventCharts({ upcomingEvents, completedEvents, cancelledEvents, 
             Event status distribution <TrendingUp className="h-4 w-4" />
           </div>
           <div className="text-muted-foreground leading-none">All events across platform</div>
-        </CardFooter>
-      </Card>
-
-      {/* User Role Distribution Bar Chart */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Users by Role</CardTitle>
-          <CardDescription>Platform user distribution</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <ChartContainer
-            config={{
-              users: {
-                label: "Users",
-                color: "var(--chart-2)",
-              },
-            }}
-          >
-            <BarChart data={userRoleStats.map((role) => ({ role: role.name, users: role.count }))}>
-              <CartesianGrid vertical={false} />
-              <XAxis dataKey="role" tickLine={false} tickMargin={10} axisLine={false} />
-              <ChartTooltip cursor={false} content={<ChartTooltipContent hideLabel />} />
-              <Bar dataKey="users" fill="var(--chart-2)" radius={8} />
-            </BarChart>
-          </ChartContainer>
-        </CardContent>
-        <CardFooter className="flex-col items-start gap-2 text-sm">
-          <div className="flex gap-2 leading-none font-medium">
-            User role breakdown <TrendingUp className="h-4 w-4" />
-          </div>
-          <div className="text-muted-foreground leading-none">All platform users</div>
         </CardFooter>
       </Card>
     </div>

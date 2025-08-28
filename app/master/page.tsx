@@ -13,28 +13,24 @@ import { Separator } from "@/components/ui/separator";
 import { KeyMetrics } from "@/components/section/master/overview/KeyMetrics";
 import { DistributionCharts } from "@/components/section/master/overview/DistributionCharts";
 import { EventCharts } from "@/components/section/master/overview/EventCharts";
+import { MonthlyTrendCharts } from "@/components/section/master/overview/MonthlyTrendCharts";
 import { RecentActivity } from "@/components/section/master/overview/RecentActivity";
 import { useAuth } from "@/contexts/AuthContext";
 
 type MasterOverviewData = {
   totalStudents: number;
-  totalEvents: number;
-  totalFeedback: number;
-  totalRegistrations: number;
-  totalAdmins: number;
-  totalMasters: number;
-  totalDepartments: number;
   totalPrograms: number;
   avgEventRating: number;
   departmentStats: { name: string; count: number }[];
   programStats: { name: string; count: number }[];
   eventTypeStats: { name: string; count: number }[];
   eventModeStats: { name: string; count: number }[];
-  userRoleStats: { name: string; count: number }[];
   upcomingEvents: number;
   completedEvents: number;
   cancelledEvents: number;
   topEvents: { name: string; current_registration_count: number }[];
+  userRegistrationTrend: { month: string; users: number }[];
+  eventHackathonTrend: { month: string; events: number; hackathons: number }[];
   recentEvents: {
     id: string;
     name: string;
@@ -98,6 +94,10 @@ export default function MasterOverview() {
       {!isLoading && data ? (
         <div className="w-full space-y-8">
           <KeyMetrics data={data} />
+          <MonthlyTrendCharts
+            userRegistrationTrend={data.userRegistrationTrend}
+            eventHackathonTrend={data.eventHackathonTrend}
+          />
           <DistributionCharts
             departmentStats={data.departmentStats}
             eventTypeStats={data.eventTypeStats}
@@ -106,7 +106,6 @@ export default function MasterOverview() {
             upcomingEvents={data.upcomingEvents}
             completedEvents={data.completedEvents}
             cancelledEvents={data.cancelledEvents}
-            userRoleStats={data.userRoleStats}
           />
           <RecentActivity
             recentEvents={data.recentEvents}

@@ -27,12 +27,6 @@ export async function GET() {
 
   // Platform-wide statistics (no filtering)
   const totalStudents = await prisma.student.count();
-  const totalEvents = await prisma.event.count();
-  const totalFeedback = await prisma.eventFeedback.count();
-  const totalRegistrations = await prisma.eventRegistration.count();
-  const totalAdmins = await prisma.admin.count();
-  const totalMasters = await prisma.master.count();
-  const totalDepartments = await prisma.department.count();
   const totalPrograms = await prisma.program.count();
 
   // Upcoming and completed events
@@ -148,29 +142,111 @@ export async function GET() {
   });
   const avgEventRating = avgRatingAgg._avg.rating || 0;
 
-  // User growth stats
-  const usersByRole = await prisma.user.groupBy({
-    by: ["role"],
-    _count: {
-      id: true,
+  // Monthly trend data for the last 6 months
+  // Get the current date and 6 months ago
+  const now = new Date();
+  const sixMonthsAgo = new Date();
+  sixMonthsAgo.setMonth(now.getMonth() - 5); // We want current month + 5 previous = 6 months total
+
+  // Format to the first day of each month for the range
+  const startDate = new Date(sixMonthsAgo.getFullYear(), sixMonthsAgo.getMonth(), 1);
+
+  // Get all users created in the last 6 months
+  const userRegistrations = await prisma.user.findMany({
+    where: {
+      createdAt: {
+        gte: startDate,
+      },
+    },
+    select: {
+      createdAt: true,
+    },
+    orderBy: {
+      createdAt: 'asc',
     },
   });
-  const userRoleStats = usersByRole.map((role) => ({
-    name: role.role,
-    count: role._count.id,
-  }));
+
+  // Get all events created in the last 6 months
+  const events = await prisma.event.findMany({
+    where: {
+      created_at: {
+        gte: startDate,
+      },
+    },
+    select: {
+      created_at: true,
+    },
+    orderBy: {
+      created_at: 'asc',
+    },
+  });
+
+  // Get all hackathons created in the last 6 months
+  const hackathons = await prisma.hackathon.findMany({
+    where: {
+      created_at: {
+        gte: startDate,
+      },
+    },
+    select: {
+      created_at: true,
+    },
+    orderBy: {
+      created_at: 'asc',
+    },
+  });
+
+  // Generate months array for the last 6 months
+  const months = [];
+  for (let i = 0; i < 6; i++) {
+    const monthDate = new Date();
+    monthDate.setMonth(now.getMonth() - 5 + i);
+    const monthName = monthDate.toLocaleString('default', { month: 'short' });
+    const year = monthDate.getFullYear();
+    months.push({
+      name: `${monthName} ${year}`,
+      year: year,
+      month: monthDate.getMonth()
+    });
+  }
+
+  // Create user registration trend data
+  const userRegistrationTrend = months.map(monthInfo => {
+    const count = userRegistrations.filter(registration => {
+      const date = new Date(registration.createdAt);
+      return date.getMonth() === monthInfo.month && date.getFullYear() === monthInfo.year;
+    }).length;
+
+    return {
+      month: monthInfo.name,
+      users: count
+    };
+  });
+
+  // Create event and hackathon trend data
+  const eventHackathonTrend = months.map(monthInfo => {
+    const eventCount = events.filter(event => {
+      const date = new Date(event.created_at);
+      return date.getMonth() === monthInfo.month && date.getFullYear() === monthInfo.year;
+    }).length;
+
+    const hackathonCount = hackathons.filter(hackathon => {
+      const date = new Date(hackathon.created_at);
+      return date.getMonth() === monthInfo.month && date.getFullYear() === monthInfo.year;
+    }).length;
+
+    return {
+      month: monthInfo.name,
+      events: eventCount,
+      hackathons: hackathonCount
+    };
+  });
 
   // Cleanup Prisma connection
   await prisma.$disconnect();
 
   return NextResponse.json({
     totalStudents,
-    totalEvents,
-    totalFeedback,
-    totalRegistrations,
-    totalAdmins,
-    totalMasters,
-    totalDepartments,
     totalPrograms,
     upcomingEvents,
     completedEvents,
@@ -179,11 +255,12 @@ export async function GET() {
     programStats,
     eventTypeStats,
     eventModeStats,
-    userRoleStats,
     recentEvents,
     recentRegistrations,
     recentFeedback,
     topEvents,
     avgEventRating,
+    userRegistrationTrend,
+    eventHackathonTrend,
   });
 }
