@@ -218,19 +218,27 @@ export default function Page({ params }: { params: Promise<{ id: string }> }) {
       setProcessingQr(true);
 
       // Parse the QR code data (assuming it contains a user ID)
-      const userData = JSON.parse(qrData.trim());
+      let userId;
+      try {
+        const userData = JSON.parse(qrData.trim());
+        userId = userData.userId;
+      } catch (error) {
+        // If not JSON, try using the raw data as userId
+        userId = qrData.trim();
+      }
 
-      if (!userData) {
+      if (!userId) {
         toast.error("Invalid QR code data");
         return;
       }
 
       // Call the attendance API
-      const response = await fetch(`/api/events/attendance/${id}?id=${userData.userId}`, {
-        method: 'GET',
+      const response = await fetch(`/api/events/attendance`, {
+        method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
+        body: JSON.stringify({ userId, eventId: id }),
       });
 
       const data = await response.json();

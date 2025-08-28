@@ -2,7 +2,7 @@ import { createClient } from "@/utils/supabase/server";
 import { PrismaClient, Role } from "@prisma/client";
 import { NextRequest, NextResponse } from "next/server";
 
-export async function GET(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+export async function POST(request: NextRequest) {
   const supabase = await createClient();
   const {
     data: { user },
@@ -14,19 +14,17 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
 
   if (user.user_metadata.role !== Role.MASTER) {
     return NextResponse.json(
-      { success: false, error: "Insufficent Permission" },
+      { success: false, error: "Insufficient Permission" },
       { status: 401 }
     );
   }
 
-  const { id: eventId } = await params;
+  const body = await request.json();
+  const { userId, eventId } = body;
 
   if (!eventId) {
     return NextResponse.json({ success: false, error: "Missing event ID" }, { status: 400 });
   }
-
-  const searchParams = request.nextUrl.searchParams;
-  const userId = searchParams.get("id");
 
   if (!userId) {
     return NextResponse.json({ success: false, error: "Missing User Id" }, { status: 400 });
@@ -50,6 +48,9 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
 
     return NextResponse.json({ success: true });
   } catch (error) {
+    console.error("Error updating attendance:", error);
     return NextResponse.json({ success: false, error: "Internal Server Error" }, { status: 500 });
+  } finally {
+    await prisma.$disconnect();
   }
 }
