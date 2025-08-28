@@ -23,10 +23,6 @@ import {
   type ExportData
 } from "@/utils/functions/exportUtils";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import dynamic from "next/dynamic";
-
-// We'll load the HTML5QrCode library dynamically at runtime
-let Html5QrcodeScanner: any = null;
 
 // Add styles for QR scanner
 const qrScannerStyles = `

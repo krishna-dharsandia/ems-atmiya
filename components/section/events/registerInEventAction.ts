@@ -4,7 +4,7 @@ import { createClient } from "@/utils/supabase/server";
 import { PrismaClient } from "@prisma/client";
 import { template as registrationConfirmationTemplate } from "@/components/section/events/email/registrationConfirmation";
 import { sendMail } from "@/utils/functions/sendMail";
-import { format, parseISO } from "date-fns";
+import { format } from "date-fns";
 import { getDashboardPath } from "@/utils/functions/getDashboardPath";
 
 type RegistrationEmailData = {
