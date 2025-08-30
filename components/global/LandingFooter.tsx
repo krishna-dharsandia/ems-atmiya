@@ -18,10 +18,9 @@ export function LandingFooter() {
       { name: "Help & Support", href: "#" },
     ],
     resources: [
-      { name: "Event Guidelines", href: "#guidelines" },
-      { name: "Registration Help", href: "#help" },
-      { name: "Contact Us", href: "#contact" },
-      { name: "Feedback", href: "#feedback" },
+      { name: "Privacy Policy", href: "/legal/privacy" },
+      { name: "Terms Of Service", href: "/legal/terms" },
+      { name: "Cookies Policy", href: "/legal/cookies" },
     ],
   };
 
@@ -75,7 +74,7 @@ export function LandingFooter() {
 
           {/* Support Links */}
           <div>
-            <h3 className="text-lg font-semibold mb-4 text-foreground">Resource</h3>
+            <h3 className="text-lg font-semibold mb-4 text-foreground">Legal</h3>
             <ul className="space-y-2">
               {footerLinks.resources.map((link) => (
                 <li key={link.name}>
