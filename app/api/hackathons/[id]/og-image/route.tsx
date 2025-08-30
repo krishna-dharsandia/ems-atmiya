@@ -5,13 +5,14 @@ import { PrismaClient } from '@prisma/client';
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id } = await params;
     const prisma = new PrismaClient();
 
     const hackathon = await prisma.hackathon.findUnique({
-      where: { id: params.id },
+      where: { id },
       select: {
         id: true,
         name: true,
