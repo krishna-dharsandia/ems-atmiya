@@ -21,8 +21,6 @@ export interface Event {
 
 export default function EventCard({ id, name, description, start_date, address, poster_url, price, mode }: Event) {
   const imageUrl = getImageUrl(poster_url, "event-posters");
-  
-  console.log(imageUrl);
 
   return (
     <Card className="overflow-hidden pt-0 z-10">
