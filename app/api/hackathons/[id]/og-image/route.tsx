@@ -24,6 +24,7 @@ export async function GET(
         organizer_name: true,
         status: true,
         team_size_limit: true,
+        poster_url: true,
       }
     });
 
@@ -52,18 +53,25 @@ export async function GET(
           style={{
             width: '1200px',
             height: '630px',
-            background: 'linear-gradient(135deg, #ff6b6b 0%, #4ecdc4 100%)',
             display: 'flex',
-            flexDirection: 'column',
-            justifyContent: 'center',
-            alignItems: 'center',
-            padding: '60px',
-            fontFamily: 'Inter, -apple-system, BlinkMacSystemFont, sans-serif',
             position: 'relative',
             overflow: 'hidden',
           }}
         >
-          {/* Background Pattern */}
+          {/* Hackathon Poster Background */}
+          {hackathon.poster_url && (
+            <img
+              src={hackathon.poster_url}
+              alt={hackathon.name}
+              style={{
+                width: '100%',
+                height: '100%',
+                objectFit: 'cover',
+              }}
+            />
+          )}
+          
+          {/* Overlay for better text readability */}
           <div
             style={{
               position: 'absolute',
@@ -71,142 +79,115 @@ export async function GET(
               left: 0,
               right: 0,
               bottom: 0,
-              background: 'radial-gradient(circle at 20% 80%, rgba(255, 107, 107, 0.3) 0%, transparent 50%), radial-gradient(circle at 80% 20%, rgba(78, 205, 196, 0.3) 0%, transparent 50%)',
-            }}
-          />
-          
-          {/* Logo/Icon */}
-          <div
-            style={{
-              width: '120px',
-              height: '120px',
-              background: 'rgba(255, 255, 255, 0.1)',
-              borderRadius: '50%',
+              background: 'linear-gradient(135deg, rgba(0,0,0,0.7) 0%, rgba(0,0,0,0.4) 50%, rgba(0,0,0,0.7) 100%)',
               display: 'flex',
-              alignItems: 'center',
+              flexDirection: 'column',
               justifyContent: 'center',
-              marginBottom: '40px',
-              backdropFilter: 'blur(10px)',
-              border: '2px solid rgba(255, 255, 255, 0.2)',
-            }}
-          >
-            <svg
-              width="60"
-              height="60"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="white"
-              strokeWidth="2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            >
-              <path d="M9 12l2 2 4-4" />
-              <path d="M21 12c-1 0-2-1-2-2s1-2 2-2 2 1 2 2-1 2-2 2z" />
-              <path d="M3 12c1 0 2-1 2-2s-1-2-2-2-2 1-2 2 1 2 2 2z" />
-              <path d="M12 3c0 1-1 2-2 2s-2-1-2-2 1-2 2-2 2 1 2 2z" />
-              <path d="M12 21c0-1 1-2 2-2s2 1 2 2-1 2-2 2-2-1-2-2z" />
-            </svg>
-          </div>
-
-          {/* Hackathon Badge */}
-          <div
-            style={{
-              background: 'rgba(255, 255, 255, 0.2)',
-              color: 'white',
-              padding: '12px 24px',
-              borderRadius: '50px',
-              fontSize: '20px',
-              fontWeight: '600',
-              textTransform: 'uppercase',
-              letterSpacing: '1px',
-              backdropFilter: 'blur(10px)',
-              border: '1px solid rgba(255, 255, 255, 0.3)',
-              marginBottom: '30px',
-            }}
-          >
-            Hackathon
-          </div>
-
-          {/* Main Title */}
-          <h1
-            style={{
-              fontSize: '48px',
-              fontWeight: '700',
-              color: 'white',
-              margin: '0 0 20px 0',
-              textAlign: 'center',
-              lineHeight: '1.1',
-              textShadow: '0 4px 8px rgba(0, 0, 0, 0.3)',
-              maxWidth: '1000px',
-            }}
-          >
-            {hackathon.name}
-          </h1>
-
-          {/* Hackathon Details */}
-          <div
-            style={{
-              display: 'flex',
               alignItems: 'center',
-              gap: '40px',
-              marginBottom: '30px',
-              color: 'rgba(255, 255, 255, 0.9)',
-              fontSize: '24px',
+              padding: '60px',
+              fontFamily: 'Inter',
             }}
           >
-            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-              <span>🚀</span>
-              <span>{startDate} - {endDate}</span>
-            </div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-              <span>💻</span>
-              <span>{location}</span>
-            </div>
-            {hackathon.team_size_limit && (
-              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                <span>👥</span>
-                <span>Team Size: {hackathon.team_size_limit}</span>
-              </div>
-            )}
-          </div>
-
-          {/* Subtitle */}
-          <p
-            style={{
-              fontSize: '24px',
-              fontWeight: '400',
-              color: 'rgba(255, 255, 255, 0.9)',
-              margin: '0 0 40px 0',
-              textAlign: 'center',
-              textShadow: '0 2px 4px rgba(0, 0, 0, 0.2)',
-              maxWidth: '900px',
-            }}
-          >
-            Organized by {hackathon.organizer_name}
-          </p>
-
-          {/* Bottom Branding */}
-          <div
-            style={{
-              position: 'absolute',
-              bottom: '40px',
-              right: '60px',
-              background: 'rgba(255, 255, 255, 0.1)',
-              padding: '16px 24px',
-              borderRadius: '12px',
-              backdropFilter: 'blur(10px)',
-              border: '1px solid rgba(255, 255, 255, 0.2)',
-            }}
-          >
-            <span
+            {/* Hackathon Badge */}
+            <div
               style={{
-                fontSize: '18px',
-                fontWeight: '600',
+                background: 'rgba(255, 255, 255, 0.2)',
                 color: 'white',
+                padding: '12px 24px',
+                borderRadius: '50px',
+                fontSize: '20px',
+                fontWeight: '600',
+                textTransform: 'uppercase',
+                letterSpacing: '1px',
+                backdropFilter: 'blur(10px)',
+                border: '1px solid rgba(255, 255, 255, 0.3)',
+                marginBottom: '30px',
               }}
             >
-              EMS Platform
-            </span>
+              Hackathon
+            </div>
+
+            {/* Main Title */}
+            <h1
+              style={{
+                fontSize: '48px',
+                fontWeight: '700',
+                color: 'white',
+                margin: '0 0 20px 0',
+                textAlign: 'center',
+                lineHeight: '1.1',
+                textShadow: '0 4px 8px rgba(0, 0, 0, 0.5)',
+                maxWidth: '1000px',
+              }}
+            >
+              {hackathon.name}
+            </h1>
+
+            {/* Hackathon Details */}
+            <div
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '40px',
+                marginBottom: '30px',
+                color: 'rgba(255, 255, 255, 0.9)',
+                fontSize: '24px',
+              }}
+            >
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <span>🚀</span>
+                <span>{startDate} - {endDate}</span>
+              </div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <span>💻</span>
+                <span>{location}</span>
+              </div>
+              {hackathon.team_size_limit && (
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <span>👥</span>
+                  <span>Team Size: {hackathon.team_size_limit}</span>
+                </div>
+              )}
+            </div>
+
+            {/* Subtitle */}
+            <p
+              style={{
+                fontSize: '24px',
+                fontWeight: '400',
+                color: 'rgba(255, 255, 255, 0.9)',
+                margin: '0 0 40px 0',
+                textAlign: 'center',
+                textShadow: '0 2px 4px rgba(0, 0, 0, 0.5)',
+                maxWidth: '900px',
+              }}
+            >
+              Organized by {hackathon.organizer_name}
+            </p>
+
+            {/* Bottom Branding */}
+            <div
+              style={{
+                position: 'absolute',
+                bottom: '40px',
+                right: '60px',
+                background: 'rgba(255, 255, 255, 0.1)',
+                padding: '16px 24px',
+                borderRadius: '12px',
+                backdropFilter: 'blur(10px)',
+                border: '1px solid rgba(255, 255, 255, 0.2)',
+              }}
+            >
+              <span
+                style={{
+                  fontSize: '18px',
+                  fontWeight: '600',
+                  color: 'white',
+                }}
+              >
+                EMS Platform
+              </span>
+            </div>
           </div>
         </div>
       ),
