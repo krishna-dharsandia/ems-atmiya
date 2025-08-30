@@ -8,9 +8,83 @@ import { useState, useMemo } from "react";
 import { Input } from "@/components/ui/input";
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
+import { Skeleton } from "@/components/ui/skeleton";
 import { LandingHeader } from "@/components/global/navigation-bar/LandingHeader";
 
 import { HackathonList } from "@/components/section/student/hackathons/HackathonList";
+
+// Skeleton loading component for events
+function EventCardSkeleton() {
+  return (
+    <div className="overflow-hidden pt-0 z-10 border rounded-lg">
+      <div className="relative h-48">
+        <Skeleton className="h-full w-full" />
+        <div className="absolute bottom-0 left-0 right-0 p-4">
+          <Skeleton className="h-6 w-16 bg-white/20" />
+        </div>
+      </div>
+      <div className="p-4">
+        <Skeleton className="h-6 w-3/4 mb-2" />
+        <div className="mb-2 flex items-center gap-2">
+          <Skeleton className="h-4 w-4" />
+          <Skeleton className="h-4 w-24" />
+        </div>
+        <div className="flex items-center gap-2">
+          <Skeleton className="h-4 w-4" />
+          <Skeleton className="h-4 w-32" />
+        </div>
+        <Skeleton className="h-4 w-full mt-2" />
+        <Skeleton className="h-4 w-2/3 mt-1" />
+      </div>
+      <div className="flex items-center justify-between border-t p-4">
+        <Skeleton className="h-6 w-16" />
+        <Skeleton className="h-8 w-24" />
+      </div>
+    </div>
+  );
+}
+
+// Skeleton loading component for hackathons
+function HackathonCardSkeleton() {
+  return (
+    <div className="h-full flex flex-col border rounded-lg">
+      <div className="relative">
+        <Skeleton className="w-full h-48 rounded-t-lg" />
+        <Skeleton className="absolute top-2 right-2 h-6 w-16" />
+      </div>
+      <div className="p-4 pb-2">
+        <Skeleton className="h-6 w-3/4 mb-2" />
+        <div className="flex flex-wrap gap-1 mt-1">
+          <Skeleton className="h-5 w-12" />
+          <Skeleton className="h-5 w-16" />
+          <Skeleton className="h-5 w-14" />
+        </div>
+      </div>
+      <div className="p-4 pb-2 flex-grow">
+        <Skeleton className="h-4 w-full mb-1" />
+        <Skeleton className="h-4 w-2/3 mb-1" />
+        <Skeleton className="h-4 w-3/4 mb-3" />
+        <div className="space-y-2">
+          <div className="flex items-center gap-2">
+            <Skeleton className="h-3 w-3" />
+            <Skeleton className="h-3 w-32" />
+          </div>
+          <div className="flex items-center gap-2">
+            <Skeleton className="h-3 w-3" />
+            <Skeleton className="h-3 w-24" />
+          </div>
+          <div className="flex items-center gap-2">
+            <Skeleton className="h-3 w-3" />
+            <Skeleton className="h-3 w-28" />
+          </div>
+        </div>
+      </div>
+      <div className="p-4">
+        <Skeleton className="h-9 w-full" />
+      </div>
+    </div>
+  );
+}
 
 type Event = {
   id: string;
@@ -129,7 +203,11 @@ export default function Page() {
               <p className="text-gray-500 dark:text-gray-400 mt-1">Discover and participate in a variety of events.</p>
             </div>
             {isLoading || !data ? (
-              <div className="flex justify-center items-center h-64 text-lg font-medium text-gray-500 dark:text-gray-400">Loading events...</div>
+              <div className="grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-3">
+                {Array.from({ length: 6 }).map((_, index) => (
+                  <EventCardSkeleton key={index} />
+                ))}
+              </div>
             ) : error ? (
               <div className="flex justify-center items-center h-64 text-lg font-medium text-destructive">Failed to load events data</div>
             ) : (
@@ -213,7 +291,11 @@ export default function Page() {
               <p className="text-gray-500 dark:text-gray-400 mt-1">Showcase your skills and win prizes in upcoming hackathons.</p>
             </div>
             {isHackathonsLoading || !hackathonData ? (
-              <div className="flex justify-center items-center h-64 text-lg font-medium text-gray-500 dark:text-gray-400">Loading hackathons...</div>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {Array.from({ length: 6 }).map((_, index) => (
+                  <HackathonCardSkeleton key={index} />
+                ))}
+              </div>
             ) : hackathonsError ? (
               <div className="flex justify-center items-center h-64 text-lg font-medium text-destructive">Failed to load hackathons data</div>
             ) : (

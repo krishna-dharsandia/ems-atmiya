@@ -13,6 +13,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { format } from "date-fns";
 import { Calendar, MapPin, Users } from "lucide-react";
+import { getImageUrl } from "@/lib/utils";
 
 interface Hackathon {
   id: string;
@@ -62,7 +63,7 @@ function HackathonCard({ hackathon, isRegistered }: HackathonCardProps) {
     <Card className="h-full flex flex-col">
       <div className="relative">
         <img
-          src={hackathon.poster_url}
+          src={getImageUrl(hackathon.poster_url, "hackathon-posters")}
           alt={hackathon.name}
           className="w-full h-48 object-cover rounded-t-lg"
         />

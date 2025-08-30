@@ -31,6 +31,7 @@ import useSWR from "swr";
 import type { Event } from "@prisma/client";
 import { createClient } from "@/utils/supabase/client";
 import { format } from "date-fns";
+import { getImageUrl } from "@/lib/utils";
 import { useParams, useRouter } from "next/navigation";
 import { useState } from "react";
 import {
@@ -245,7 +246,7 @@ export default function Page() {
           <div className="absolute inset-0 bg-gradient-to-r from-black/60 via-black/40 to-black/60 z-10" />
           <div className="relative h-[70vh] overflow-hidden">
             <Image
-              src={event.poster_url || "/placeholder.svg"}
+              src={getImageUrl(event.poster_url, "event-posters")}
               alt={event.name}
               fill
               className="object-cover"
@@ -406,15 +407,7 @@ export default function Page() {
                   <CardContent>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                       {event.speakers.map((speaker) => {
-                        let speakerPublicUrl = "";
-                        if (speaker.photo_url) {
-                          const {
-                            data: { publicUrl },
-                          } = supabase.storage
-                            .from("event-speakers")
-                            .getPublicUrl(speaker.photo_url);
-                          speakerPublicUrl = publicUrl;
-                        }
+                        const speakerImageUrl = getImageUrl(speaker.photo_url, "event-speakers");
 
                         return (
                           <div
@@ -423,7 +416,7 @@ export default function Page() {
                           >
                             <Avatar className="h-16 w-16">
                               <AvatarImage
-                                src={speakerPublicUrl || "/placeholder.svg"}
+                                src={speakerImageUrl}
                                 alt={speaker.name}
                               />
                               <AvatarFallback className="bg-primary text-primary-foreground text-lg">
@@ -525,7 +518,7 @@ export default function Page() {
                     <div className="flex items-center justify-between">
                       <span className="text-muted-foreground">Score</span>
                       <span className="font-semibold">
-                        {event.feedback_score ?? "N/A"}
+                        {(event.feedback_score ?? 0).toFixed(1)}
                       </span>
                     </div>
 

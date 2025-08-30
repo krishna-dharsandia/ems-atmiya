@@ -10,6 +10,7 @@ import { CalendarIcon, MapPinIcon, UserIcon, Users } from "lucide-react";
 import { CreateTeamForm } from "./CreateTeamForm";
 import { TeamMemberInvitation } from "./TeamMemberInvitation";
 import { Student, User } from "@prisma/client";
+import { getImageUrl } from "@/lib/utils";
 
 interface ProblemStatement {
   id: string;
@@ -123,7 +124,7 @@ export default function HackathonDetail({
         <div className="md:col-span-2 space-y-6">
           <div className="relative">
             <img
-              src={hackathon.poster_url}
+              src={getImageUrl(hackathon.poster_url, "hackathon-posters")}
               alt={hackathon.name}
               className="w-full h-64 object-cover rounded-lg"
             />

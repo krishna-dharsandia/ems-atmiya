@@ -4,6 +4,9 @@ import { StatsSection } from "@/components/section/landing/StatsSection";
 import { CTASection } from "@/components/section/landing/CTASection";
 import { LandingHeader } from "@/components/global/navigation-bar/LandingHeader";
 import { LandingFooter } from "@/components/global/LandingFooter";
+import { metadata } from "@/lib/metadata";
+
+export { metadata };
 
 export default function Page() {
   return (
