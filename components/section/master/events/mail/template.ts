@@ -207,8 +207,8 @@ export function generateEventEmailHTML(data: EventEmailData): string {
     timeZone: "Asia/Kolkata",
   };
 
-  let highlightsHTML = data.EVENT_HIGHLIGHTS.map(h => `<li>${h}</li>`).join('');
-  let html = template
+  const highlightsHTML = data.EVENT_HIGHLIGHTS.map(h => `<li>${h}</li>`).join('');
+  const html = template
     .replace(/\{\{EVENT_NAME\}\}/g, data.EVENT_NAME)
     .replace(/\{\{EVENT_DESCRIPTION\}\}/g, data.EVENT_DESCRIPTION)
     .replace(/\{\{EVENT_DATE_START\}\}/g, data.EVENT_DATE_START.toLocaleDateString("en-IN", dateOptions))
