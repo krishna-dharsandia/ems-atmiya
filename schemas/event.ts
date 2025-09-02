@@ -24,6 +24,18 @@ export const eventSchema = z
     end_date: z.date().optional(),
     start_time: z.date({ required_error: "Start time is required" }),
     end_time: z.date().optional(),
+    certificate_template_url: z.string().optional(),
+    certificate_placeholders: z.array(
+      z.object({
+        key: z.string(),
+        label: z.string(),
+        x: z.number(),
+        y: z.number(),
+        fontSize: z.number().default(24),
+        color: z.string().default("#000000"),
+        fontFamily: z.string().default("Helvetica"),
+      })
+    ).optional(),
     event_type: z.enum(["SESSION", "WORKSHOP", "WEBINAR", "OTHER"], { required_error: "Event type is required" }),
     status: z.enum(["UPCOMING", "COMPLETED", "CANCELLED", "OTHER"], { required_error: "Status is required" }),
     registration_required: z.boolean().default(false),
@@ -95,6 +107,18 @@ export const formattedEventSchema = z.object({
   end_date: z.date().optional(),
   start_time: z.date(),
   end_time: z.date().optional(),
+  certificate_template_url: z.string().optional(),
+  certificate_placeholders: z.array(
+    z.object({
+      key: z.string(),
+      label: z.string(),
+      x: z.number(),
+      y: z.number(),
+      fontSize: z.number(),
+      color: z.string(),
+      fontFamily: z.string(),
+    })
+  ).optional(),
   event_type: z.enum(["SESSION", "WORKSHOP", "WEBINAR", "OTHER"]),
   status: z.enum(["UPCOMING", "COMPLETED", "CANCELLED", "OTHER"]),
   registration_required: z.boolean(),

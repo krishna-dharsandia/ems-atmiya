@@ -12,6 +12,8 @@ export interface EventWithDetails {
   end_date?: string;
   start_time: string;
   end_time?: string;
+  certificate_template_url?: string;
+  certificate_placeholders?: any;
   event_type: "SESSION" | "WORKSHOP" | "WEBINAR" | "OTHER";
   status: "UPCOMING" | "COMPLETED" | "CANCELLED" | "OTHER";
   registration_required: boolean;

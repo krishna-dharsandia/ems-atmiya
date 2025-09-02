@@ -98,6 +98,8 @@ model Event {
   end_date                   DateTime?
   start_time                 DateTime
   end_time                   DateTime?
+  certificate_template_url   String?
+  certificate_placeholders   Json?
   event_type                 EventType
   status                     EventStatus
   registration_required      Boolean

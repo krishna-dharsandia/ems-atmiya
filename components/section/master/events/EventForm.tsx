@@ -21,6 +21,7 @@ import {
   TagIcon,
   UploadIcon,
   SaveIcon,
+  AwardIcon,
 } from "lucide-react";
 import { format } from "date-fns";
 
@@ -66,6 +67,7 @@ import { fetchEventById, EventWithDetails } from "./fetchEventById";
 import { v4 } from "uuid";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
+import CertificateDesigner, { CertificatePlaceholder } from "./CertificateDesigner";
 
 const FORM_STEPS = [
   {
@@ -100,6 +102,12 @@ const FORM_STEPS = [
   },
   {
     id: 6,
+    title: "Certificates",
+    description: "Design event completion certificates",
+    icon: AwardIcon,
+  },
+  {
+    id: 7,
     title: "Additional Details",
     description: "Links, tags, and final touches",
     icon: LinkIcon,
@@ -129,6 +137,9 @@ export default function EventForm({ id }: EventFormProps) {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [, setEventData] = useState<EventWithDetails | null>(null);
+  const [certificateFile, setCertificateFile] = useState<File | null>(null);
+  const [certificatePreview, setCertificatePreview] = useState<string>("");
+  const [certificatePlaceholders, setCertificatePlaceholders] = useState<any[]>([]);
 
   const isEditMode = Boolean(id);
 
@@ -148,6 +159,8 @@ export default function EventForm({ id }: EventFormProps) {
       end_date: new Date(),
       start_time: new Date(),
       end_time: new Date(),
+      certificate_template_url: undefined,
+      certificate_placeholders: undefined,
       event_type: "SESSION" as const,
       status: "UPCOMING" as const,
       registration_required: false,
@@ -199,6 +212,8 @@ export default function EventForm({ id }: EventFormProps) {
             end_date: event.end_date ? new Date(event.end_date) : new Date(),
             start_time: new Date(event.start_time),
             end_time: event.end_time ? new Date(event.end_time) : new Date(),
+            certificate_template_url: event.certificate_template_url || undefined,
+            certificate_placeholders: event.certificate_placeholders || undefined,
             event_type: event.event_type,
             status: event.status,
             registration_required: event.registration_required,
@@ -232,6 +247,19 @@ export default function EventForm({ id }: EventFormProps) {
               }))
               : [{ name: "", bio: "", photo_url: "" }]
           );
+
+          // Handle certificate data if exists
+          if (event.certificate_template_url) {
+            const { data: certificateData } = supabase.storage
+              .from("event-certificates")
+              .getPublicUrl(event.certificate_template_url);
+
+            setCertificatePreview(certificateData.publicUrl);
+
+            if (event.certificate_placeholders) {
+              setCertificatePlaceholders(event.certificate_placeholders);
+            }
+          }
 
           // Set poster preview if exists
           if (event.poster_url) {
@@ -365,6 +393,8 @@ export default function EventForm({ id }: EventFormProps) {
         recording_link: data.recording_link?.trim() || undefined,
         feedback_form_link: data.feedback_form_link?.trim() || undefined,
         registration_link: data.registration_link?.trim() || undefined,
+        certificate_template_url: data.certificate_template_url || undefined,
+        certificate_placeholders: certificatePlaceholders.length > 0 ? certificatePlaceholders : undefined,
       };
 
       // Use appropriate action based on mode
@@ -540,6 +570,57 @@ export default function EventForm({ id }: EventFormProps) {
       form.clearErrors("poster_url");
     };
     reader.readAsDataURL(file);
+  };
+
+  // Certificate template upload handler
+  const handleCertificateUpload = async (file: File): Promise<string> => {
+    // Check file size (max 10MB)
+    if (file.size > 10 * 1024 * 1024) {
+      toast.error("Certificate template is too large (max 10MB)");
+      throw new Error("File too large");
+    }
+
+    setCertificateFile(file);
+
+    // Create a preview for the UI
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        const result = reader.result as string;
+        setCertificatePreview(result);
+
+        // Upload to storage immediately to get URL for designer
+        uploadCertificateToStorage(file)
+          .then(url => {
+            form.setValue("certificate_template_url", url);
+            resolve(result); // Return the data URL for preview
+          })
+          .catch(err => {
+            toast.error("Failed to upload certificate template");
+            reject(err);
+          });
+      };
+      reader.onerror = reject;
+      reader.readAsDataURL(file);
+    });
+  };
+
+  // Upload certificate to storage and get URL
+  const uploadCertificateToStorage = async (file: File): Promise<string> => {
+    const certificateId = v4();
+    const fileExt = file.name.split(".").pop();
+    const filePath = `templates/${certificateId}.${fileExt}`;
+
+    const { error } = await supabase.storage
+      .from("event-certificates")
+      .upload(filePath, file);
+
+    if (error) {
+      console.error("Error uploading certificate:", error);
+      throw error;
+    }
+
+    return filePath;
   };
 
   const handleSpeakerPhotoUpload = (speakerIndex: number, file: File) => {
@@ -1851,8 +1932,44 @@ export default function EventForm({ id }: EventFormProps) {
                 </div>
               )}
 
-              {/* Step 6: Additional Details */}
+              {/* Step 6: Certificate Design */}
               {currentStep === 6 && (
+                <div className="space-y-6">
+                  <Card className="p-6 border-dashed border-2">
+                    <CardHeader>
+                      <CardTitle className="flex items-center gap-2">
+                        <AwardIcon className="h-5 w-5" />
+                        Certificate Design
+                      </CardTitle>
+                      <p className="text-sm text-muted-foreground">
+                        Design certificates that participants will receive after completing the event
+                      </p>
+                    </CardHeader>
+                    <CardContent className="pt-6">
+                      <CertificateDesigner
+                        templateUrl={certificatePreview}
+                        placeholders={certificatePlaceholders}
+                        onPlaceholdersChange={(placeholders) => {
+                          setCertificatePlaceholders(placeholders);
+                          form.setValue("certificate_placeholders", placeholders);
+                        }}
+                        onTemplateUpload={handleCertificateUpload}
+                        width={842} // A4 landscape width
+                        height={595} // A4 landscape height
+                        previewData={{
+                          name: "John Doe",
+                          event_name: form.getValues("name") || "Event Name",
+                          date: format(form.getValues("start_date") || new Date(), "MMMM dd, yyyy"),
+                          registration_id: "REG12345",
+                        }}
+                      />
+                    </CardContent>
+                  </Card>
+                </div>
+              )}
+
+              {/* Step 7: Additional Details */}
+              {currentStep === 7 && (
                 <div className="space-y-6">
                   <div className="space-y-4">
                     <FormField
