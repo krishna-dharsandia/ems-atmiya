@@ -4,6 +4,8 @@ import { formattedHackathonSchema, FormattedHackathonSchema } from "@/schemas/ha
 import { createClient } from "@/utils/supabase/server";
 import { PrismaClient } from "@prisma/client";
 import { QRCodeService } from "@/lib/qr-code";
+import axios from "axios";
+import { generateHackathonEmailTemplate } from "./mail/template";
 
 export async function createHackathonAction(data: FormattedHackathonSchema) {
   let prisma: PrismaClient | undefined;
@@ -91,6 +93,45 @@ export async function createHackathonAction(data: FormattedHackathonSchema) {
       console.error("Failed to generate QR code for hackathon:", qrError);
       // Don't fail the entire hackathon creation if QR code generation fails
     }
+
+    let users: { email: string; firstName: string; lastName: string }[] = [];
+    try {
+      users = await prisma.user.findMany({
+        select: {
+          email: true,
+          firstName: true,
+          lastName: true,
+        },
+      });
+    } catch (error) {
+      console.error("Error fetching users:", error);
+      // Proceed with an empty user list if fetching fails
+    }
+
+    axios.post(`${process.env.PIGEON_BASE_URL}/api/bulk`, {
+      subject: `Join Us for ${result.name} at Atmiya University! 🚀`,
+      recipients: users.map(u => { return { email: u.email, name: `${u.firstName} ${u.lastName}` } }),
+      html: generateHackathonEmailTemplate({
+        Hackathon_Name: result.name,
+        Registration_Start: result.registration_start_date,
+        Registration_End: result.registration_end_date,
+        Hackathon_Start: result.start_date,
+        Hackathon_End: result.end_date,
+        Hackathon_Start_Time: result.start_time,
+        Hackathon_End_Time: result.end_time,
+        Mode: result.mode,
+        Location: result.location || "N/A",
+        Registration_Limits: result.registration_limit,
+        Team_Size_Limit: result.team_size_limit,
+        Organizer_Name: result.organizer_name,
+        Organizer_Email: result.organizer_contact || "N/A",
+        Register_Link: `https://ems.atmiya.edu.in/hackathons/${result.id}`,
+      })
+    }, {
+      headers: {
+        Authorization: `Bearer ${process.env.PIGEON_API_KEY}`
+      }
+    });
 
     return { success: true, hackathonId: result.id };
   } catch (error) {

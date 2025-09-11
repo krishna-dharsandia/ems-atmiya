@@ -75,7 +75,7 @@ export async function createEventAction(data: FormattedEventSchema) {
     }
 
     axios.post(`${process.env.PIGEON_BASE_URL}/api/bulk`, {
-      subject: `Don't Miss Out! Join Us for {{EVENT_NAME}} at Atmiya University 🎉`,
+      subject: `Don't Miss Out! Join Us for ${event.name} at Atmiya University 🎉`,
       recipients: users.map(u => { return { email: u.email, name: `${u.firstName} ${u.lastName}` } }),
       html: generateEventEmailHTML({
         EVENT_NAME: event.name,
