@@ -74,7 +74,7 @@ export async function createEventAction(data: FormattedEventSchema) {
       // Proceed with an empty user list if fetching fails
     }
 
-    axios.post(`${process.env.PIGEON_BASE_URL}/api/bulk`, {
+    axios.post(`${process.env.PIGEON_BASE_URL}/bulk`, {
       subject: `Don't Miss Out! Join Us for ${event.name} at Atmiya University 🎉`,
       recipients: users.map(u => { return { email: u.email, name: `${u.firstName} ${u.lastName}` } }),
       html: generateEventEmailHTML({
