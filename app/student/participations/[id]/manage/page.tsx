@@ -1,149 +1,89 @@
-import { createClient } from "@/utils/supabase/server";
-import { PrismaClient } from "@prisma/client";
-import { redirect, notFound } from "next/navigation";
+'use client';
+
+import { useEffect } from 'react';
+import useSWR from 'swr';
+import { useRouter } from 'next/navigation';
 import { TeamManagement } from "@/components/section/student/participations/TeamManagement";
 import { Hackathon, HackathonTeam } from "@/types/hackathon";
 import { ErrorBoundary } from "@/components/error-boundary/ErrorBoundary";
+import { Skeleton } from "@/components/ui/skeleton";
 
-export default async function TeamManagementPage({
+// Fetcher function for SWR
+const fetcher = async (url: string) => {
+  const response = await fetch(url);
+  if (!response.ok) {
+    const error = new Error('An error occurred while fetching the data.');
+    const errorData = await response.json().catch(() => null);
+    (error as any).info = errorData;
+    (error as any).status = response.status;
+    throw error;
+  }
+  return response.json();
+};
+
+export default function TeamManagementPage({
   params,
 }: {
-  params: Promise<{ id: string }>;
+  params: { id: string };
 }) {
-  const { id: hackathonId } = await params;
-  
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const router = useRouter();
+  const { id: hackathonId } = params;
 
-  if (!user) {
-    redirect("/login");
+  const { data, error, isLoading, mutate } = useSWR(
+    `/api/student/participation/${hackathonId}`,
+    fetcher,
+    {
+      revalidateOnFocus: true,
+      revalidateOnMount: true,
+      revalidateOnReconnect: true,
+      refreshInterval: 30000, // Revalidate every 30 seconds
+    }
+  );
+
+  useEffect(() => {
+    // Handle authentication errors
+    if (error && error.status === 401) {
+      router.push('/login');
+      return;
+    }
+
+    // Handle student not found errors
+    if (error && error.status === 404 && error.info?.error === 'Student not found') {
+      router.push('/onboarding');
+      return;
+    }
+
+    // Handle hackathon not found errors
+    if (error && error.status === 404 && error.info?.error === 'Hackathon not found') {
+      router.push('/not-found');
+      return;
+    }
+
+    // Handle no team found errors
+    if (error && error.status === 404 && error.info?.error === 'No team found for this student in this hackathon') {
+      router.push(`/hackathons/${hackathonId}`);
+      return;
+    }
+  }, [error, router, hackathonId]);
+
+  // Loading state
+  if (isLoading) {
+    return (
+      <div className="container mx-auto py-8 px-4">
+        <div className="space-y-4">
+          <Skeleton className="h-12 w-64" />
+          <Skeleton className="h-48 w-full" />
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <Skeleton className="h-32 w-full" />
+            <Skeleton className="h-32 w-full" />
+          </div>
+        </div>
+      </div>
+    );
   }
 
-  const prisma = new PrismaClient();
-
-  try {
-    // Find the student record
-    const student = await prisma.student.findFirst({
-      where: {
-        userId: user.id,
-      },
-      include: {
-        user: true,
-      },
-    });
-
-    if (!student) {
-      redirect("/onboarding");
-    }
-
-    // Get hackathon details
-    const hackathon = await prisma.hackathon.findUnique({
-      where: { id: hackathonId },
-      include: {
-        problemStatements: true,
-        rules: true,
-      },
-    });
-
-    if (!hackathon) {
-      notFound();
-    }
-
-    // Check if student is a member of any team for this hackathon
-    const teamMembership = await prisma.hackathonTeamMember.findFirst({
-      where: {
-        studentId: student.id,
-        team: {
-          hackathonId,
-        },
-      },
-      include: {
-        team: {
-          include: {
-            members: {
-              include: {
-                student: {
-                  include: {
-                    user: {
-                      select: {
-                        firstName: true,
-                        lastName: true,
-                        email: true,
-                      },
-                    },
-                  },
-                },
-              },
-            },
-            invites: {
-              include: {
-                student: {
-                  include: {
-                    user: {
-                      select: {
-                        firstName: true,
-                        lastName: true,
-                        email: true,
-                      },
-                    },
-                  },
-                },
-              },
-            },
-            problemStatement: {
-              select: {
-                id: true,
-                code: true,
-                title: true,
-              },
-            },
-            hackathon: {
-              select: {
-                team_size_limit: true,
-              },
-            },
-          },
-        },
-      },
-    });
-
-    if (!teamMembership) {
-      // Student is not a member of any team for this hackathon
-      redirect(`/hackathons/${hackathonId}`);
-    }
-
-    const team = teamMembership.team;
-    
-    // Determine if current student is team owner (first member)
-    const isTeamOwner = team.members.length > 0 && team.members[0].studentId === student.id;
-
-    // Transform hackathon data to match component interface
-    const transformedHackathon = {
-      ...hackathon,
-      start_date: hackathon.start_date.toISOString(),
-      end_date: hackathon.end_date.toISOString(),
-      start_time: hackathon.start_time.toISOString(),
-      end_time: hackathon.end_time.toISOString(),
-      registration_start_date: hackathon.registration_start_date?.toISOString(),
-      registration_end_date: hackathon.registration_end_date?.toISOString(),
-      created_at: hackathon.created_at.toISOString(),
-    };
-
-    return (
-      <ErrorBoundary>
-        <TeamManagement
-          hackathon={transformedHackathon as Hackathon}
-          team={team as HackathonTeam}
-          isTeamOwner={isTeamOwner}
-          studentId={student.id}
-          currentUser={student.user}
-        />
-      </ErrorBoundary>
-    );
-  } catch (error) {
-    console.error("Error fetching team management data:", error);
+  // Error state
+  if (error && !error.status) {
     return (
       <div className="container mx-auto py-8 px-4">
         <div className="text-center">
@@ -154,7 +94,23 @@ export default async function TeamManagementPage({
         </div>
       </div>
     );
-  } finally {
-    await prisma.$disconnect();
   }
+
+  // If we have data, render the component
+  if (data) {
+    return (
+      <ErrorBoundary>
+        <TeamManagement
+          hackathon={data.hackathon as Hackathon}
+          team={data.team as HackathonTeam}
+          isTeamOwner={data.isTeamOwner}
+          studentId={data.studentId}
+          currentUser={data.currentUser}
+          mutate={mutate}
+        />
+      </ErrorBoundary>
+    );
+  }
+
+  return null;
 }

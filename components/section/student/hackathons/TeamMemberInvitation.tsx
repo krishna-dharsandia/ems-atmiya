@@ -23,6 +23,7 @@ import { Badge } from "@/components/ui/badge";
 import { inviteTeamMemberAction } from "./inviteTeamMemberAction";
 import { respondToInvitationAction } from "./respondToInvitationAction";
 import { PlusCircle, X, Check } from "lucide-react";
+import { KeyedMutator } from "swr";
 
 interface TeamMember {
   id: string;
@@ -69,6 +70,7 @@ interface TeamMemberInvitationProps {
   isTeamOwner: boolean;
   studentId: string;
   pendingInvites?: { teamId: string; teamName: string }[];
+  mutate: KeyedMutator<any>;
 }
 
 export function TeamMemberInvitation({
@@ -77,6 +79,7 @@ export function TeamMemberInvitation({
   isTeamOwner,
   studentId,
   pendingInvites = [],
+  mutate
 }: TeamMemberInvitationProps) {
   const [inviteEmail, setInviteEmail] = useState("");
   const [isInviting, setIsInviting] = useState(false);
@@ -98,10 +101,7 @@ export function TeamMemberInvitation({
       } else {
         toast.success("Invitation sent successfully!");
         setInviteEmail("");
-        // Optionally refresh the component or page
-        setTimeout(() => {
-          window.location.reload();
-        }, 1000);
+        mutate(); // Refresh the team data after inviting
       }
     } catch (error) {
       console.error("Error sending invitation:", error);

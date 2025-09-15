@@ -9,6 +9,7 @@ import { getImageUrl } from "@/lib/utils";
 import { TeamMemberInvitation } from "@/components/section/student/hackathons/TeamMemberInvitation";
 import Link from "next/link";
 import { Hackathon, HackathonTeam, User } from "@/types/hackathon";
+import { KeyedMutator } from "swr";
 
 interface TeamManagementProps {
   hackathon: Hackathon;
@@ -16,6 +17,7 @@ interface TeamManagementProps {
   isTeamOwner: boolean;
   studentId: string;
   currentUser: User;
+  mutate: KeyedMutator<any>;
 }
 
 export function TeamManagement({
@@ -24,25 +26,13 @@ export function TeamManagement({
   isTeamOwner,
   studentId,
   currentUser,
+  mutate
 }: TeamManagementProps) {
   const formatDateTime = (dateString: string, timeString: string) => {
     const date = new Date(dateString);
     const time = new Date(timeString);
     date.setHours(time.getHours(), time.getMinutes());
     return format(date, "PPP 'at' p");
-  };
-
-  const getStatusBadge = (status: string) => {
-    switch (status) {
-      case "UPCOMING":
-        return <Badge variant="default">Upcoming</Badge>;
-      case "COMPLETED":
-        return <Badge variant="secondary">Completed</Badge>;
-      case "CANCELLED":
-        return <Badge variant="destructive">Cancelled</Badge>;
-      default:
-        return <Badge variant="outline">Other</Badge>;
-    }
   };
 
   return (
@@ -88,8 +78,8 @@ export function TeamManagement({
                     hackathon.status === "UPCOMING"
                       ? "default"
                       : hackathon.status === "COMPLETED"
-                      ? "secondary"
-                      : "destructive"
+                        ? "secondary"
+                        : "destructive"
                   }
                 >
                   {hackathon.status}
@@ -191,7 +181,7 @@ export function TeamManagement({
                       </span>
                     </div>
                   </div>
-                  
+
                   {isTeamOwner && (
                     <div className="bg-green-50 border-l-4 border-green-400 p-3 rounded">
                       <div className="flex items-center">
@@ -217,6 +207,7 @@ export function TeamManagement({
                 isTeamOwner={isTeamOwner}
                 studentId={studentId}
                 pendingInvites={[]}
+                mutate={mutate}
               />
             ) : (
               <Card>
@@ -251,13 +242,13 @@ export function TeamManagement({
                                 </td>
                                 <td className="p-3">
                                   <Badge variant={
-                                    member.student.id === studentId ? "default" : 
-                                    team.members.indexOf(member) === 0 ? "default" : 
-                                    "secondary"
+                                    member.student.id === studentId ? "default" :
+                                      team.members.indexOf(member) === 0 ? "default" :
+                                        "secondary"
                                   }>
-                                    {member.student.id === studentId ? "You" : 
-                                     team.members.indexOf(member) === 0 ? "Team Lead" : 
-                                     "Member"}
+                                    {member.student.id === studentId ? "You" :
+                                      team.members.indexOf(member) === 0 ? "Team Lead" :
+                                        "Member"}
                                   </Badge>
                                 </td>
                               </tr>
@@ -291,9 +282,9 @@ export function TeamManagement({
                                   </td>
                                   <td className="p-3">
                                     <Badge variant={
-                                      invite.status === "PENDING" ? "secondary" : 
-                                      invite.status === "ACCEPTED" ? "default" : 
-                                      "destructive"
+                                      invite.status === "PENDING" ? "secondary" :
+                                        invite.status === "ACCEPTED" ? "default" :
+                                          "destructive"
                                     }>
                                       {invite.status}
                                     </Badge>
@@ -313,7 +304,7 @@ export function TeamManagement({
                         <div>
                           <p className="text-blue-700 font-medium">Team Member View</p>
                           <p className="text-blue-600 text-sm">
-                            You can view team information but cannot invite members or manage the team. 
+                            You can view team information but cannot invite members or manage the team.
                             Contact your team lead for team management tasks.
                           </p>
                         </div>
