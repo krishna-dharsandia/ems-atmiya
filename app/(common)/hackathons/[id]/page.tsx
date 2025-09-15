@@ -2,7 +2,8 @@
 
 import { useEffect, useState } from "react";
 import { notFound, useParams } from "next/navigation";
-import HackathonDetail, { HackathonDetailProps, Team } from "@/components/section/student/hackathons/HackathonDetail";
+import HackathonDetail, { HackathonDetailProps } from "@/components/section/student/hackathons/HackathonDetail";
+import { HackathonTeam } from "@/types/hackathon";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useAuth } from "@/contexts/AuthContext";
 import { LandingHeader } from "@/components/global/navigation-bar/LandingHeader";
@@ -13,7 +14,7 @@ export default function HackathonDetailPage() {
   const [isLoading, setIsLoading] = useState(true);
   type HackathonData = {
     hackathon: HackathonDetailProps["hackathon"];
-    userTeam?: Team;
+    userTeam?: HackathonTeam;
     pendingInvites?: { teamId: string; teamName: string }[];
   };
 
