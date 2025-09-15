@@ -26,10 +26,14 @@ import {
 import { createTeamAction } from "./createTeamAction";
 import { Hackathon, HackathonProblemStatement } from "@prisma/client";
 
-const teamSchema = z.object({
+export const teamSchema = z.object({
   teamName: z.string().min(3, "Team name must be at least 3 characters"),
   problemStatementId: z.string().min(1, "Please select a problem statement"),
+  mentor: z.string().min(1, "Mentor name is required"),
+  mentorMail: z.string().email("Please enter a valid email address"),
 });
+
+export type TeamSchema = z.infer<typeof teamSchema>;
 
 interface CreateTeamProps {
   hackathon: Hackathon & { problemStatements: HackathonProblemStatement[] };
@@ -44,13 +48,18 @@ export function CreateTeamForm({ hackathon, userIsRegistered }: CreateTeamProps)
     defaultValues: {
       teamName: "",
       problemStatementId: "",
+      mentor: "",
+      mentorMail: "",
     },
   });
 
   async function onSubmit(data: z.infer<typeof teamSchema>) {
     setIsSubmitting(true);
     try {
-      const response = await createTeamAction(hackathon.id, data.teamName, data.problemStatementId);
+      const response = await createTeamAction(
+        data,
+        hackathon.id,
+      );
 
       if (response.error) {
         toast.error(response.error);
@@ -160,6 +169,34 @@ export function CreateTeamForm({ hackathon, userIsRegistered }: CreateTeamProps)
                       ))}
                     </SelectContent>
                   </Select>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="mentor"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Mentor Name*</FormLabel>
+                  <FormControl>
+                    <Input placeholder="Enter mentor's name" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="mentorMail"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Mentor Email*</FormLabel>
+                  <FormControl>
+                    <Input placeholder="Enter mentor's email" type="email" {...field} />
+                  </FormControl>
                   <FormMessage />
                 </FormItem>
               )}

@@ -2,8 +2,9 @@
 
 import { createClient } from "@/utils/supabase/server";
 import { PrismaClient } from "@prisma/client";
+import { teamSchema, TeamSchema } from "./CreateTeamForm";
 
-export async function createTeamAction(hackathonId: string, teamName: string, problemStatementId: string) {
+export async function createTeamAction(teamData: TeamSchema, hackathonId: string) {
   const supabase = await createClient();
   const {
     data: { user },
@@ -12,6 +13,13 @@ export async function createTeamAction(hackathonId: string, teamName: string, pr
   if (!user) {
     return { error: "User not authenticated" };
   }
+
+  const parsedTeamData = teamSchema.safeParse(teamData);
+  if (!parsedTeamData.success) {
+    return { error: "Invalid team data" };
+  }
+
+  const { teamName, problemStatementId, mentor, mentorMail } = parsedTeamData.data;
 
   const prisma = new PrismaClient();
 
@@ -102,10 +110,11 @@ export async function createTeamAction(hackathonId: string, teamName: string, pr
     // Create team and add the creator as a member
     const team = await prisma.hackathonTeam.create({
       data: {
-        hackathonId,
         teamName,
         problemStatementId,
-        teamId: `${teamName.substring(0, 3).toUpperCase()}${Math.floor(Math.random() * 10000)}`,
+        hackathonId,
+        mentor,
+        mentor_mail: mentorMail,
         members: {
           create: {
             studentId: student.id,

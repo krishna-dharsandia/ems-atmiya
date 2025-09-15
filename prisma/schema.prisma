@@ -145,6 +145,7 @@ model EventRegistration {
   checkedInBy String?
   event       Event     @relation(fields: [eventId], references: [id], onDelete: Cascade)
   user        User      @relation(fields: [userId], references: [supabaseId], onDelete: Cascade)
+
   @@unique([userId, eventId])
 }
 
@@ -158,6 +159,7 @@ model EventFeedback {
   updatedAt DateTime @updatedAt
   event     Event    @relation(fields: [eventId], references: [id], onDelete: Cascade)
   user      User     @relation(fields: [userId], references: [supabaseId], onDelete: Cascade)
+
   @@unique([userId, eventId])
 }
 
@@ -213,6 +215,8 @@ model HackathonRules {
 
 model HackathonTeam {
   id                 String                     @id @default(uuid())
+  mentor             String
+  mentor_mail        String
   hackathonId        String
   problemStatementId String?
   teamName           String
