@@ -14,6 +14,7 @@ import { getImageUrl } from "@/lib/utils";
 import Link from "next/link";
 import { Hackathon, HackathonTeam } from "@/types/hackathon";
 import { useRouter } from "next/navigation";
+import { KeyedMutator } from "swr";
 
 export interface HackathonDetailProps {
   hackathon: Hackathon;
@@ -22,6 +23,7 @@ export interface HackathonDetailProps {
   }) | null;
   userTeam: HackathonTeam | null;
   pendingInvites: { teamId: string; teamName: string }[];
+  mutate: KeyedMutator<any>;
 }
 
 export default function HackathonDetail({
@@ -29,6 +31,7 @@ export default function HackathonDetail({
   currentUser,
   userTeam,
   pendingInvites,
+  mutate,
 }: HackathonDetailProps) {
   const [activeTab, setActiveTab] = useState("details");
   const router = useRouter();
@@ -71,8 +74,8 @@ export default function HackathonDetail({
                 hackathon.status === "UPCOMING"
                   ? "default"
                   : hackathon.status === "COMPLETED"
-                  ? "secondary"
-                  : "destructive"
+                    ? "secondary"
+                    : "destructive"
               }
             >
               {hackathon.status}
@@ -191,9 +194,8 @@ export default function HackathonDetail({
                     hackathon.problemStatements.map((problem, index) => (
                       <div
                         key={problem.id}
-                        className={`border rounded-lg p-4 ${
-                          index !== hackathon.problemStatements!.length - 1 ? "mb-4" : ""
-                        }`}
+                        className={`border rounded-lg p-4 ${index !== hackathon.problemStatements!.length - 1 ? "mb-4" : ""
+                          }`}
                       >
                         <h3 className="text-lg font-medium mb-1">
                           {problem.code}: {problem.title}
@@ -238,6 +240,7 @@ export default function HackathonDetail({
                   isTeamOwner={false}
                   studentId={studentId || ""}
                   pendingInvites={pendingInvites}
+                  mutate={mutate}
                 />
               </TabsContent>
             )}
@@ -324,7 +327,7 @@ export default function HackathonDetail({
                     {Math.ceil(
                       (new Date(hackathon.end_date).getTime() -
                         new Date(hackathon.start_date).getTime()) /
-                        (1000 * 60 * 60 * 24)
+                      (1000 * 60 * 60 * 24)
                     )}{" "}
                     days
                   </span>

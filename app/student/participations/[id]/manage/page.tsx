@@ -2,7 +2,7 @@
 
 import { useEffect } from 'react';
 import useSWR from 'swr';
-import { useRouter } from 'next/navigation';
+import { useParams, useRouter } from 'next/navigation';
 import { TeamManagement } from "@/components/section/student/participations/TeamManagement";
 import { Hackathon, HackathonTeam } from "@/types/hackathon";
 import { ErrorBoundary } from "@/components/error-boundary/ErrorBoundary";
@@ -21,13 +21,9 @@ const fetcher = async (url: string) => {
   return response.json();
 };
 
-export default function TeamManagementPage({
-  params,
-}: {
-  params: { id: string };
-}) {
+export default function TeamManagementPage() {
   const router = useRouter();
-  const { id: hackathonId } = params;
+  const { id: hackathonId } = useParams<{ id: string }>();
 
   const { data, error, isLoading, mutate } = useSWR(
     `/api/student/participation/${hackathonId}`,

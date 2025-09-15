@@ -1,7 +1,7 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { notFound, useParams } from "next/navigation";
+import useSWR from "swr";
+import { useParams } from "next/navigation";
 import HackathonDetail, { HackathonDetailProps } from "@/components/section/student/hackathons/HackathonDetail";
 import { HackathonTeam } from "@/types/hackathon";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -11,59 +11,48 @@ import { LandingFooter } from "@/components/global/LandingFooter";
 
 export default function HackathonDetailPage() {
   const params = useParams();
-  const [isLoading, setIsLoading] = useState(true);
   type HackathonData = {
     hackathon: HackathonDetailProps["hackathon"];
     userTeam?: HackathonTeam;
     pendingInvites?: { teamId: string; teamName: string }[];
   };
+  const { user: authUser } = useAuth();
 
-  const [hackathonData, setHackathonData] = useState<HackathonData | null>(null);
-  const [currentUser, setCurrentUser] = useState(null);
-  const [error, setError] = useState<string | null>(null);
-  const { user: authUser } = useAuth(); // Use auth context
-
-  useEffect(() => {
-    const fetchHackathonAndUserData = async () => {
-      try {
-        // Fetch hackathon data first (this should always work)
-        const hackathonResponse = await fetch(`/api/hackathons/${params.id}`);
-
-        if (!hackathonResponse.ok) {
-          if (hackathonResponse.status === 404) {
-            notFound();
-          }
-          throw new Error("Failed to fetch hackathon details");
-        }
-
-        const data = await hackathonResponse.json();
-        setHackathonData(data);
-
-        // Only fetch user data if user is authenticated
-        if (authUser) {
-          try {
-            const userResponse = await fetch(`/api/student/${authUser.id}`);
-            if (userResponse.ok) {
-              const userData = await userResponse.json();
-              setCurrentUser(userData.user);
-            }
-          } catch (userError) {
-            console.warn("Failed to fetch user data:", userError);
-            // Don't fail the entire page if user data fails
-          }
-        }
-      } catch (err) {
-        console.error("Error fetching data:", err);
-        setError("Failed to load hackathon details. Please try again later.");
-      } finally {
-        setIsLoading(false);
+  // Fetch hackathon data
+  const {
+    data: hackathonData,
+    error: hackathonError,
+    isLoading: hackathonLoading,
+    mutate: mutateHackathon,
+  } = useSWR<HackathonData>(`/api/hackathons/${params.id}`, async (url: string) => {
+    const res = await fetch(url);
+    if (!res.ok) {
+      if (res.status === 404) {
+        // next/navigation notFound() can't be called here, so handle below
+        throw Object.assign(new Error("Not found"), { status: 404 });
       }
-    };
+      throw new Error("Failed to fetch hackathon details");
+    }
+    return res.json();
+  });
 
-    fetchHackathonAndUserData();
-  }, [params.id, authUser?.id]);
+  // Fetch user data only if authenticated
+  const {
+    data: currentUser,
+    error: userError,
+    isLoading: userLoading,
+  } = useSWR(
+    authUser ? `/api/student/${authUser.id}` : null,
+    async (url) => {
+      const res = await fetch(url);
+      if (!res.ok) throw new Error("Failed to fetch user data");
+      const data = await res.json();
+      return data.user;
+    }
+  );
 
-  if (isLoading) {
+  // Loading state
+  if (hackathonLoading || (authUser && userLoading)) {
     return (
       <div className="container mx-auto py-8 px-4">
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -90,11 +79,30 @@ export default function HackathonDetailPage() {
     );
   }
 
-  if (error) {
+  // Error state
+  if (hackathonError) {
+    if (hackathonError.status === 404) {
+      // Not found error
+      return (
+        <div className="container mx-auto py-8 px-4">
+          <div className="bg-red-50 border-l-4 border-red-500 p-4">
+            <p className="text-red-700">Hackathon not found.</p>
+            <button
+              className="mt-2 text-red-600 underline"
+              onClick={() => window.location.reload()}
+            >
+              Try again
+            </button>
+          </div>
+        </div>
+      );
+    }
     return (
       <div className="container mx-auto py-8 px-4">
         <div className="bg-red-50 border-l-4 border-red-500 p-4">
-          <p className="text-red-700">{error}</p>
+          <p className="text-red-700">
+            Failed to load hackathon details. Please try again later.
+          </p>
           <button
             className="mt-2 text-red-600 underline"
             onClick={() => window.location.reload()}
@@ -116,6 +124,7 @@ export default function HackathonDetailPage() {
         currentUser={currentUser}
         userTeam={hackathonData.userTeam || null}
         pendingInvites={hackathonData.pendingInvites || []}
+        mutate={mutateHackathon}
       />
       <LandingFooter />
     </div>

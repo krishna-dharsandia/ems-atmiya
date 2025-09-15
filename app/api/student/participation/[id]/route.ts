@@ -3,10 +3,10 @@ import { PrismaClient } from "@prisma/client";
 import { NextRequest, NextResponse } from "next/server";
 
 export async function GET(
-  request: NextRequest,
-  { params }: { params: { id: string } }
+  req: NextRequest,
+  { params }: { params: Promise<{ id: string }> }
 ) {
-  const hackathonId = params.id;
+  const { id: hackathonId } = await params;
 
   const supabase = await createClient();
   const {

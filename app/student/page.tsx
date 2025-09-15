@@ -12,7 +12,7 @@ import { Separator } from "@/components/ui/separator";
 import { StudentKeyMetrics } from "@/components/section/student/overview/KeyMetrics";
 import { StudentRecentActivity } from "@/components/section/student/overview/RecentActivity";
 import { StudentCompletedEvents } from "@/components/section/student/overview/CompletedEvents";
-import { Calendar, Router } from "lucide-react";
+import { Calendar } from "lucide-react";
 import { useRouter } from "next/navigation";
 
 interface Event {
@@ -69,11 +69,10 @@ export default function StudentDashboard() {
     <div>
       <div className="flex items-start justify-between mb-4">
         <Heading
-          title={`Welcome Back - ${
-            data?.student
+          title={`Welcome Back - ${data?.student
               ? `${data.student.firstName} ${data.student.lastName}`
               : "Student"
-          }`}
+            }`}
           description={
             data?.student?.department && data?.student?.program
               ? `${data.student.department} • ${data.student.program}`
