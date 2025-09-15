@@ -141,29 +141,36 @@ export default function HackathonForm({ id }: HackathonFormProps) {
         const data = await response.json();
         const hackathonData = data.hackathon;
         console.log("Fetched hackathon data:", hackathonData);
+        
+        if (!hackathonData) {
+          throw new Error("No hackathon data received");
+        }
         // Populate form with hackathon data
         form.reset({
-          name: hackathonData.name,
-          description: hackathonData.description,
-          poster_url: hackathonData.poster_url,
-          location: hackathonData.location,
-          start_date: new Date(hackathonData.start_date),
-          end_date: new Date(hackathonData.end_date),
-          start_time: new Date(hackathonData.start_time),
-          end_time: new Date(hackathonData.end_time),
-          registration_start_date: new Date(hackathonData.registration_start_date),
-          registration_end_date: new Date(hackathonData.registration_end_date),
-          registration_limit: hackathonData.registration_limit,
-          mode: hackathonData.mode,
-          status: hackathonData.status,
-          team_size_limit: hackathonData.team_size_limit,
-          organizer_name: hackathonData.organizer_name,
+          name: hackathonData.name || "",
+          description: hackathonData.description || "",
+          poster_url: hackathonData.poster_url || "",
+          location: hackathonData.location || "",
+          start_date: hackathonData.start_date ? new Date(hackathonData.start_date) : new Date(),
+          end_date: hackathonData.end_date ? new Date(hackathonData.end_date) : new Date(),
+          start_time: hackathonData.start_time ? new Date(hackathonData.start_time) : new Date(),
+          end_time: hackathonData.end_time ? new Date(hackathonData.end_time) : new Date(),
+          registration_start_date: hackathonData.registration_start_date ? new Date(hackathonData.registration_start_date) : new Date(),
+          registration_end_date: hackathonData.registration_end_date ? new Date(hackathonData.registration_end_date) : new Date(),
+          registration_limit: hackathonData.registration_limit || undefined,
+          mode: hackathonData.mode || "OFFLINE",
+          status: hackathonData.status || "UPCOMING",
+          team_size_limit: hackathonData.team_size_limit || 5,
+          organizer_name: hackathonData.organizer_name || "",
           organizer_contact: hackathonData.organizer_contact || "",
         });
 
-        // Set rules
+        // Set rules - handle both array of strings and array of objects
         if (hackathonData.rules && hackathonData.rules.length > 0) {
-          setRules(hackathonData.rules.map((rule: any) => rule.rule));
+          const rulesArray = hackathonData.rules.map((rule: any) => 
+            typeof rule === 'string' ? rule : rule.rule
+          );
+          setRules(rulesArray);
         }
 
         // Set evaluation criteria
@@ -263,7 +270,7 @@ export default function HackathonForm({ id }: HackathonFormProps) {
           .getPublicUrl(filePath);
 
         posterUrl = publicUrlData.publicUrl;
-      } else if (!isEditMode) {
+      } else if (!isEditMode && !posterUrl) {
         toast.error("Please upload a poster image for the hackathon");
         return;
       }
@@ -477,11 +484,12 @@ export default function HackathonForm({ id }: HackathonFormProps) {
     }
 
     // Poster image validation
-    if (!posterFile && !formValues.poster_url) {
+    if (!posterFile && !formValues.poster_url && !isEditMode) {
       form.setError("poster_url", {
         type: "manual",
         message: "Hackathon poster is required",
       });
+      isValid = false;
     }
 
     // Check conditional fields
