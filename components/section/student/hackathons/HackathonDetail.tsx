@@ -11,85 +11,16 @@ import { CreateTeamForm } from "./CreateTeamForm";
 import { TeamMemberInvitation } from "./TeamMemberInvitation";
 import { Student, User } from "@prisma/client";
 import { getImageUrl } from "@/lib/utils";
-
-interface ProblemStatement {
-  id: string;
-  code: string;
-  title: string;
-  description: string;
-}
-
-interface Rule {
-  id: string;
-  rule: string;
-}
-
-export interface Team {
-  id: string;
-  teamName: string;
-  teamId: string;
-  members: {
-    id: string;
-    studentId: string;
-    student: {
-      id: string;
-      user: {
-        firstName: string;
-        lastName: string;
-        email: string;
-      };
-    };
-    attended: boolean;
-  }[];
-  invites: {
-    id: string;
-    studentId: string;
-    status: "PENDING" | "ACCEPTED" | "DECLINED";
-    student: {
-      id: string;
-      user: {
-        firstName: string;
-        lastName: string;
-        email: string;
-      };
-    };
-  }[];
-  problemStatement?: {
-    id: string;
-    code: string;
-    title: string;
-  };
-}
+import Link from "next/link";
+import { Hackathon, HackathonTeam } from "@/types/hackathon";
+import { useRouter } from "next/navigation";
 
 export interface HackathonDetailProps {
-  hackathon: {
-    id: string;
-    name: string;
-    description: string;
-    poster_url: string;
-    location: string;
-    mode: "ONLINE" | "OFFLINE";
-    start_date: string;
-    end_date: string;
-    start_time: string;
-    end_time: string;
-    registration_start_date: string;
-    registration_end_date: string;
-    registration_limit: number | null;
-    status: "UPCOMING" | "COMPLETED" | "CANCELLED" | "OTHER";
-    team_size_limit: number | null;
-    tags: string[];
-    organizer_name: string;
-    organizer_contact: string | null;
-    evaluationCriteria: string[];
-    rules: Rule[];
-    problemStatements: ProblemStatement[];
-    created_at: string;
-  };
+  hackathon: Hackathon;
   currentUser: (User & {
     students: Student[];
   }) | null;
-  userTeam: Team | null;
+  userTeam: HackathonTeam | null;
   pendingInvites: { teamId: string; teamName: string }[];
 }
 
@@ -100,12 +31,18 @@ export default function HackathonDetail({
   pendingInvites,
 }: HackathonDetailProps) {
   const [activeTab, setActiveTab] = useState("details");
+  const router = useRouter();
 
   const formatDateTime = (dateString: string, timeString: string) => {
     const date = new Date(dateString);
     const time = new Date(timeString);
     date.setHours(time.getHours(), time.getMinutes());
     return format(date, "PPP 'at' p");
+  };
+
+  const handleTeamCreated = () => {
+    // Redirect to the hackathon's participation management page
+    router.push(`/student/participations/${hackathon.id}/manage`);
   };
 
   const isStudent = currentUser?.role === "STUDENT";
@@ -158,9 +95,7 @@ export default function HackathonDetail({
               <TabsTrigger value="details">Details</TabsTrigger>
               <TabsTrigger value="problems">Problem Statements</TabsTrigger>
               <TabsTrigger value="rules">Rules</TabsTrigger>
-              {isStudent && !isTeamMember && pendingInvites.length === 0 && <TabsTrigger value="register">Register</TabsTrigger>}
               {isStudent && !isTeamMember && pendingInvites.length > 0 && <TabsTrigger value="invitations">Invitations</TabsTrigger>}
-              {isTeamMember && <TabsTrigger value="team">My Team</TabsTrigger>}
             </TabsList>
 
             <TabsContent value="details" className="mt-4">
@@ -214,16 +149,18 @@ export default function HackathonDetail({
                       </div>
                     </div>
 
-                    <div>
-                      <h3 className="text-lg font-medium mb-2">Evaluation Criteria</h3>
-                      <ul className="list-disc list-inside space-y-1">
-                        {hackathon.evaluationCriteria.map((criterion, index) => (
-                          <li key={index} className="text-muted-foreground">
-                            {criterion}
-                          </li>
-                        ))}
-                      </ul>
-                    </div>
+                    {hackathon.evaluationCriteria && hackathon.evaluationCriteria.length > 0 && (
+                      <div>
+                        <h3 className="text-lg font-medium mb-2">Evaluation Criteria</h3>
+                        <ul className="list-disc list-inside space-y-1">
+                          {hackathon.evaluationCriteria.map((criterion, index) => (
+                            <li key={index} className="text-muted-foreground">
+                              {criterion}
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+                    )}
 
                     <div>
                       <h3 className="text-lg font-medium mb-2">Registration Period</h3>
@@ -231,13 +168,13 @@ export default function HackathonDetail({
                         <div>
                           <p className="font-medium">Registration Opens</p>
                           <p className="text-sm text-muted-foreground">
-                            {format(new Date(hackathon.registration_start_date), "PPP")}
+                            {hackathon.registration_start_date ? format(new Date(hackathon.registration_start_date), "PPP") : "Not specified"}
                           </p>
                         </div>
                         <div>
                           <p className="font-medium">Registration Closes</p>
                           <p className="text-sm text-muted-foreground">
-                            {format(new Date(hackathon.registration_end_date), "PPP")}
+                            {hackathon.registration_end_date ? format(new Date(hackathon.registration_end_date), "PPP") : "Not specified"}
                           </p>
                         </div>
                       </div>
@@ -250,21 +187,25 @@ export default function HackathonDetail({
             <TabsContent value="problems" className="mt-4">
               <Card>
                 <CardContent className="pt-6">
-                  {hackathon.problemStatements.map((problem, index) => (
-                    <div
-                      key={problem.id}
-                      className={`border rounded-lg p-4 ${
-                        index !== hackathon.problemStatements.length - 1 ? "mb-4" : ""
-                      }`}
-                    >
-                      <h3 className="text-lg font-medium mb-1">
-                        {problem.code}: {problem.title}
-                      </h3>
-                      <p className="text-muted-foreground whitespace-pre-wrap">
-                        {problem.description}
-                      </p>
-                    </div>
-                  ))}
+                  {hackathon.problemStatements && hackathon.problemStatements.length > 0 ? (
+                    hackathon.problemStatements.map((problem, index) => (
+                      <div
+                        key={problem.id}
+                        className={`border rounded-lg p-4 ${
+                          index !== hackathon.problemStatements!.length - 1 ? "mb-4" : ""
+                        }`}
+                      >
+                        <h3 className="text-lg font-medium mb-1">
+                          {problem.code}: {problem.title}
+                        </h3>
+                        <p className="text-muted-foreground whitespace-pre-wrap">
+                          {problem.description}
+                        </p>
+                      </div>
+                    ))
+                  ) : (
+                    <p className="text-muted-foreground">No problem statements available.</p>
+                  )}
                 </CardContent>
               </Card>
             </TabsContent>
@@ -273,26 +214,21 @@ export default function HackathonDetail({
               <Card>
                 <CardContent className="pt-6">
                   <h3 className="text-lg font-medium mb-4">Hackathon Rules</h3>
-                  <ul className="list-decimal list-inside space-y-2">
-                    {hackathon.rules.map((rule) => (
-                      <li key={rule.id} className="text-muted-foreground">
-                        {rule.rule}
-                      </li>
-                    ))}
-                  </ul>
+                  {hackathon.rules && hackathon.rules.length > 0 ? (
+                    <ul className="list-decimal list-inside space-y-2">
+                      {hackathon.rules.map((rule) => (
+                        <li key={rule.id} className="text-muted-foreground">
+                          {rule.rule}
+                        </li>
+                      ))}
+                    </ul>
+                  ) : (
+                    <p className="text-muted-foreground">No rules specified.</p>
+                  )}
                 </CardContent>
               </Card>
             </TabsContent>
 
-            {isStudent && !isTeamMember && pendingInvites.length === 0 && (
-              <TabsContent value="register" className="mt-4">
-                <CreateTeamForm
-                //@ts-ignore
-                  hackathon={hackathon as any}
-                  userIsRegistered={isTeamMember}
-                />
-              </TabsContent>
-            )}
 
             {isStudent && !isTeamMember && pendingInvites.length > 0 && (
               <TabsContent value="invitations" className="mt-4">
@@ -306,17 +242,6 @@ export default function HackathonDetail({
               </TabsContent>
             )}
 
-            {isTeamMember && (
-              <TabsContent value="team" className="mt-4">
-                <TeamMemberInvitation
-                team={userTeam as any}
-                isTeamMember={isTeamMember}
-                isTeamOwner={isTeamOwner}
-                studentId={studentId || ""}
-                pendingInvites={[]}
-                />
-              </TabsContent>
-            )}
           </Tabs>
         </div>
 
@@ -349,12 +274,11 @@ export default function HackathonDetail({
               )}
 
               {isStudent && !isTeamMember && pendingInvites.length === 0 && (
-                <Button
-                  className="w-full"
-                  onClick={() => setActiveTab("register")}
-                >
-                  Create Team
-                </Button>
+                <CreateTeamForm
+                  hackathon={hackathon as any}
+                  userIsRegistered={isTeamMember}
+                  onTeamCreated={handleTeamCreated}
+                />
               )}
 
               {isStudent && isTeamMember && (
@@ -363,18 +287,17 @@ export default function HackathonDetail({
                     <span>Your Team:</span>
                     <Badge>{userTeam?.teamName}</Badge>
                   </div>
-                  <Button
-                    className="w-full"
-                    onClick={() => setActiveTab("team")}
-                  >
-                    Manage Team
-                  </Button>
+                  <Link href={`/participations/${hackathon.id}/manage`}>
+                    <Button className="w-full">
+                      {isTeamOwner ? "Manage Team" : "View Team"}
+                    </Button>
+                  </Link>
                 </div>
               )}
 
               {!isStudent && (
                 <div className="bg-muted p-3 rounded-md text-sm text-muted-foreground">
-                  Only students can register for hackathons.
+                  Login required to register for hackathons.
                 </div>
               )}
             </CardContent>

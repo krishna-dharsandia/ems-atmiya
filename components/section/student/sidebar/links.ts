@@ -4,5 +4,11 @@ export const studentSidebarLinks = [
     items: [
       { title: "Overview", url: "/" },
     ],
-  }
+  },
+  {
+    title: "Hackathons",
+    items: [
+      { title: "My Participations", url: "/participations" },
+    ],
+  },
 ];

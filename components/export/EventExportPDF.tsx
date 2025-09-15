@@ -120,7 +120,6 @@ const RegistrationsTable: React.FC<{ data: RegistrationExportData[] }> = ({ data
         <Table>
             <TR style={styles.tableHeader}>
                 <TD style={[styles.tableHeaderCell, { flex: 1.8 }]}>Name</TD>
-                <TD style={[styles.tableHeaderCell, { flex: 2 }]}>Email</TD>
                 <TD style={[styles.tableHeaderCell, { flex: 1.5 }]}>Reg#</TD>
                 <TD style={[styles.tableHeaderCell, { flex: 1.2 }]}>Dept</TD>
                 <TD style={[styles.tableHeaderCell, { flex: 1.2 }]}>Program</TD>
@@ -132,9 +131,6 @@ const RegistrationsTable: React.FC<{ data: RegistrationExportData[] }> = ({ data
                 <TR key={index} style={index % 2 === 1 ? styles.tableRowEven : styles.tableRow}>
                     <TD style={[styles.tableCell, { flex: 1.8 }]}>
                         {`${reg.firstName} ${reg.lastName}`.substring(0, 18)}
-                    </TD>
-                    <TD style={[styles.tableCell, { flex: 2 }]}>
-                        {reg.email.substring(0, 20)}
                     </TD>
                     <TD style={[styles.tableCell, { flex: 1.5, fontSize: 7 }]}>
                         {reg.registrationNumber || 'N/A'}

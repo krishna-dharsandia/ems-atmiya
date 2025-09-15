@@ -55,10 +55,10 @@ interface TeamInvite {
 interface HackathonTeam {
   id: string;
   teamName: string;
-  teamId: string;
+  teamId: string | null;
   members: TeamMember[];
   invites: TeamInvite[];
-  hackathon: {
+  hackathon?: {
     team_size_limit: number | null;
   };
 }

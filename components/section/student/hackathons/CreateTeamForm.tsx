@@ -22,6 +22,13 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
 import { createTeamAction } from "./createTeamAction";
 import { Hackathon, HackathonProblemStatement } from "@prisma/client";
 import { TeamSchema, teamSchema } from "@/schemas/hackathon";
@@ -29,10 +36,13 @@ import { TeamSchema, teamSchema } from "@/schemas/hackathon";
 interface CreateTeamProps {
   hackathon: Hackathon & { problemStatements: HackathonProblemStatement[] };
   userIsRegistered: boolean;
+  onTeamCreated?: () => void;
+  trigger?: React.ReactNode;
 }
 
-export function CreateTeamForm({ hackathon, userIsRegistered }: CreateTeamProps) {
+export function CreateTeamForm({ hackathon, userIsRegistered, onTeamCreated, trigger }: CreateTeamProps) {
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
 
   const form = useForm({
     resolver: zodResolver(teamSchema),
@@ -58,10 +68,15 @@ export function CreateTeamForm({ hackathon, userIsRegistered }: CreateTeamProps)
         toast.success("Team created successfully!");
         form.reset();
 
-        // Optionally refresh the page or update UI
-        setTimeout(() => {
-          window.location.reload();
-        }, 1000);
+        // Close dialog and call the callback if provided, otherwise reload the page
+        setIsDialogOpen(false);
+        if (onTeamCreated) {
+          onTeamCreated();
+        } else {
+          setTimeout(() => {
+            window.location.reload();
+          }, 1000);
+        }
       }
     } catch (error) {
       console.error("Error creating team:", error);
@@ -116,11 +131,18 @@ export function CreateTeamForm({ hackathon, userIsRegistered }: CreateTeamProps)
   }
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle>Create a New Team</CardTitle>
-      </CardHeader>
-      <CardContent>
+    <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+      <DialogTrigger asChild>
+        {trigger || (
+          <Button className="w-full">
+            Create Team
+          </Button>
+        )}
+      </DialogTrigger>
+      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+        <DialogHeader>
+          <DialogTitle>Create Team for {hackathon.name}</DialogTitle>
+        </DialogHeader>
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
             <FormField
@@ -198,7 +220,7 @@ export function CreateTeamForm({ hackathon, userIsRegistered }: CreateTeamProps)
             </Button>
           </form>
         </Form>
-      </CardContent>
-    </Card>
+      </DialogContent>
+    </Dialog>
   );
 }
