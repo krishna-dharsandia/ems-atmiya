@@ -3,7 +3,6 @@
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { z } from "zod";
 import { toast } from "sonner";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -25,15 +24,7 @@ import {
 } from "@/components/ui/select";
 import { createTeamAction } from "./createTeamAction";
 import { Hackathon, HackathonProblemStatement } from "@prisma/client";
-
-export const teamSchema = z.object({
-  teamName: z.string().min(3, "Team name must be at least 3 characters"),
-  problemStatementId: z.string().min(1, "Please select a problem statement"),
-  mentor: z.string().min(1, "Mentor name is required"),
-  mentorMail: z.string().email("Please enter a valid email address"),
-});
-
-export type TeamSchema = z.infer<typeof teamSchema>;
+import { TeamSchema, teamSchema } from "@/schemas/hackathon";
 
 interface CreateTeamProps {
   hackathon: Hackathon & { problemStatements: HackathonProblemStatement[] };
@@ -53,7 +44,7 @@ export function CreateTeamForm({ hackathon, userIsRegistered }: CreateTeamProps)
     },
   });
 
-  async function onSubmit(data: z.infer<typeof teamSchema>) {
+  async function onSubmit(data: TeamSchema) {
     setIsSubmitting(true);
     try {
       const response = await createTeamAction(

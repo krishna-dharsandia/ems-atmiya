@@ -63,3 +63,12 @@ export const formattedHackathonSchema = hackathonSchema.extend({
 
 export type HackathonSchema = z.infer<typeof hackathonSchema>;
 export type FormattedHackathonSchema = z.infer<typeof formattedHackathonSchema>;
+
+export const teamSchema = z.object({
+  teamName: z.string().min(3, "Team name must be at least 3 characters"),
+  problemStatementId: z.string().min(1, "Please select a problem statement"),
+  mentor: z.string().min(1, "Mentor name is required"),
+  mentorMail: z.string().email("Please enter a valid email address"),
+});
+
+export type TeamSchema = z.infer<typeof teamSchema>;

@@ -1,8 +1,8 @@
 "use server";
 
+import { teamSchema, TeamSchema } from "@/schemas/hackathon";
 import { createClient } from "@/utils/supabase/server";
 import { PrismaClient } from "@prisma/client";
-import { teamSchema, TeamSchema } from "./CreateTeamForm";
 
 export async function createTeamAction(teamData: TeamSchema, hackathonId: string) {
   const supabase = await createClient();
