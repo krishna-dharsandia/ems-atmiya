@@ -233,7 +233,7 @@ model HackathonTeamMember {
   studentId String
   attended  Boolean       @default(false)
   student   Student       @relation(fields: [studentId], references: [id])
-  team      HackathonTeam @relation(fields: [teamId], references: [id])
+  team      HackathonTeam @relation(fields: [teamId], references: [id], onDelete: Cascade)
 }
 
 model HackathonTeamInvite {
@@ -242,7 +242,7 @@ model HackathonTeamInvite {
   studentId String
   status    InviteStatus  @default(PENDING)
   student   Student       @relation(fields: [studentId], references: [id])
-  team      HackathonTeam @relation(fields: [teamId], references: [id])
+  team      HackathonTeam @relation(fields: [teamId], references: [id], onDelete: Cascade)
 }
 
 enum InviteStatus {
