@@ -133,14 +133,14 @@ export default function MasterHackathonDetailPage() {
 
   if (isLoading) {
     return (
-      <div className="container mx-auto py-8 px-4">
-        <div className="flex justify-between items-center mb-6">
-          <Skeleton className="h-10 w-64" />
-          <Skeleton className="h-10 w-40" />
+      <div className="container mx-auto py-8 px-2 sm:px-4">
+        <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center mb-6 gap-4">
+          <Skeleton className="h-10 w-full sm:w-64" />
+          <Skeleton className="h-10 w-full sm:w-40" />
         </div>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           <div className="md:col-span-2 space-y-6">
-            <Skeleton className="w-full h-64" />
+            <Skeleton className="w-full h-48 sm:h-64" />
             <div className="space-y-2">
               <Skeleton className="h-8 w-3/4" />
               <div className="flex gap-2">
@@ -153,7 +153,7 @@ export default function MasterHackathonDetailPage() {
               <Skeleton className="h-40 w-full" />
             </div>
           </div>
-          <div className="space-y-6">
+          <div className="space-y-6 mt-6 md:mt-0">
             <Skeleton className="h-40 w-full" />
             <Skeleton className="h-40 w-full" />
           </div>

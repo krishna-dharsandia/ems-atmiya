@@ -233,21 +233,21 @@ export default function MasterHackathonDetail({
   };
 
   return (
-    <div className="container mx-auto py-8 px-4">
-      <div className="flex justify-between items-center mb-6">
-        <h1 className="text-3xl font-bold">{hackathon.name}</h1>
-        <div className="flex gap-2">
-          <Button variant="outline" onClick={editHackathon}>
+    <div className="container mx-auto py-8 px-2 sm:px-4">
+      <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center mb-6 gap-4">
+        <h1 className="text-2xl sm:text-3xl font-bold break-words">{hackathon.name}</h1>
+        <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
+          <Button variant="outline" onClick={editHackathon} className="w-full sm:w-auto">
             <Edit className="mr-2 h-4 w-4" />
             Edit Hackathon
           </Button>
-          <Button variant="outline" onClick={handleDownloadHackathonQR}>
+          <Button variant="outline" onClick={handleDownloadHackathonQR} className="w-full sm:w-auto">
             <Download className="mr-2 h-4 w-4" />
             Download QR
           </Button>
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button disabled={isExporting || !hackathon.teams || hackathon.teams.length === 0}>
+              <Button disabled={isExporting || !hackathon.teams || hackathon.teams.length === 0} className="w-full sm:w-auto">
                 {isExporting ? (
                   <div className="flex items-center">
                     <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
@@ -287,7 +287,7 @@ export default function MasterHackathonDetail({
             <img
               src={hackathon.poster_url}
               alt={hackathon.name}
-              className="w-full h-64 object-cover rounded-lg"
+              className="w-full h-48 sm:h-64 object-cover rounded-lg"
             />
             <Badge
               className="absolute top-4 right-4"
@@ -297,20 +297,32 @@ export default function MasterHackathonDetail({
             </Badge>
           </div>
 
-          <Tabs defaultValue="details" value={activeTab} onValueChange={setActiveTab}>
-            <TabsList>
-              <TabsTrigger value="details">Details</TabsTrigger>
-              <TabsTrigger value="problems">Problem Statements</TabsTrigger>
-              <TabsTrigger value="rules">Rules</TabsTrigger>
-              <TabsTrigger value="teams">Teams</TabsTrigger>
-              <TabsTrigger value="statistics">Statistics</TabsTrigger>
+            <Tabs defaultValue="details" value={activeTab} onValueChange={setActiveTab}>
+            <TabsList
+              className="flex flex-nowrap overflow-x-auto gap-2 md:gap-0 md:flex-wrap"
+            >
+              <TabsTrigger value="details" className="flex-shrink-0">
+              Details
+              </TabsTrigger>
+              <TabsTrigger value="problems" className="flex-shrink-0">
+              Problem Statements
+              </TabsTrigger>
+              <TabsTrigger value="rules" className="flex-shrink-0">
+              Rules
+              </TabsTrigger>
+              <TabsTrigger value="teams" className="flex-shrink-0">
+              Teams
+              </TabsTrigger>
+              <TabsTrigger value="statistics" className="flex-shrink-0">
+              Statistics
+              </TabsTrigger>
             </TabsList>
 
             <TabsContent value="details" className="mt-4">
               <Card>
                 <CardContent className="pt-6">
                   <div className="space-y-6">
-                    <p className="text-muted-foreground whitespace-pre-wrap">
+                    <p className="text-muted-foreground whitespace-pre-wrap break-words">
                       {hackathon.description}
                     </p>
 
@@ -396,13 +408,12 @@ export default function MasterHackathonDetail({
                   {hackathon.problemStatements.map((problem, index) => (
                     <div
                       key={problem.id}
-                      className={`border rounded-lg p-4 ${index !== hackathon.problemStatements.length - 1 ? "mb-4" : ""
-                        }`}
+                      className={`border rounded-lg p-4 ${index !== hackathon.problemStatements.length - 1 ? "mb-4" : ""}`}
                     >
-                      <h3 className="text-lg font-medium mb-1">
+                      <h3 className="text-lg font-medium mb-1 break-words">
                         {problem.code}: {problem.title}
                       </h3>
-                      <p className="text-muted-foreground whitespace-pre-wrap">
+                      <p className="text-muted-foreground whitespace-pre-wrap break-words">
                         {problem.description}
                       </p>
                     </div>
@@ -417,7 +428,7 @@ export default function MasterHackathonDetail({
                   <h3 className="text-lg font-medium mb-4">Hackathon Rules</h3>
                   <ul className="list-decimal list-inside space-y-2">
                     {hackathon.rules.map((rule) => (
-                      <li key={rule.id} className="text-muted-foreground">
+                      <li key={rule.id} className="text-muted-foreground break-words">
                         {rule.rule}
                       </li>
                     ))}
@@ -429,7 +440,7 @@ export default function MasterHackathonDetail({
             <TabsContent value="teams" className="mt-4">
               <Card>
                 <CardHeader>
-                  <div className="flex justify-between items-center">
+                  <div className="flex flex-col md:flex-row md:justify-between md:items-center gap-2">
                     <CardTitle>Registered Teams</CardTitle>
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild>
@@ -437,6 +448,7 @@ export default function MasterHackathonDetail({
                           variant="outline"
                           size="sm"
                           disabled={isExporting || !hackathon.teams || hackathon.teams.length === 0}
+                          className="w-full md:w-auto"
                         >
                           {isExporting ? (
                             <div className="flex items-center">
@@ -474,14 +486,14 @@ export default function MasterHackathonDetail({
                       placeholder="Search by team name..."
                       value={teamSearch}
                       onChange={e => setTeamSearch(e.target.value)}
-                      className="max-w-xs"
+                      className="max-w-xs w-full"
                     />
                   </div>
                 </CardHeader>
                 <CardContent>
                   {hackathon.teams && hackathon.teams.length > 0 ? (
-                    <div className="rounded-md border">
-                      <Table>
+                    <div className="rounded-md border overflow-x-auto">
+                      <Table className="min-w-[600px]">
                         <TableHeader>
                           <TableRow>
                             <TableHead>Team Name</TableHead>
@@ -593,7 +605,7 @@ export default function MasterHackathonDetail({
         </div>
 
         {/* Right sidebar */}
-        <div className="space-y-6">
+        <div className="space-y-6 mt-6 md:mt-0">
           {/* Hackathon status */}
           <Card>
             <CardContent className="pt-6">
