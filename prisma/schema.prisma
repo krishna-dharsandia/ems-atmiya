@@ -221,6 +221,7 @@ model HackathonTeam {
   problemStatementId String?
   teamName           String
   teamId             String?
+  disqualified       Boolean                    @default(false)
   hackathon          Hackathon                  @relation(fields: [hackathonId], references: [id])
   problemStatement   HackathonProblemStatement? @relation(fields: [problemStatementId], references: [id], onDelete: Cascade)
   invites            HackathonTeamInvite[]

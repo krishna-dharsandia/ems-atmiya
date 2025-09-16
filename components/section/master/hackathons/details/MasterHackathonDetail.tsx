@@ -35,13 +35,14 @@ import {
 } from "@/components/ui/table";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
-import { 
-  exportToCSV, 
-  exportToXLSX, 
-  exportToPDF, 
+import {
+  exportToCSV,
+  exportToXLSX,
+  exportToPDF,
   formatTeamData,
-  ExportData 
+  ExportData
 } from "@/utils/functions/exportUtils";
+import { Input } from "@/components/ui/input";
 
 interface ProblemStatement {
   id: string;
@@ -105,22 +106,27 @@ export interface MasterHackathonDetailProps {
     team_size_limit: number | null;
     tags: string[];
     organizer_name: string;
-      organizer_contact: string | null;
-  evaluationCriteria: string[];
-  rules: Rule[];
-  problemStatements: ProblemStatement[];
-  created_at: string;
-  teams: HackathonTeam[];
-  qrCode?: string;
-  qrCodeData?: string;
+    organizer_contact: string | null;
+    evaluationCriteria: string[];
+    rules: Rule[];
+    problemStatements: ProblemStatement[];
+    created_at: string;
+    teams: HackathonTeam[];
+    qrCode?: string;
+    qrCodeData?: string;
   };
+  onTeamClick?: (team: HackathonTeam) => void;
+  onEditTeamClick?: (team: HackathonTeam) => void; // <-- add this prop
 }
 
 export default function MasterHackathonDetail({
   hackathon,
+  onTeamClick,
+  onEditTeamClick, // <-- add to props
 }: MasterHackathonDetailProps) {
   const [activeTab, setActiveTab] = useState("details");
   const [isExporting, setIsExporting] = useState(false);
+  const [teamSearch, setTeamSearch] = useState(""); // <-- search state
   const router = useRouter();
 
   const formatDateTime = (dateString: string, timeString: string) => {
@@ -141,11 +147,11 @@ export default function MasterHackathonDetail({
     }
 
     setIsExporting(true);
-    
+
     try {
       // Format team data for export
       const formattedTeams = formatTeamData(hackathon.teams as unknown as Record<string, unknown>[]);
-      
+
       const exportData: ExportData = {
         teams: formattedTeams
       };
@@ -183,7 +189,7 @@ export default function MasterHackathonDetail({
       // If QR code doesn't exist, generate it
       if (!qrCodeBase64) {
         toast.loading("Generating QR code...");
-        
+
         const response = await fetch(`/api/hackathons/${hackathon.id}/qr-code`, {
           method: 'POST',
         });
@@ -204,7 +210,7 @@ export default function MasterHackathonDetail({
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
-      
+
       toast.success("QR code downloaded successfully");
     } catch (error) {
       console.error("Error downloading QR code:", error);
@@ -390,9 +396,8 @@ export default function MasterHackathonDetail({
                   {hackathon.problemStatements.map((problem, index) => (
                     <div
                       key={problem.id}
-                      className={`border rounded-lg p-4 ${
-                        index !== hackathon.problemStatements.length - 1 ? "mb-4" : ""
-                      }`}
+                      className={`border rounded-lg p-4 ${index !== hackathon.problemStatements.length - 1 ? "mb-4" : ""
+                        }`}
                     >
                       <h3 className="text-lg font-medium mb-1">
                         {problem.code}: {problem.title}
@@ -428,8 +433,8 @@ export default function MasterHackathonDetail({
                     <CardTitle>Registered Teams</CardTitle>
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild>
-                        <Button 
-                          variant="outline" 
+                        <Button
+                          variant="outline"
                           size="sm"
                           disabled={isExporting || !hackathon.teams || hackathon.teams.length === 0}
                         >
@@ -463,6 +468,15 @@ export default function MasterHackathonDetail({
                       </DropdownMenuContent>
                     </DropdownMenu>
                   </div>
+                  {/* Search input for team name */}
+                  <div className="mt-4">
+                    <Input
+                      placeholder="Search by team name..."
+                      value={teamSearch}
+                      onChange={e => setTeamSearch(e.target.value)}
+                      className="max-w-xs"
+                    />
+                  </div>
                 </CardHeader>
                 <CardContent>
                   {hackathon.teams && hackathon.teams.length > 0 ? (
@@ -478,7 +492,9 @@ export default function MasterHackathonDetail({
                           </TableRow>
                         </TableHeader>
                         <TableBody>
-                          {hackathon.teams.map((team) => (
+                          {(hackathon.teams.filter(team =>
+                            team.teamName.toLowerCase().includes(teamSearch.toLowerCase())
+                          )).map((team) => (
                             <TableRow key={team.id}>
                               <TableCell className="font-medium">
                                 {team.teamName}
@@ -501,10 +517,16 @@ export default function MasterHackathonDetail({
                                 )}
                               </TableCell>
                               <TableCell className="text-right">
-                                <Button variant="ghost" size="sm">
-                                  <Eye className="h-4 w-4 mr-1" />
-                                  View Team
-                                </Button>
+                                <div className="flex gap-2 justify-end">
+                                  <Button variant="ghost" size="sm" onClick={() => onTeamClick && onTeamClick(team)}>
+                                    <Eye className="h-4 w-4 mr-1" />
+                                    View Team
+                                  </Button>
+                                  <Button variant="ghost" size="sm" onClick={() => onEditTeamClick && onEditTeamClick(team)}>
+                                    <Edit className="h-4 w-4 mr-1" />
+                                    Edit Team
+                                  </Button>
+                                </div>
                               </TableCell>
                             </TableRow>
                           ))}
@@ -587,8 +609,8 @@ export default function MasterHackathonDetail({
                     {new Date() < new Date(hackathon.registration_start_date)
                       ? "Not Started"
                       : new Date() > new Date(hackathon.registration_end_date)
-                      ? "Closed"
-                      : "Open"}
+                        ? "Closed"
+                        : "Open"}
                   </Badge>
                 </div>
                 <div className="flex justify-between items-center">
@@ -629,8 +651,8 @@ export default function MasterHackathonDetail({
                 </Button>
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
-                    <Button 
-                      variant="outline" 
+                    <Button
+                      variant="outline"
                       className="w-full justify-start"
                       disabled={isExporting || !hackathon.teams || hackathon.teams.length === 0}
                     >
@@ -695,7 +717,7 @@ export default function MasterHackathonDetail({
                     {Math.ceil(
                       (new Date(hackathon.end_date).getTime() -
                         new Date(hackathon.start_date).getTime()) /
-                        (1000 * 60 * 60 * 24)
+                      (1000 * 60 * 60 * 24)
                     )}{" "}
                     days
                   </span>
