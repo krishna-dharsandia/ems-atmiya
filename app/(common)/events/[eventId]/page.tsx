@@ -586,7 +586,7 @@ export default function Page() {
               </Card>
 
               {/* Event Feedback Form - Only for authenticated, onboarded users and after event has ended */}
-              {user && user.user_metadata?.onboarding_complete && event && hasEventEnded(event) && (
+              {user && user.app_metadata?.onboarding_complete && event && hasEventEnded(event) && (
                 <EventFeedbackForm
                   eventId={id}
                   onSuccess={() => {

@@ -19,7 +19,7 @@ export default function QuickActionToggle() {
   if (!user) return null;
 
   function renderBasedOnRole() {
-    const role = user?.user_metadata.role;
+    const role = user?.app_metadata.role;
     switch (role) {
       case Role.ADMIN:
         return (

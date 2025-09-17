@@ -58,7 +58,7 @@ export async function registerInEventAction(eventId: string) {
     return { error: "User not authenticated" };
   }
 
-  if (!user.user_metadata.onboarding_complete) {
+  if (!user.app_metadata.onboarding_complete) {
     return { error: "User onboarding not complete" };
   }
 
@@ -165,7 +165,7 @@ export async function registerInEventAction(eventId: string) {
           html: renderRegistrationConfirmationEmail({
             userFullName: user.user_metadata.full_name || "Participant",
             email: user.email!,
-            role: getDashboardPath(user.user_metadata.role || "STUDENT"),
+            role: getDashboardPath(user.app_metadata.role || "STUDENT"),
             eventName: event.name,
             eventDate: formattedEventDate,
             eventTime: formattedEventTime,

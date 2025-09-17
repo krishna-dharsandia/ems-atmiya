@@ -14,7 +14,7 @@ export async function submitEventFeedback(eventId: string, data: EventFeedbackSc
     return { error: "User not authenticated" };
   }
 
-  if (!user.user_metadata.onboarding_complete) {
+  if (!user.app_metadata.onboarding_complete) {
     return { error: "User onboarding not complete" };
   }
 

@@ -75,11 +75,10 @@ export default function AdminOverview() {
     <div>
       <div className="flex items-start justify-between mb-4">
         <Heading
-          title={`Welcome Back - ${
-            user?.user_metadata.full_name
+          title={`Welcome Back - ${user?.user_metadata.full_name
               ? user?.user_metadata.full_name
               : "Admin"
-          }`}
+            }`}
           description="Platform-wide insights and analytics for the entire system."
         />
         <Button className="mb-4">

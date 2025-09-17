@@ -13,7 +13,7 @@ export async function deleteEventAction(id: string) {
     return { success: false, error: "Unauthorized" };
   }
 
-  if (user.user_metadata.role !== Role.MASTER && user.user_metadata.role !== Role.ADMIN) {
+  if (user.app_metadata.role !== Role.MASTER && user.app_metadata.role !== Role.ADMIN) {
     return { success: false, error: "Insufficient Permission" };
   }
 

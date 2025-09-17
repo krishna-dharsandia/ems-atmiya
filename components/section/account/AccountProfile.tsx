@@ -8,9 +8,8 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
 import { Badge } from "@/components/ui/badge";
-import { createClient } from "@/utils/supabase/client";
 import { toast } from "sonner";
-import { User, Mail, Phone, MapPin, Calendar, UserCheck, Edit3, Save, X, QrCode, Download, RefreshCw } from "lucide-react";
+import { User, Mail, Calendar, UserCheck, Edit3, Save, X, QrCode, Download, RefreshCw } from "lucide-react";
 import Image from "next/image";
 import { useAuth } from "@/contexts/AuthContext";
 
@@ -56,7 +55,6 @@ export function AccountProfile({ role }: AccountProfileProps) {
     phone: "",
   });
 
-  const supabase = createClient();
   const { user: authUser, loading: authLoading } = useAuth();
 
   useEffect(() => {
@@ -77,7 +75,7 @@ export function AccountProfile({ role }: AccountProfileProps) {
         ...authUser,
         full_name: authUser.user_metadata?.full_name || "",
         phone: authUser.user_metadata?.phone || "",
-        role: authUser.user_metadata?.role || role
+        role: authUser.app_metadata?.role || role
       });
       setFormData({
         full_name: authUser.user_metadata?.full_name || authUser.email?.split('@')[0] || "",

@@ -84,7 +84,7 @@ export function LandingHeader() {
               </>
             ) : (
               <>
-                <Link href={getDashboardPath(user.user_metadata.role)}>
+                <Link href={getDashboardPath(user.app_metadata.role)}>
                   <Button variant="default">
                     Profile
                   </Button>
@@ -139,7 +139,7 @@ export function LandingHeader() {
                     </>
                   ) : (
                     <>
-                      <Link href={getDashboardPath(user.user_metadata.role)} onClick={() => setIsMenuOpen(false)}>
+                      <Link href={getDashboardPath(user.app_metadata.role)} onClick={() => setIsMenuOpen(false)}>
                         <Button variant="ghost" className="w-full justify-start text-foreground">
                           Profile
                         </Button>

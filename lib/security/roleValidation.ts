@@ -18,13 +18,13 @@ export async function validateUserRole(userId: string): Promise<{
 
     // Get user from Supabase
     const { data: { user }, error: supabaseError } = await supabase.auth.getUser();
-    
+
     if (supabaseError || !user || user.id !== userId) {
       await prisma.$disconnect();
       return { isValid: false, error: "User not found in Supabase" };
     }
 
-    const supabaseRole = user.user_metadata?.role;
+    const supabaseRole = user.app_metadata?.role;
 
     // Get user from database
     const dbUser = await prisma.user.findUnique({
@@ -42,8 +42,8 @@ export async function validateUserRole(userId: string): Promise<{
     // Handle case where both roles are undefined (new user or data inconsistency)
     if (!supabaseRole && !databaseRole) {
       await prisma.$disconnect();
-      return { 
-        isValid: false, 
+      return {
+        isValid: false,
         error: "No role assigned to user",
         supabaseRole: undefined,
         databaseRole: undefined
@@ -138,7 +138,7 @@ export async function syncUserRole(userId: string): Promise<{
  * Validates that a user has the required role for an operation
  */
 export async function requireRole(
-  userId: string, 
+  userId: string,
   requiredRoles: string[]
 ): Promise<{
   hasAccess: boolean;
@@ -147,23 +147,23 @@ export async function requireRole(
 }> {
   try {
     const roleValidation = await validateUserRole(userId);
-    
+
     if (!roleValidation.isValid) {
       // Attempt to sync the role
       const syncResult = await syncUserRole(userId);
       if (!syncResult.success) {
-        return { 
-          hasAccess: false, 
-          error: `Role validation failed: ${roleValidation.error}` 
+        return {
+          hasAccess: false,
+          error: `Role validation failed: ${roleValidation.error}`
         };
       }
-      
+
       // Re-validate after sync
       const reValidation = await validateUserRole(userId);
       if (!reValidation.isValid) {
-        return { 
-          hasAccess: false, 
-          error: "Role sync failed" 
+        return {
+          hasAccess: false,
+          error: "Role sync failed"
         };
       }
     }

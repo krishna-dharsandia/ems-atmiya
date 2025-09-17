@@ -63,9 +63,9 @@ export async function updateSession(request: NextRequest) {
 
   // Handle authenticated users
   if (user) {
-    const onboardingComplete = user.user_metadata?.onboarding_complete;
+    const onboardingComplete = user.app_metadata?.onboarding_complete;
 
-    const accessPath = getAccessPath(user.user_metadata?.role);
+    const accessPath = getAccessPath(user.app_metadata?.role);
 
     // If user is authenticated and tries to access login/register, redirect to dashboard
     if (isAuthRoute(currentPath)) {

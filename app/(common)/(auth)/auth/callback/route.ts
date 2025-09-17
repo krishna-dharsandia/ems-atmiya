@@ -15,7 +15,8 @@ export async function GET(request: Request) {
       } = await supabase.auth.getUser();
 
       if (user) {
-        const currentMetadata = user.user_metadata;
+        const currentMetadata = user.app_metadata;
+        const userMetadata = user.user_metadata;
 
         if (!currentMetadata?.role) {
           // This is a new user without role, set it as STUDENT
@@ -24,10 +25,7 @@ export async function GET(request: Request) {
               role: "STUDENT",
               onboarding_complete: false,
               // Preserve the full_name from Google if available
-              full_name: currentMetadata?.full_name ||
-                currentMetadata?.name ||
-                `${currentMetadata?.given_name || ""} ${currentMetadata?.family_name || ""}`.trim() ||
-                "",
+              full_name: userMetadata?.full_name || userMetadata?.name || `${userMetadata?.given_name || ""} ${userMetadata?.family_name || ""}`.trim() || "",
             },
           });
 

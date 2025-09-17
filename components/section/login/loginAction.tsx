@@ -27,5 +27,5 @@ export async function login(data: LoginSchema, captchaToken: string) {
     return { error: error ? error.message : "Failed to login user with Supabase" };
   }
 
-  return { success: true, message: user.user_metadata.role };
+  return { success: true, message: user.app_metadata.role };
 }

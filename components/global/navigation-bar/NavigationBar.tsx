@@ -67,7 +67,7 @@ export default function NavigationBar() {
               <Button variant="outline" className="hidden sm:inline-flex rounded-full" onClick={handleSignout}>
                 Sign Out
               </Button>
-              <Button className="rounded-full" onClick={() => router.push(getDashboardPath(user.user_metadata.role))}>
+              <Button className="rounded-full" onClick={() => router.push(getDashboardPath(user.app_metadata.role))}>
                 Dashboard
               </Button>
             </>

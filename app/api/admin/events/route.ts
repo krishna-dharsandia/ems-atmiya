@@ -12,7 +12,7 @@ export async function GET() {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  if (user.user_metadata.role != Role.ADMIN) {
+  if (user.app_metadata.role != Role.ADMIN) {
     return NextResponse.json({ error: "Insufficent Permission" }, { status: 401 });
   }
 
