@@ -4,14 +4,24 @@ import { NextResponse } from "next/server";
 
 export async function GET() {
   const supabase = await createClient();
-  const user = await supabase.auth.getUser();
+  const { data: { user }, error: authError } = await supabase.auth.getUser();
 
-  if (!user) {
+  if (authError || !user) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
   const prisma = new PrismaClient();
   try {
+    // ✅ SECURITY FIX: Check role in database, not Supabase metadata
+    const dbUser = await prisma.user.findUnique({
+      where: { supabaseId: user.id },
+      select: { role: true }
+    });
+
+    if (!dbUser || !["ADMIN", "MASTER"].includes(dbUser.role)) {
+      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+    }
+
     const students = await prisma.student.findMany({
       include: {
         department: true,

@@ -12,10 +12,18 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  if (user.user_metadata.role !== Role.MASTER) {
+  // Check role in database, not Supabase metadata
+  const prisma = new PrismaClient();
+  const dbUser = await prisma.user.findUnique({
+    where: { supabaseId: user.id },
+    select: { role: true }
+  });
+
+  if (!dbUser || dbUser.role !== Role.MASTER) {
+    await prisma.$disconnect();
     return NextResponse.json(
-      { error: "Insufficent Permission" },
-      { status: 401 }
+      { error: "Insufficient Permission" },
+      { status: 403 }
     );
   }
 
@@ -26,7 +34,6 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ error: "Missing event ID" }, { status: 400 });
   }
 
-  const prisma = new PrismaClient();
   try {
     const registrations = await prisma.eventRegistration.findMany({
       where: {

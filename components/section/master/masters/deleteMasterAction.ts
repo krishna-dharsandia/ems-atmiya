@@ -5,14 +5,39 @@ import { PrismaClient } from "@prisma/client";
 
 export default async function destroyMaster(id: string) {
   const supabase = await createClient();
-  const user = await supabase.auth.getUser();
+  const { data: { user }, error: authError } = await supabase.auth.getUser();
 
-  if (!user.data.user) {
+  if (authError || !user) {
     return { error: "User not authenticated" };
   }
 
   const prisma = new PrismaClient();
   try {
+    // ✅ SECURITY FIX: Check role in database, not Supabase metadata
+    const dbUser = await prisma.user.findUnique({
+      where: { supabaseId: user.id },
+      select: { role: true }
+    });
+
+    if (!dbUser || dbUser.role !== "MASTER") {
+      return { error: "Only masters can delete other masters" };
+    }
+
+    // ✅ SECURITY FIX: Validate input
+    if (!id || typeof id !== 'string' || id.trim().length === 0) {
+      return { error: "Invalid master ID" };
+    }
+
+    // ✅ SECURITY FIX: Prevent self-deletion
+    const masterToDelete = await prisma.master.findUnique({
+      where: { id },
+      select: { userId: true }
+    });
+
+    if (masterToDelete && masterToDelete.userId === user.id) {
+      return { error: "Cannot delete your own master account" };
+    }
+
     await prisma.master.delete({
       where: { id },
     });

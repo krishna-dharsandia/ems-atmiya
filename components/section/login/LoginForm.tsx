@@ -16,8 +16,8 @@ import { Button } from "@/components/ui/button";
 import { login } from "./loginAction";
 import { toast } from "sonner";
 import { getDashboardPath } from "@/utils/functions/getDashboardPath";
-import { useRouter } from "next/navigation";
-import { useState, useRef } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
+import { useState, useRef, useEffect } from "react";
 import {
   Card,
   CardContent,
@@ -39,6 +39,7 @@ export default function LoginForm() {
   const [showPassword, setShowPassword] = useState(false);
   const { refreshUser } = useAuth();
   const router = useRouter();
+  const searchParams = useSearchParams();
   const form = useForm<LoginSchema>({
     resolver: zodResolver(loginSchema),
     defaultValues: {
@@ -46,6 +47,32 @@ export default function LoginForm() {
       password: "",
     },
   });
+
+  // Handle error messages from URL parameters (e.g., from direct logout)
+  useEffect(() => {
+    const error = searchParams.get('error');
+    if (error) {
+      switch (error) {
+        case 'role_mismatch':
+          toast.error("Your session was terminated due to a security concern. Please log in again.");
+          break;
+        case 'validation_error':
+          toast.error("Session validation failed. Please log in again.");
+          break;
+        case 'user_initiated':
+          toast.success("You have been logged out successfully.");
+          break;
+        case 'logout_failed':
+          toast.error("Logout failed. Please try again.");
+          break;
+        case 'security_logout_failed':
+          toast.error("Security logout failed. Please contact support if this persists.");
+          break;
+        default:
+          toast.error("An error occurred. Please log in again.");
+      }
+    }
+  }, [searchParams]);
 
   async function onSubmit(data: LoginSchema) {
     const response = await login(data, captchaToken);

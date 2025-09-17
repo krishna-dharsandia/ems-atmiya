@@ -299,7 +299,7 @@ export function TeamManagement({
 
                     {/* Team Info */}
                     <div className="bg-blue-50 border-l-4 border-blue-400 p-4 rounded">
-                      <div className="flex items-center">
+                      <div className="flex items-start">
                         <Users className="h-5 w-5 text-blue-400 mr-2" />
                         <div>
                           <p className="text-blue-700 font-medium">Team Member View</p>

@@ -94,15 +94,21 @@ export function AccountProfile({ role }: AccountProfileProps) {
   const handleSave = async () => {
     setSaving(true);
     try {
-      const { error } = await supabase.auth.updateUser({
-        data: {
+      // Use a secure API endpoint instead of direct supabase.auth.updateUser
+      const response = await fetch('/api/user/profile', {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
           full_name: formData.full_name,
           phone: formData.phone,
-        }
+        }),
       });
 
-      if (error) {
-        toast.error("Failed to update profile");
+      if (!response.ok) {
+        const errorData = await response.json();
+        toast.error(errorData.error || "Failed to update profile");
         return;
       }
 

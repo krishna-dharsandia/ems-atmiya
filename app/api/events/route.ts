@@ -2,6 +2,7 @@ import { PrismaClient } from "@prisma/client";
 import { NextResponse } from "next/server";
 
 export async function GET() {
+  
   const prisma = new PrismaClient();
 
   try {
@@ -25,7 +26,7 @@ export async function GET() {
     return NextResponse.json(events);
   } catch (error) {
     console.error("Error fetching events:", error);
-    return NextResponse.json("Failed to fetch events", { status: 500 });
+    return NextResponse.json({ error: "Failed to fetch events" }, { status: 500 });
   } finally {
     await prisma.$disconnect();
   }

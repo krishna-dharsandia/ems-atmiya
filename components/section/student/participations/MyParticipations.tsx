@@ -51,7 +51,7 @@ export function MyParticipations({
         // Refresh the page after response
         setTimeout(() => {
           window.location.reload();
-        }, 1000);
+        }, 0);
       }
     } catch (error) {
       console.error("Error responding to invitation:", error);

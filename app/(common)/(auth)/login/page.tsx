@@ -4,6 +4,7 @@ import Image from "next/image";
 import LoginForm from "@/components/section/login/LoginForm";
 import { GalleryVerticalEnd } from "lucide-react";
 import Link from "next/link";
+import { Suspense } from "react";
 
 export default function LoginPage() {
 
@@ -19,11 +20,12 @@ export default function LoginPage() {
             </div>
             EMS
           </Link>
-        </div>
-        {/* Form centered vertically */}
+        </div>        {/* Form centered vertically */}
         <div className="flex flex-1 items-center justify-center w-full h-full">
           <div className="w-full px-1 md:px-8">
-            <LoginForm />
+            <Suspense fallback={<div>Loading...</div>}>
+              <LoginForm />
+            </Suspense>
           </div>
         </div>
       </div>

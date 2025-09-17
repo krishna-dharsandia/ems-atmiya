@@ -28,7 +28,21 @@ export async function POST(request: NextRequest) {
         raw_app_meta_data.provider !== "google" &&
         raw_user_meta_data.role !== "STUDENT"
       ) {
-        return NextResponse.json({ error: "Invalid role" }, { status: 403 });
+        console.error("Invalid role assignment attempt:", {
+          provider: raw_app_meta_data.provider,
+          attemptedRole: raw_user_meta_data.role,
+          email: email
+        });
+        return NextResponse.json({ error: "Invalid role assignment" }, { status: 403 });
+      }
+
+      if (raw_app_meta_data.provider === "google" && raw_user_meta_data.role && raw_user_meta_data.role !== "STUDENT") {
+        console.error("Unauthorized role assignment for Google user:", {
+          provider: raw_app_meta_data.provider,
+          attemptedRole: raw_user_meta_data.role,
+          email: email
+        });
+        return NextResponse.json({ error: "Unauthorized role assignment" }, { status: 403 });
       }
 
       const fullName = raw_user_meta_data?.full_name || "";

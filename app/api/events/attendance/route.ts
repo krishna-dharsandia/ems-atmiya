@@ -12,10 +12,18 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ success: false, error: "Unauthorized" }, { status: 401 });
   }
 
-  if (user.user_metadata.role !== Role.MASTER) {
+  // Check role in database, not Supabase metadata
+  const prisma = new PrismaClient();
+  const dbUser = await prisma.user.findUnique({
+    where: { supabaseId: user.id },
+    select: { role: true }
+  });
+
+  if (!dbUser || dbUser.role !== Role.MASTER) {
+    await prisma.$disconnect();
     return NextResponse.json(
       { success: false, error: "Insufficient Permission" },
-      { status: 401 }
+      { status: 403 }
     );
   }
 
@@ -30,7 +38,6 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ success: false, error: "Missing User Id" }, { status: 400 });
   }
 
-  const prisma = new PrismaClient();
   try {
     await prisma.eventRegistration.update({
       where: {
