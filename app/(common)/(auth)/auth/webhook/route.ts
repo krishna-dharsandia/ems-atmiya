@@ -1,3 +1,4 @@
+import { createClient } from "@/utils/supabase/server";
 import { PrismaClient } from "@prisma/client";
 import { NextRequest, NextResponse } from "next/server";
 
@@ -5,6 +6,7 @@ export async function POST(request: NextRequest) {
   const body = await request.json();
   const url = new URL(request.url);
   const searchParams = url.searchParams;
+  const supabase = await createClient();
 
   const token = searchParams.get("token");
 
@@ -24,25 +26,37 @@ export async function POST(request: NextRequest) {
         raw_app_meta_data,
       });
 
-      if (
-        raw_app_meta_data.provider !== "google" &&
-        raw_app_meta_data.role !== "STUDENT"
-      ) {
-        console.error("Invalid role assignment attempt:", {
-          provider: raw_app_meta_data.provider,
-          attemptedRole: raw_app_meta_data.role,
-          email: email
-        });
-        return NextResponse.json({ error: "Invalid role assignment" }, { status: 403 });
-      }
+      // if (
+      //   raw_app_meta_data.provider !== "google" &&
+      //   raw_app_meta_data.role !== "STUDENT"
+      // ) {
+      //   console.error("Invalid role assignment attempt:", {
+      //     provider: raw_app_meta_data.provider,
+      //     attemptedRole: raw_app_meta_data.role,
+      //     email: email
+      //   });
+      //   return NextResponse.json({ error: "Invalid role assignment" }, { status: 403 });
+      // }
 
-      if (raw_app_meta_data.provider === "google" && raw_app_meta_data.role && raw_app_meta_data.role !== "STUDENT") {
-        console.error("Unauthorized role assignment for Google user:", {
-          provider: raw_app_meta_data.provider,
-          attemptedRole: raw_app_meta_data.role,
-          email: email
-        });
-        return NextResponse.json({ error: "Unauthorized role assignment" }, { status: 403 });
+      // if (raw_app_meta_data.provider === "google" && raw_app_meta_data.role && raw_app_meta_data.role !== "STUDENT") {
+      //   console.error("Unauthorized role assignment for Google user:", {
+      //     provider: raw_app_meta_data.provider,
+      //     attemptedRole: raw_app_meta_data.role,
+      //     email: email
+      //   });
+      //   return NextResponse.json({ error: "Unauthorized role assignment" }, { status: 403 });
+      // }
+
+      const { error } = await supabase.auth.admin.updateUserById(id, {
+        app_metadata: {
+          role: "STUDENT",
+          onboarding_complete: false,
+        }
+      });
+
+      if (error) {
+        console.error("Error setting user role during webhook processing:", error);
+        return NextResponse.json({ error: "Failed to set user role" }, { status: 500 });
       }
 
       const fullName = raw_user_meta_data?.full_name || "";

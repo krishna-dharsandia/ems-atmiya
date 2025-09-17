@@ -18,8 +18,6 @@ export async function registerStudent(data: RegisterStudentSchema, captchaToken:
     password,
     options: {
       data: {
-        role: "STUDENT",
-        onboarding_complete: false,
         full_name: `${firstName} ${lastName}`,
       },
       emailRedirectTo: `${process.env.BASE_URL}/onboarding`,

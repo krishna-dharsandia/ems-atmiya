@@ -4,7 +4,6 @@ import { QRCodeService } from "@/lib/qr-code";
 import { onboardingStudentSchema, OnboardingStudentSchema } from "@/schemas/onboardingStudentSchema";
 import { createClient } from "@/utils/supabase/server";
 import { PrismaClient } from "@prisma/client";
-import axios from "axios";
 
 export async function onboardingStudent(data: OnboardingStudentSchema) {
   const validatedData = onboardingStudentSchema.safeParse(data);
@@ -68,8 +67,8 @@ export async function onboardingStudent(data: OnboardingStudentSchema) {
       }
     });
 
-    await supabase.auth.updateUser({
-      data: {
+    await supabase.auth.admin.updateUserById(user.id, {
+      app_metadata: {
         role: "STUDENT",
         onboarding_complete: true,
       },

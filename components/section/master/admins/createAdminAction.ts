@@ -24,8 +24,6 @@ export async function createAdminAction(data: AdminSchema, captchaToken: string)
     password,
     options: {
       data: {
-        role: "ADMIN",
-        onboarding_complete: true,
         full_name: `${firstName} ${lastName}`,
       },
       emailRedirectTo: "http://localhost:3000/admin",

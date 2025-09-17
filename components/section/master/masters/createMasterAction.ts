@@ -23,8 +23,6 @@ export async function createMasterAction(data: MasterSchema, captchaToken: strin
     password,
     options: {
       data: {
-        role: "MASTER",
-        onboarding_complete: true,
         full_name: `${firstName} ${lastName}`,
       },
       emailRedirectTo: "http://localhost:3000/masters",
