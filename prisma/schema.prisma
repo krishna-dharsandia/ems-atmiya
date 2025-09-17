@@ -14,7 +14,7 @@ model User {
   createdAt          DateTime            @default(now())
   updatedAt          DateTime            @updatedAt
   firstName          String
-  lastName           String
+  lastName           String?             @default("")
   supabaseId         String              @unique
   qrCode             String?
   qrCodeData         String?
