@@ -94,7 +94,7 @@ export async function createHackathonAction(data: FormattedHackathonSchema) {
       // Don't fail the entire hackathon creation if QR code generation fails
     }
 
-    let users: { email: string; firstName: string; lastName: string }[] = [];
+    let users: { email: string; firstName: string; lastName: string | null }[] = [];
     try {
       users = await prisma.user.findMany({
         select: {

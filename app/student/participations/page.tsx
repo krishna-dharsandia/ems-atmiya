@@ -162,10 +162,10 @@ export default async function ParticipationsPage() {
     const participations = teamMemberships.map((membership) => {
       const team = membership.team;
       const hackathon = team.hackathon;
-      
+
       // Determine if current student is team owner (first member)
       const isTeamOwner = team.members.length > 0 && team.members[0].studentId === student.id;
-      
+
       return {
         id: hackathon.id,
         hackathon: {
@@ -238,8 +238,6 @@ export default async function ParticipationsPage() {
         <MyParticipations
           participations={participations as Participation[]}
           pendingInvitations={pendingInvitations as PendingInvitation[]}
-          currentUser={student.user}
-          studentId={student.id}
         />
       </ErrorBoundary>
     );

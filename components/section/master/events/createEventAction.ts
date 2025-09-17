@@ -60,7 +60,7 @@ export async function createEventAction(data: FormattedEventSchema) {
       // Don't fail the entire event creation if QR code generation fails
     }
 
-    let users: { email: string; firstName: string; lastName: string }[] = [];
+    let users: { email: string; firstName: string; lastName: string | null }[] = [];
     try {
       users = await prisma.user.findMany({
         select: {

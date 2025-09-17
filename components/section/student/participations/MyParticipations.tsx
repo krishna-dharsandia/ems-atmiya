@@ -16,15 +16,11 @@ import { Participation, PendingInvitation, User } from "@/types/hackathon";
 interface MyParticipationsProps {
   participations: Participation[];
   pendingInvitations: PendingInvitation[];
-  currentUser: User;
-  studentId: string;
 }
 
 export function MyParticipations({
   participations,
-  pendingInvitations,
-  currentUser,
-  studentId,
+  pendingInvitations
 }: MyParticipationsProps) {
   const [activeTab, setActiveTab] = useState("participations");
   const [isResponding, setIsResponding] = useState(false);
