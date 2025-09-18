@@ -183,6 +183,8 @@ model Hackathon {
   organizer_contact       String?
   evaluationCriteria      String[]
   team_size_limit         Int?
+  open_submissions        Boolean                     @default(true)
+  open_registrations      Boolean                     @default(true)
   created_at              DateTime                    @default(now())
   updated_at              DateTime                    @updatedAt
   qrCode                  String?

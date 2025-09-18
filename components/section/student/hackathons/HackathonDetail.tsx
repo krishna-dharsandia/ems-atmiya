@@ -255,11 +255,11 @@ export default function HackathonDetail({
             <CardContent className="pt-6">
               <h3 className="text-lg font-medium mb-2">Registration Status</h3>
               <div className="flex justify-between items-center mb-4">
-                <span className="text-sm text-muted-foreground">
+                {/* <span className="text-sm text-muted-foreground">
                   {hackathon.registration_limit
                     ? `Limited to ${hackathon.registration_limit} teams`
-                    : "No team limit"}
-                </span>
+                    : "No registration limit"}
+                </span> */}
                 <Badge variant="outline">{hackathon.team_size_limit || 5} members per team</Badge>
               </div>
 

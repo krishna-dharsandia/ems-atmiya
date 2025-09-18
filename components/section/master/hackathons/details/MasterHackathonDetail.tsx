@@ -17,7 +17,11 @@ import {
   Eye,
   Award,
   FileText,
-  ChevronDown
+  ChevronDown,
+  DoorClosed,
+  DoorOpen,
+  Captions,
+  CaptionsOff
 } from "lucide-react";
 import {
   DropdownMenu,
@@ -43,6 +47,8 @@ import {
   ExportData
 } from "@/utils/functions/exportUtils";
 import { Input } from "@/components/ui/input";
+import { toggleHackathonRegistration } from "./hackathonRegistrationTogglerAction";
+import { toggleHackathonSubmission } from "./hackathonSubmissionsTogglerAction";
 
 interface ProblemStatement {
   id: string;
@@ -108,6 +114,8 @@ export interface MasterHackathonDetailProps {
     organizer_name: string;
     organizer_contact: string | null;
     evaluationCriteria: string[];
+    open_submissions: boolean;
+    open_registrations: boolean;
     rules: Rule[];
     problemStatements: ProblemStatement[];
     created_at: string;
@@ -232,6 +240,26 @@ export default function MasterHackathonDetail({
     }
   };
 
+  const handleToggleRegistrations = async () => {
+    const res = await toggleHackathonRegistration(hackathon.id);
+    if (res.success) {
+      toast.success(res.message);
+      router.refresh();
+    } else {
+      toast.error(res.message);
+    }
+  }
+
+  const handleToggleSubmissions = async () => {
+    const res = await toggleHackathonSubmission(hackathon.id);
+    if (res.success) {
+      toast.success(res.message);
+      router.refresh();
+    } else {
+      toast.error(res.message);
+    }
+  }
+
   return (
     <div className="container mx-auto py-8 px-2 sm:px-4">
       <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center mb-6 gap-4">
@@ -297,24 +325,24 @@ export default function MasterHackathonDetail({
             </Badge>
           </div>
 
-            <Tabs defaultValue="details" value={activeTab} onValueChange={setActiveTab}>
+          <Tabs defaultValue="details" value={activeTab} onValueChange={setActiveTab}>
             <TabsList
               className="flex flex-nowrap overflow-x-auto gap-2 md:gap-0 md:flex-wrap"
             >
               <TabsTrigger value="details" className="flex-shrink-0">
-              Details
+                Details
               </TabsTrigger>
               <TabsTrigger value="problems" className="flex-shrink-0">
-              Problem Statements
+                Problem Statements
               </TabsTrigger>
               <TabsTrigger value="rules" className="flex-shrink-0">
-              Rules
+                Rules
               </TabsTrigger>
               <TabsTrigger value="teams" className="flex-shrink-0">
-              Teams
+                Teams
               </TabsTrigger>
               <TabsTrigger value="statistics" className="flex-shrink-0">
-              Statistics
+                Statistics
               </TabsTrigger>
             </TabsList>
 
@@ -649,6 +677,22 @@ export default function MasterHackathonDetail({
             <CardContent className="pt-6">
               <h3 className="text-lg font-medium mb-4">Quick Actions</h3>
               <div className="space-y-2">
+                <Button variant={"outline"} className="w-full justify-start" onClick={handleToggleRegistrations}>
+                  {hackathon.open_registrations ? (
+                    <DoorClosed className="mr-2 h-4 w-4" />
+                  ) : (
+                    <DoorOpen className="mr-2 h-4 w-4" />
+                  )}
+                  {hackathon.open_registrations ? "Close Registrations" : "Open Registrations"}
+                </Button>
+                <Button variant={"outline"} className="w-full justify-start" onClick={handleToggleSubmissions}>
+                  {hackathon.open_submissions ? (
+                    <Captions className="mr-2 h-4 w-4" />
+                  ) : (
+                    <CaptionsOff className="mr-2 h-4 w-4" />
+                  )}
+                  {hackathon.open_submissions ? "Close Submissions" : "Open Submissions"}
+                </Button>
                 <Button variant="outline" className="w-full justify-start">
                   <Users className="mr-2 h-4 w-4" />
                   Manage Attendance

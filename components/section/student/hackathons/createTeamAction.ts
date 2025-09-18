@@ -24,6 +24,20 @@ export async function createTeamAction(teamData: TeamSchema, hackathonId: string
   const prisma = new PrismaClient();
 
   try {
+    const hackathon = await prisma.hackathon.findUnique({
+      where: { id: hackathonId },
+    });
+    if (!hackathon || !hackathon.open_registrations) {
+      return { error: "Registrations are closed for this hackathon" };
+    }
+  } catch (error) {
+    console.error("Error creating team:", error);
+    return { error: "Failed to create team" };
+  } finally {
+    await prisma.$disconnect();
+  }
+
+  try {
     // Check if user is a student
     const student = await prisma.student.findFirst({
       where: {
