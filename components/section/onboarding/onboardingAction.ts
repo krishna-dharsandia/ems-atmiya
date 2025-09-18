@@ -2,6 +2,7 @@
 
 import { QRCodeService } from "@/lib/qr-code";
 import { onboardingStudentSchema, OnboardingStudentSchema } from "@/schemas/onboardingStudentSchema";
+import { createAdminClient } from "@/utils/supabase/admin-server";
 import { createClient } from "@/utils/supabase/server";
 import { PrismaClient } from "@prisma/client";
 
@@ -13,6 +14,8 @@ export async function onboardingStudent(data: OnboardingStudentSchema) {
 
   const prisma = new PrismaClient();
   const supabase = await createClient();
+  const adminSupabase = await createAdminClient();
+
   const {
     data: { user },
   } = await supabase.auth.getUser();
@@ -67,7 +70,7 @@ export async function onboardingStudent(data: OnboardingStudentSchema) {
       }
     });
 
-    await supabase.auth.admin.updateUserById(user.id, {
+    await adminSupabase.auth.admin.updateUserById(user.id, {
       app_metadata: {
         role: "STUDENT",
         onboarding_complete: true,
