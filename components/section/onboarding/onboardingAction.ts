@@ -70,6 +70,35 @@ export async function onboardingStudent(data: OnboardingStudentSchema) {
       }
     });
 
+    const invitedUser = await prisma.hackathonTemporaryInvite.findFirst({
+      where: { email: user.email },
+    })
+
+    if (invitedUser) {
+      const invitedStudent = await prisma.user.findFirst({
+        where: { email: invitedUser.email },
+        select: {
+          students: {
+            select: { id: true }
+          }
+        }
+      })
+
+      if (invitedStudent && invitedStudent.students) {
+        await prisma.$transaction([
+          prisma.hackathonTeamInvite.create({
+            data: {
+              teamId: invitedUser.teamId,
+              studentId: invitedStudent.students.id,
+            }
+          }),
+          prisma.hackathonTemporaryInvite.delete({
+            where: { id: invitedUser.id }
+          })
+        ])
+      }
+    }
+
     await adminSupabase.auth.admin.updateUserById(user.id, {
       app_metadata: {
         role: "STUDENT",

@@ -1,7 +1,9 @@
 "use server";
 
+import { sendMail } from "@/utils/functions/sendMail";
 import { createClient } from "@/utils/supabase/server";
 import { PrismaClient } from "@prisma/client";
+import { generateHackathonInvitationEmail } from "./mail/template";
 
 export async function inviteTeamMemberAction(teamId: string, studentEmail: string) {
   const supabase = await createClient();
@@ -67,7 +69,29 @@ export async function inviteTeamMemberAction(teamId: string, studentEmail: strin
     });
 
     if (!invitedUser) {
-      return { error: "User not found with that email" };
+      await prisma.hackathonTemporaryInvite.create({
+        data: {
+          email: studentEmail,
+          teamId: team.hackathon.id,
+        },
+      })
+
+      await sendMail({
+        to: studentEmail,
+        subject: `Invitation to join hackathon team "${team.teamName}"`,
+        html: generateHackathonInvitationEmail({
+          hackathonName: team.hackathon.name,
+          hackathonId: team.hackathon.id,
+          hackathonStartDate: team.hackathon.start_date,
+          hackathonEndDate: team.hackathon.end_date,
+          registrationStartDate: team.hackathon.registration_start_date,
+          registrationEndDate: team.hackathon.registration_end_date,
+          name: "User",
+          email: studentEmail,
+        }),
+      })
+
+      return { error: `No student found with email ${studentEmail}. An invitation has been sent to this email address. If the user registers as a student, they will be able to join the team.` };
     }
 
     if (!invitedUser.students || !invitedUser.students) {

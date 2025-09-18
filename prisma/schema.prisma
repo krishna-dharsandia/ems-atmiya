@@ -216,19 +216,20 @@ model HackathonRules {
 }
 
 model HackathonTeam {
-  id                 String                     @id @default(uuid())
-  mentor             String
-  mentor_mail        String
-  hackathonId        String
-  problemStatementId String?
-  teamName           String
-  teamId             String?
-  disqualified       Boolean                    @default(false)
-  submissionUrl      String?
-  hackathon          Hackathon                  @relation(fields: [hackathonId], references: [id])
-  problemStatement   HackathonProblemStatement? @relation(fields: [problemStatementId], references: [id], onDelete: Cascade)
-  invites            HackathonTeamInvite[]
-  members            HackathonTeamMember[]
+  id                       String                     @id @default(uuid())
+  mentor                   String
+  mentor_mail              String
+  hackathonId              String
+  problemStatementId       String?
+  teamName                 String
+  teamId                   String?
+  disqualified             Boolean                    @default(false)
+  submissionUrl            String?
+  hackathon                Hackathon                  @relation(fields: [hackathonId], references: [id])
+  problemStatement         HackathonProblemStatement? @relation(fields: [problemStatementId], references: [id], onDelete: Cascade)
+  invites                  HackathonTeamInvite[]
+  members                  HackathonTeamMember[]
+  HackathonTemporaryInvite HackathonTemporaryInvite[]
 }
 
 model HackathonTeamMember {
@@ -238,6 +239,13 @@ model HackathonTeamMember {
   attended  Boolean       @default(false)
   student   Student       @relation(fields: [studentId], references: [id])
   team      HackathonTeam @relation(fields: [teamId], references: [id], onDelete: Cascade)
+}
+
+model HackathonTemporaryInvite {
+  id     String        @id @default(uuid())
+  email  String        @unique
+  teamId String
+  team   HackathonTeam @relation(fields: [teamId], references: [id], onDelete: Cascade)
 }
 
 model HackathonTeamInvite {
