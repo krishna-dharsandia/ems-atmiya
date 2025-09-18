@@ -42,7 +42,7 @@ export default function Page() {
         <DataTable
           data={data}
           columns={columns}
-          search={{ column: "user.email", placeholder: "Search Student" }}
+          search={{ column: "email", placeholder: "Search Student" }}
           noData={{
             icon: <CircleQuestionMark size={40} />,
             title: "No results found",

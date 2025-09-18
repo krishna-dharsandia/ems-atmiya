@@ -55,7 +55,8 @@ export const columns: ColumnDef<Student>[] = [
     },
   },
   {
-    accessorKey: "user.email",
+    accessorFn: (row) => row.user.email,
+    id: "email",
     header: "Email",
     size: 200,
     minSize: 150,
@@ -68,7 +69,7 @@ export const columns: ColumnDef<Student>[] = [
         </div>
       );
     },
-  },  {
+  }, {
     accessorKey: "department.name",
     header: "Department",
     size: 150,
@@ -145,7 +146,7 @@ export const columns: ColumnDef<Student>[] = [
         </div>
       );
     },
-  },  {
+  }, {
     id: "actions",
     header: "Actions",
     size: 80,
