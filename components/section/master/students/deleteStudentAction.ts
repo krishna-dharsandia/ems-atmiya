@@ -1,10 +1,13 @@
 "use server";
 
+import { createAdminClient } from "@/utils/supabase/admin-server";
 import { createClient } from "@/utils/supabase/server";
 import { PrismaClient } from "@prisma/client";
 
 export default async function destroyStudent(id: string) {
   const supabase = await createClient();
+  const adminSupabase = await createAdminClient();
+
   const { data: { user }, error: authError } = await supabase.auth.getUser();
 
   if (authError || !user) {
@@ -28,9 +31,8 @@ export default async function destroyStudent(id: string) {
       return { error: "Invalid student ID" };
     }
 
-    await prisma.student.delete({
-      where: { id },
-    });
+    await adminSupabase.auth.admin.deleteUser(id);
+
     return { success: true };
   } catch (error) {
     console.error("Error deleting student:", error);
