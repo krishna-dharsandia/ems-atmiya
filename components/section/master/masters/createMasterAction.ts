@@ -25,7 +25,7 @@ export async function createMasterAction(data: MasterSchema, captchaToken: strin
       data: {
         full_name: `${firstName} ${lastName}`,
       },
-      emailRedirectTo: "http://localhost:3000/masters",
+      emailRedirectTo: `${process.env.BASE_URL}/master`,
       captchaToken,
     },
   });

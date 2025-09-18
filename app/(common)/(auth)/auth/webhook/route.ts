@@ -1,4 +1,4 @@
-import { createClient } from "@/utils/supabase/server";
+import { createAdminClient } from "@/utils/supabase/admin-server";
 import { PrismaClient } from "@prisma/client";
 import { NextRequest, NextResponse } from "next/server";
 
@@ -6,7 +6,7 @@ export async function POST(request: NextRequest) {
   const body = await request.json();
   const url = new URL(request.url);
   const searchParams = url.searchParams;
-  const supabase = await createClient();
+  const supabase = await createAdminClient();
 
   const token = searchParams.get("token");
 

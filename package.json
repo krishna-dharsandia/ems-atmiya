@@ -34,7 +34,7 @@
     "@radix-ui/react-tooltip": "^1.2.7",
     "@react-pdf/renderer": "^4.3.0",
     "@supabase/ssr": "^0.6.1",
-    "@supabase/supabase-js": "^2.49.7",
+    "@supabase/supabase-js": "^2.57.4",
     "@tanstack/react-table": "^8.21.3",
     "@types/google-one-tap": "^1.2.6",
     "@types/nodemailer": "^7.0.1",

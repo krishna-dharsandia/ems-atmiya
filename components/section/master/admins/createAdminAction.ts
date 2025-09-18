@@ -26,7 +26,7 @@ export async function createAdminAction(data: AdminSchema, captchaToken: string)
       data: {
         full_name: `${firstName} ${lastName}`,
       },
-      emailRedirectTo: "http://localhost:3000/admin",
+      emailRedirectTo: `${process.env.BASE_URL}/admin`,
       captchaToken,
     },
   });
