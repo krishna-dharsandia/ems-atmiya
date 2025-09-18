@@ -72,7 +72,7 @@ export async function inviteTeamMemberAction(teamId: string, studentEmail: strin
       await prisma.hackathonTemporaryInvite.create({
         data: {
           email: studentEmail,
-          teamId: team.hackathon.id,
+          teamId: teamId,
         },
       })
 
