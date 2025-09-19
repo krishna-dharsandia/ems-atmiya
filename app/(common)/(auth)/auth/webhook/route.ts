@@ -127,5 +127,9 @@ export async function POST(request: NextRequest) {
         break;
       }
     }
+
+    default: {
+      return NextResponse.json({ error: "Unhandled event type" }, { status: 400 });
+    }
   }
 }
