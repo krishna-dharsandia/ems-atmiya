@@ -98,8 +98,8 @@ export async function POST(request: NextRequest) {
         );
       } finally {
         await prisma.$disconnect();
+        break;
       }
-      break;
     }
 
     case "DELETE": {
@@ -124,8 +124,8 @@ export async function POST(request: NextRequest) {
         );
       } finally {
         await prisma.$disconnect();
+        break;
       }
-      break;
     }
 
     default: {
