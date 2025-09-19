@@ -129,6 +129,7 @@ export async function createTeamAction(teamData: TeamSchema, hackathonId: string
         hackathonId,
         mentor,
         mentor_mail: mentorMail,
+        leaderId: student.id,
         members: {
           create: {
             studentId: student.id,

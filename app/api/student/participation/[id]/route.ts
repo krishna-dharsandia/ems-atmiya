@@ -58,6 +58,17 @@ export async function GET(
       include: {
         team: {
           include: {
+            leader: {
+              include: {
+                user: {
+                  select: {
+                    firstName: true,
+                    lastName: true,
+                    email: true,
+                  },
+                },
+              },
+            },
             members: {
               include: {
                 student: {
@@ -114,8 +125,11 @@ export async function GET(
 
     const team = teamMembership.team;
 
-    // Determine if current student is team owner (first member)
-    const isTeamOwner = team.members.length > 0 && team.members[0].studentId === student.id;
+    // Determine if current student is team leader
+    // First check if leaderId is set (new way), fallback to first member (old way) for backward compatibility
+    const isTeamOwner = team.leaderId
+      ? team.leaderId === student.id
+      : team.members.length > 0 && team.members[0].studentId === student.id;
 
     // Transform hackathon data to match expected format
     const transformedHackathon = {

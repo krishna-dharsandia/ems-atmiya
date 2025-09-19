@@ -58,6 +58,7 @@ model Student {
   university          String?
   HackathonTeamInvite HackathonTeamInvite[]
   HackathonTeamMember HackathonTeamMember[]
+  leadingTeams        HackathonTeam[]       @relation("TeamLeader")
   department          Department?           @relation(fields: [departmentId], references: [id], onDelete: Cascade)
   program             Program?              @relation(fields: [programId], references: [id], onDelete: Cascade)
   user                User                  @relation(fields: [userId], references: [supabaseId], onDelete: Cascade)
@@ -225,8 +226,10 @@ model HackathonTeam {
   teamId                   String?
   disqualified             Boolean                    @default(false)
   submissionUrl            String?
+  leaderId                 String?
   hackathon                Hackathon                  @relation(fields: [hackathonId], references: [id])
   problemStatement         HackathonProblemStatement? @relation(fields: [problemStatementId], references: [id], onDelete: Cascade)
+  leader                   Student?                   @relation("TeamLeader", fields: [leaderId], references: [id])
   invites                  HackathonTeamInvite[]
   members                  HackathonTeamMember[]
   HackathonTemporaryInvite HackathonTemporaryInvite[]

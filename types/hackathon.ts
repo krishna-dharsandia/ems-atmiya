@@ -44,6 +44,15 @@ export interface HackathonTeam {
   id: string;
   teamName: string;
   teamId: string | null;
+  leaderId?: string | null;
+  leader?: {
+    id: string;
+    user: {
+      firstName: string;
+      lastName: string;
+      email: string;
+    };
+  } | null;
   members: TeamMember[];
   invites: TeamInvite[];
   problemStatement?: {
