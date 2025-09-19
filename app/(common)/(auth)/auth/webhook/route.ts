@@ -62,7 +62,7 @@ export async function POST(request: NextRequest) {
       const fullName = raw_user_meta_data?.full_name || "";
       const nameParts = fullName.trim().split(/\s+/); // Split on any whitespace
       const firstName = nameParts[0] || "";
-      const lastName = nameParts.length > 1 ? nameParts.slice(1).join(" ") : "";
+      const lastName = nameParts.length > 1 ? nameParts.slice(1).join(" ") : "user";
 
       if (!id || !email) {
         console.error("Missing required fields:", { id, email });
