@@ -23,6 +23,7 @@ type MasterOverviewData = {
   avgEventRating: number;
   departmentStats: { name: string; count: number }[];
   programStats: { name: string; count: number }[];
+  universityStats: { name: string; count: number }[];
   eventTypeStats: { name: string; count: number }[];
   eventModeStats: { name: string; count: number }[];
   upcomingEvents: number;
@@ -77,11 +78,10 @@ export default function MasterOverview() {
     <div>
       <div className="flex items-start justify-between mb-4">
         <Heading
-          title={`Welcome Back - ${
-            user?.user_metadata.full_name
+          title={`Welcome Back - ${user?.user_metadata.full_name
               ? user?.user_metadata.full_name
               : "Master"
-          }`}
+            }`}
           description="Platform-wide insights and analytics for the entire system."
         />
         <Button className="mb-4">
@@ -106,6 +106,7 @@ export default function MasterOverview() {
             upcomingEvents={data.upcomingEvents}
             completedEvents={data.completedEvents}
             cancelledEvents={data.cancelledEvents}
+            universityStats={data.universityStats}
           />
           <RecentActivity
             recentEvents={data.recentEvents}

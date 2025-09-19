@@ -58,6 +58,23 @@ export async function GET() {
     count: prog.students.length,
   }));
 
+  // Students per university (all universities)
+  const studentsByUniversity = await prisma.student.groupBy({
+    by: ["university"],
+    _count: {
+      id: true,
+    },
+    where: {
+      university: {
+        not: null,
+      },
+    },
+  });
+  const universityStats = studentsByUniversity.map((uni) => ({
+    name: uni.university || "Unknown",
+    count: uni._count.id,
+  }));
+
   // Event type distribution
   const eventsByType = await prisma.event.groupBy({
     by: ["event_type"],
@@ -253,6 +270,7 @@ export async function GET() {
     cancelledEvents,
     departmentStats,
     programStats,
+    universityStats,
     eventTypeStats,
     eventModeStats,
     recentEvents,

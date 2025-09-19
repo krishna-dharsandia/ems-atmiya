@@ -1,7 +1,10 @@
 import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from "@/components/ui/card";
 import { ChartContainer, ChartTooltipContent } from "@/components/ui/chart";
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from "recharts";
-import { TrendingUp } from "lucide-react";
+import { TrendingUp, List } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 
 type MonthlyData = {
   month: string;
@@ -25,8 +28,42 @@ export function MonthlyTrendCharts({ userRegistrationTrend, eventHackathonTrend 
       {/* User Registration Trend Line Chart */}
       <Card>
         <CardHeader>
-          <CardTitle>User Registration Trend</CardTitle>
-          <CardDescription>Last 6 months</CardDescription>
+          <div className="flex items-center justify-between w-full">
+            <div className="flex flex-col flex-1">
+              <CardTitle>User Registration Trend</CardTitle>
+              <CardDescription>Last 6 months</CardDescription>
+            </div>
+            <Dialog>
+              <DialogTrigger asChild>
+                <Button variant="outline" size="sm">
+                  <List className="h-4 w-4" />
+                </Button>
+              </DialogTrigger>
+              <DialogContent className="max-w-md sm:max-w-lg max-h-[80vh] overflow-hidden flex flex-col">
+                <DialogHeader className="flex-shrink-0">
+                  <DialogTitle>User Registration Trend Details</DialogTitle>
+                </DialogHeader>
+                <div className="flex-1 overflow-y-auto px-1">
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>Month</TableHead>
+                        <TableHead className="text-right">Users Registered</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {userRegistrationTrend.map((item) => (
+                        <TableRow key={item.month}>
+                          <TableCell className="font-medium">{item.month}</TableCell>
+                          <TableCell className="text-right">{item.users}</TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </div>
+              </DialogContent>
+            </Dialog>
+          </div>
         </CardHeader>
         <CardContent>
           <ChartContainer
@@ -69,8 +106,44 @@ export function MonthlyTrendCharts({ userRegistrationTrend, eventHackathonTrend 
       {/* Events & Hackathons Trend Line Chart */}
       <Card>
         <CardHeader>
-          <CardTitle>Events & Hackathons</CardTitle>
-          <CardDescription>Last 6 months activities</CardDescription>
+          <div className="flex items-center justify-between w-full">
+            <div className="flex flex-col flex-1">
+              <CardTitle>Events & Hackathons</CardTitle>
+              <CardDescription>Last 6 months activities</CardDescription>
+            </div>
+            <Dialog>
+              <DialogTrigger asChild>
+                <Button variant="outline" size="sm">
+                  <List className="h-4 w-4" />
+                </Button>
+              </DialogTrigger>
+              <DialogContent className="max-w-md sm:max-w-lg max-h-[80vh] overflow-hidden flex flex-col">
+                <DialogHeader className="flex-shrink-0">
+                  <DialogTitle>Events & Hackathons Trend Details</DialogTitle>
+                </DialogHeader>
+                <div className="flex-1 overflow-y-auto px-1">
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>Month</TableHead>
+                        <TableHead className="text-right">Events</TableHead>
+                        <TableHead className="text-right">Hackathons</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {eventHackathonTrend.map((item) => (
+                        <TableRow key={item.month}>
+                          <TableCell className="font-medium">{item.month}</TableCell>
+                          <TableCell className="text-right">{item.events}</TableCell>
+                          <TableCell className="text-right">{item.hackathons}</TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </div>
+              </DialogContent>
+            </Dialog>
+          </div>
         </CardHeader>
         <CardContent>
           <ChartContainer
