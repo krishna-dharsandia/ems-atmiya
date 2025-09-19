@@ -37,7 +37,7 @@ export async function onboardingStudent(data: OnboardingStudentSchema) {
           currentSemester,
           currentYear,
           registrationNumber,
-          university: null,
+          university: 'Atmiya University',
         },
       });
     } else if (validatedData.data.studentType === "other") {
