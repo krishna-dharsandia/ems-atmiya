@@ -35,7 +35,7 @@ export default function Page() {
         </div>
 
         <div className="relative w-full mt-12 lg:w-1/2 lg:mt-0">
-          <Image className="w-full max-w-lg lg:mx-auto" src="/images/components/illustration.svg" alt="" width={500} height={500} />
+          <Image className="w-full max-w-lg lg:mx-auto" src="/images/components/illustration.png" alt="" width={500} height={500} />
         </div>
       </div>
     </section>
