@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -49,6 +49,8 @@ import {
 import { Input } from "@/components/ui/input";
 import { toggleHackathonRegistration } from "./hackathonRegistrationTogglerAction";
 import { toggleHackathonSubmission } from "./hackathonSubmissionsTogglerAction";
+import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart";
+import { PieChart, Pie, Cell, BarChart, Bar, XAxis, YAxis, Tooltip, Legend } from "recharts";
 
 interface ProblemStatement {
   id: string;
@@ -309,7 +311,7 @@ export default function MasterHackathonDetail({
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        {/* Left column */}
+        {/* Left column (main content) */}
         <div className="md:col-span-2 space-y-6">
           <div className="relative">
             <img
@@ -343,6 +345,9 @@ export default function MasterHackathonDetail({
               </TabsTrigger>
               <TabsTrigger value="statistics" className="flex-shrink-0">
                 Statistics
+              </TabsTrigger>
+              <TabsTrigger value="analytics" className="flex-shrink-0">
+                Analytics
               </TabsTrigger>
             </TabsList>
 
@@ -629,10 +634,212 @@ export default function MasterHackathonDetail({
                 </CardContent>
               </Card>
             </TabsContent>
+
+            <TabsContent value="analytics" className="mt-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-8">
+                {/* 1. Participation by Department Pie Chart */}
+                <Card className="flex flex-col">
+                  <CardHeader className="items-center pb-0">
+                    <CardTitle>Participation by Department</CardTitle>
+                    <CardDescription>Distribution of participants by department</CardDescription>
+                  </CardHeader>
+                  <CardContent className="flex-1 pb-0">
+                    <ChartContainer config={{}} className="mx-auto aspect-square max-h-[250px]">
+                      <PieChart>
+                        <ChartTooltip cursor={false} content={<ChartTooltipContent hideLabel />} />
+                        <Pie data={(() => {
+                          const deptCount: Record<string, number> = {};
+                          hackathon.teams?.forEach(team => {
+                            team.members.forEach(member => {
+                              const dept = member.student.department?.name || "Unknown";
+                              deptCount[dept] = (deptCount[dept] || 0) + 1;
+                            });
+                          });
+                          return Object.entries(deptCount).map(([name, value]) => ({ name, value }));
+                        })()} dataKey="value" nameKey="name" cx="50%" cy="50%" outerRadius={100} label>
+                          {(() => {
+                            const deptCount: Record<string, number> = {};
+                            hackathon.teams?.forEach(team => {
+                              team.members.forEach(member => {
+                                const dept = member.student.department?.name || "Unknown";
+                                deptCount[dept] = (deptCount[dept] || 0) + 1;
+                              });
+                            });
+                            return Object.keys(deptCount).map((dept, idx) => (
+                              <Cell key={dept} fill={`var(--chart-${(idx % 5) + 1})`} />
+                            ));
+                          })()}
+                        </Pie>
+                      </PieChart>
+                    </ChartContainer>
+                  </CardContent>
+                  <CardFooter className="flex-col gap-2 text-sm">
+                    <div className="flex items-center gap-2 leading-none font-medium">
+                      Platform-wide distribution
+                    </div>
+                    <div className="text-muted-foreground leading-none">Showing all departments</div>
+                  </CardFooter>
+                </Card>
+                {/* 2. Problem Statement Distribution Pie Chart */}
+                <Card className="flex flex-col">
+                  <CardHeader className="items-center pb-0">
+                    <CardTitle>Problem Statement Distribution</CardTitle>
+                    <CardDescription>Teams per problem statement</CardDescription>
+                  </CardHeader>
+                  <CardContent className="flex-1 pb-0">
+                    <ChartContainer config={{}} className="mx-auto aspect-square max-h-[250px]">
+                      <PieChart>
+                        <ChartTooltip cursor={false} content={<ChartTooltipContent hideLabel />} />
+                        <Pie data={(() => {
+                          const psMap: Record<string, string> = {};
+                          hackathon.problemStatements.forEach(ps => {
+                            psMap[ps.id] = `${ps.code}: ${ps.title}`;
+                          });
+                          const counts: Record<string, number> = {};
+                          hackathon.teams?.forEach(team => {
+                            const psId = team.problemStatement?.id || "None";
+                            counts[psId] = (counts[psId] || 0) + 1;
+                          });
+                          return Object.entries(counts).map(([id, value]) => ({ name: psMap[id] || "None", value }));
+                        })()} dataKey="value" nameKey="name" cx="50%" cy="50%" outerRadius={100} label>
+                          {(() => {
+                            const psMap: Record<string, string> = {};
+                            hackathon.problemStatements.forEach(ps => {
+                              psMap[ps.id] = `${ps.code}: ${ps.title}`;
+                            });
+                            const counts: Record<string, number> = {};
+                            hackathon.teams?.forEach(team => {
+                              const psId = team.problemStatement?.id || "None";
+                              counts[psId] = (counts[psId] || 0) + 1;
+                            });
+                            return Object.keys(counts).map((id, idx) => (
+                              <Cell key={id} fill={`var(--chart-${(idx % 5) + 1})`} />
+                            ));
+                          })()}
+                        </Pie>
+                      </PieChart>
+                    </ChartContainer>
+                  </CardContent>
+                  <CardFooter className="flex-col gap-2 text-sm">
+                    <div className="flex items-center gap-2 leading-none font-medium">
+                      Problem statement breakdown
+                    </div>
+                    <div className="text-muted-foreground leading-none">All problem statements</div>
+                  </CardFooter>
+                </Card>
+                {/* 3. Total Submissions Distribution Pie Chart */}
+                <Card className="flex flex-col">
+                  <CardHeader className="items-center pb-0">
+                    <CardTitle>Total Submissions Distribution</CardTitle>
+                    <CardDescription>Teams with/without submissions</CardDescription>
+                  </CardHeader>
+                  <CardContent className="flex-1 pb-0">
+                    <ChartContainer config={{}} className="mx-auto aspect-square max-h-[250px]">
+                      <PieChart>
+                        <ChartTooltip cursor={false} content={<ChartTooltipContent hideLabel />} />
+                        <Pie data={(() => {
+                          let withSub = 0, noSub = 0;
+                          hackathon.teams?.forEach(team => {
+                            if (team.submissionUrl) withSub++; else noSub++;
+                          });
+                          return [
+                            { name: "With Submission", value: withSub },
+                            { name: "No Submission", value: noSub },
+                          ];
+                        })()} dataKey="value" nameKey="name" cx="50%" cy="50%" outerRadius={100} label>
+                          <Cell fill="var(--chart-1)" />
+                          <Cell fill="var(--chart-2)" />
+                        </Pie>
+                      </PieChart>
+                    </ChartContainer>
+                  </CardContent>
+                  <CardFooter className="flex-col gap-2 text-sm">
+                    <div className="flex items-center gap-2 leading-none font-medium">
+                      Submission status
+                    </div>
+                    <div className="text-muted-foreground leading-none">All teams</div>
+                  </CardFooter>
+                </Card>
+                {/* 4. Team Disqualified Distribution Pie Chart */}
+                <Card className="flex flex-col">
+                  <CardHeader className="items-center pb-0">
+                    <CardTitle>Team Disqualified Distribution</CardTitle>
+                    <CardDescription>Disqualified vs Not Disqualified</CardDescription>
+                  </CardHeader>
+                  <CardContent className="flex-1 pb-0">
+                    <ChartContainer config={{}} className="mx-auto aspect-square max-h-[250px]">
+                      <PieChart>
+                        <ChartTooltip cursor={false} content={<ChartTooltipContent hideLabel />} />
+                        <Pie data={(() => {
+                          let dq = 0, notDq = 0;
+                          hackathon.teams?.forEach((team: any) => {
+                            if (team.disqualified) dq++; else notDq++;
+                          });
+                          return [
+                            { name: "Disqualified", value: dq },
+                            { name: "Not Disqualified", value: notDq },
+                          ];
+                        })()} dataKey="value" nameKey="name" cx="50%" cy="50%" outerRadius={100} label>
+                          <Cell fill="var(--chart-1)" />
+                          <Cell fill="var(--chart-2)" />
+                        </Pie>
+                      </PieChart>
+                    </ChartContainer>
+                  </CardContent>
+                  <CardFooter className="flex-col gap-2 text-sm">
+                    <div className="flex items-center gap-2 leading-none font-medium">
+                      Disqualification status
+                    </div>
+                    <div className="text-muted-foreground leading-none">All teams</div>
+                  </CardFooter>
+                </Card>
+                {/* 5. Team Count by Department Bar Chart */}
+                <Card className="flex flex-col">
+                  <CardHeader className="items-center pb-0">
+                    <CardTitle>Team Count by Department</CardTitle>
+                    <CardDescription>Number of teams per department</CardDescription>
+                  </CardHeader>
+                  <CardContent className="flex-1 pb-0">
+                    <ChartContainer config={{}} className="mx-auto w-full max-h-[250px]">
+                      <BarChart data={(() => {
+                        const deptCount: Record<string, number> = {};
+                        hackathon.teams?.forEach(team => {
+                          const dept = team.members[0]?.student?.department?.name || "Unknown";
+                          deptCount[dept] = (deptCount[dept] || 0) + 1;
+                        });
+                        return Object.entries(deptCount).map(([name, value]) => ({ name, value }));
+                      })()} margin={{ top: 20, right: 30, left: 0, bottom: 5 }}>
+                        <XAxis dataKey="name" tick={{ fontSize: 12 }} />
+                        <YAxis allowDecimals={false} tick={{ fontSize: 12 }} />
+                        <Tooltip />
+                        <Legend />
+                        <Bar dataKey="value">
+                          {(() => {
+                            const deptCount: Record<string, number> = {};
+                            hackathon.teams?.forEach(team => {
+                              const dept = team.members[0]?.student?.department?.name || "Unknown";
+                              deptCount[dept] = (deptCount[dept] || 0) + 1;
+                            });
+                            return Object.keys(deptCount).map((dept, idx) => (
+                              <Cell key={dept} fill={`var(--chart-${(idx % 5) + 1})`} />
+                            ));
+                          })()}
+                        </Bar>
+                      </BarChart>
+                    </ChartContainer>
+                  </CardContent>
+                  <CardFooter className="flex-col gap-2 text-sm">
+                    <div className="flex items-center gap-2 leading-none font-medium">
+                      Team count by department
+                    </div>
+                    <div className="text-muted-foreground leading-none">All teams</div>
+                  </CardFooter>
+                </Card>
+              </div>
+            </TabsContent>
           </Tabs>
         </div>
-
-        {/* Right sidebar */}
+        {/* Right sidebar: always show status, quick actions, info */}
         <div className="space-y-6 mt-6 md:mt-0">
           {/* Hackathon status */}
           <Card>
@@ -671,7 +878,6 @@ export default function MasterHackathonDetail({
               </div>
             </CardContent>
           </Card>
-
           {/* Quick actions */}
           <Card>
             <CardContent className="pt-6">
@@ -743,8 +949,7 @@ export default function MasterHackathonDetail({
               </div>
             </CardContent>
           </Card>
-
-          {/* Quick info */}
+          {/* Hackathon info */}
           <Card>
             <CardContent className="pt-6">
               <h3 className="text-lg font-medium mb-4">Hackathon Information</h3>
@@ -774,8 +979,7 @@ export default function MasterHackathonDetail({
                       (new Date(hackathon.end_date).getTime() -
                         new Date(hackathon.start_date).getTime()) /
                       (1000 * 60 * 60 * 24)
-                    )}{" "}
-                    days
+                    )} days
                   </span>
                 </div>
               </div>
