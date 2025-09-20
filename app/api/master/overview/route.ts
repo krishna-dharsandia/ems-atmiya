@@ -51,7 +51,7 @@ export async function GET() {
     select: {
       name: true,
       students: { select: { id: true } },
-    },
+    }
   });
   const programStats = studentsByProgram.map((prog) => ({
     name: prog.name,
@@ -69,6 +69,9 @@ export async function GET() {
         not: null,
       },
     },
+    orderBy: {
+      _count: { id: "desc" },
+    }
   });
   const universityStats = studentsByUniversity.map((uni) => ({
     name: uni.university || "Unknown",
@@ -81,6 +84,9 @@ export async function GET() {
     _count: {
       id: true,
     },
+    orderBy: {
+      _count: { id: "desc" },
+    }
   });
   const eventTypeStats = eventsByType.map((type) => ({
     name: type.event_type,
@@ -93,6 +99,9 @@ export async function GET() {
     _count: {
       id: true,
     },
+    orderBy: {
+      _count: { id: "desc" },
+    }
   });
   const eventModeStats = eventsByMode.map((mode) => ({
     name: mode.mode,
