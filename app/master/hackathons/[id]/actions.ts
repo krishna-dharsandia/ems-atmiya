@@ -10,7 +10,24 @@ export async function editTeamAction(input: unknown) {
   }
   const data = parsed.data;
   try {
-    // Update team
+    // Fetch current members
+    const existingTeam = await prisma.hackathonTeam.findUnique({
+      where: { id: data.id },
+      include: { members: true },
+    });
+    if (!existingTeam) return { error: 'Team not found' };
+
+    const existingMemberIds = new Set(existingTeam.members.map((m) => m.studentId));
+    const newMemberIds = new Set(data.members.map((m: any) => m.studentId));
+
+    // Members to remove
+    const membersToRemove = existingTeam.members.filter((m) => !newMemberIds.has(m.studentId));
+    // Members to add
+    const membersToAdd = data.members.filter((m: any) => !existingMemberIds.has(m.studentId));
+    // Members to update
+    const membersToUpdate = data.members.filter((m: any) => existingMemberIds.has(m.studentId));
+
+    // Update team (including leaderId)
     await prisma.hackathonTeam.update({
       where: { id: data.id },
       data: {
@@ -19,13 +36,32 @@ export async function editTeamAction(input: unknown) {
         disqualified: data.disqualified,
         problemStatementId: data.problemStatementId || null,
         teamName: data.teamName,
-        // For members, remove all and re-create (simple approach)
-        members: {
-          deleteMany: {},
-          create: data.members.map((m) => ({ studentId: m.studentId, attended: m.attended ?? false })),
-        },
+        leaderId: data.leaderId || null,
       },
     });
+
+    // Remove members
+    for (const member of membersToRemove) {
+      await prisma.hackathonTeamMember.delete({ where: { id: member.id } });
+    }
+    // Add new members
+    for (const member of membersToAdd) {
+      await prisma.hackathonTeamMember.create({
+        data: {
+          teamId: data.id,
+          studentId: member.studentId,
+          attended: member.attended ?? false,
+        },
+      });
+    }
+    // Update attended for existing members
+    for (const member of membersToUpdate) {
+      await prisma.hackathonTeamMember.updateMany({
+        where: { teamId: data.id, studentId: member.studentId },
+        data: { attended: member.attended ?? false },
+      });
+    }
+
     return { success: true };
   } catch (error) {
     return { error: error instanceof Error ? error.message : "Unknown error" };

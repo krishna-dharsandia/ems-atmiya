@@ -209,6 +209,13 @@ export default function MasterHackathonDetailPage() {
                 <strong>Team Name:</strong> {selectedTeam.teamName}
               </div>
               <div>
+                <strong>Team Leader:</strong> {
+                  selectedTeam.members.find((m: any) => m.studentId === selectedTeam.leaderId)
+                    ? `${selectedTeam.members.find((m: any) => m.studentId === selectedTeam.leaderId).student?.user?.firstName} ${selectedTeam.members.find((m: any) => m.studentId === selectedTeam.leaderId).student?.user?.lastName} (${selectedTeam.members.find((m: any) => m.studentId === selectedTeam.leaderId).student?.user?.email})`
+                    : "Not selected"
+                }
+              </div>
+              <div>
                 <strong>Problem Statement:</strong> {selectedTeam.problemStatement ? `${selectedTeam.problemStatement.code}: ${selectedTeam.problemStatement.title}` : "Not selected"}
               </div>
               <div>
@@ -233,7 +240,7 @@ export default function MasterHackathonDetailPage() {
       </Dialog>
       {/* Edit Team Dialog */}
       <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
-        <DialogContent>
+        <DialogContent className="max-w-2xl overflow-y-auto max-h-[90vh]">
           <DialogHeader>
             <DialogTitle>Edit Team</DialogTitle>
             <DialogClose onClick={handleEditDialogClose} />
@@ -293,23 +300,68 @@ export default function MasterHackathonDetailPage() {
                 {errors.teamName && <p className="text-red-500 text-xs">{errors.teamName.message}</p>}
               </div>
               <div className="space-y-2">
+                <Label htmlFor="leaderId">Team Leader</Label>
+                <Controller
+                  name="leaderId"
+                  control={control}
+                  render={({ field }) => (
+                    <Select value={field.value || ""} onValueChange={field.onChange}>
+                      <SelectTrigger id="leaderId">
+                        <SelectValue placeholder="Select Team Leader" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {control._formValues.members?.map((member: any) => (
+                          <SelectItem key={member.studentId} value={member.studentId}>
+                            {member.student?.user?.firstName} {member.student?.user?.lastName} ({member.student?.user?.email})
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  )}
+                />
+                {errors.leaderId && <p className="text-red-500 text-xs">{errors.leaderId.message}</p>}
+              </div>
+              <div className="space-y-2">
                 <Label>Members</Label>
-                <ul className="mb-2">
-                  {control._formValues.members?.map((member: any, idx: number) => (
-                    <li key={member.id} className="flex items-center gap-2 mb-1">
-                      <span>{member.student?.user?.firstName} {member.student?.user?.lastName} ({member.student?.user?.email})</span>
-                      <Button type="button" variant="destructive" size="sm" onClick={() => {
-                        const newMembers = [...control._formValues.members];
-                        newMembers.splice(idx, 1);
-                        setValue("members", newMembers);
-                      }}>Remove</Button>
-                    </li>
-                  ))}
-                </ul>
-                <Button type="button" variant="outline" size="sm" onClick={() => {
-                  const newMember = { id: `new-${Date.now()}`, studentId: "", attended: false, student: { user: { firstName: "", lastName: "", email: "" } } };
-                  setValue("members", [...(control._formValues.members || []), newMember]);
-                }}>Add Member</Button>
+                <div className="overflow-x-auto" style={{ maxHeight: 300, overflowY: 'auto' }}>
+                  <table className="min-w-full border text-sm">
+                    <thead className="bg-muted">
+                      <tr>
+                        <th className="p-2 text-left">Name</th>
+                        <th className="p-2 text-left">Email</th>
+                        <th className="p-2 text-left">Attended</th>
+                        <th className="p-2 text-left">Remove</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {control._formValues.members?.map((member: any, idx: number) => (
+                        <tr key={member.id} className="border-t">
+                          <td className="p-2">{member.student?.user?.firstName} {member.student?.user?.lastName}</td>
+                          <td className="p-2">{member.student?.user?.email}</td>
+                          <td className="p-2">
+                            <Controller
+                              name={`members.${idx}.attended`}
+                              control={control}
+                              render={({ field }) => (
+                                <Checkbox
+                                  checked={field.value}
+                                  onCheckedChange={field.onChange}
+                                />
+                              )}
+                            />
+                          </td>
+                          <td className="p-2">
+                            <Button type="button" variant="destructive" size="sm" onClick={() => {
+                              const newMembers = [...control._formValues.members];
+                              newMembers.splice(idx, 1);
+                              setValue("members", newMembers);
+                            }}>Remove</Button>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
                 {errors.members && <p className="text-red-500 text-xs">{errors.members.message}</p>}
               </div>
               <div className="flex justify-end gap-2">

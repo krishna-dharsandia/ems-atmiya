@@ -7,6 +7,7 @@ export const editTeamSchema = z.object({
   disqualified: z.boolean(),
   problemStatementId: z.string().optional().nullable(),
   teamName: z.string().min(1, "Team name is required"),
+  leaderId: z.string().optional().nullable(),
   members: z.array(
     z.object({
       id: z.string(),
