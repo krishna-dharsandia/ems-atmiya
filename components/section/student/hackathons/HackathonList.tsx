@@ -56,7 +56,7 @@ function HackathonCard({ hackathon, isRegistered }: HackathonCardProps) {
   };
 
   const handleViewDetails = () => {
-    router.push(`/hackathons/${hackathon.id}`);
+    router.push(`/student/participations/${hackathon.id}`);
   };
 
   return (
