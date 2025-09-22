@@ -290,7 +290,7 @@ export default function HackathonDetail({
                     <span>Your Team:</span>
                     <Badge>{userTeam?.teamName}</Badge>
                   </div>
-                  <Link href={`/participations/${hackathon.id}/manage`}>
+                  <Link href={`/student/participations/${hackathon.id}/manage`}>
                     <Button className="w-full">
                       {isTeamOwner ? "Manage Team" : "View Team"}
                     </Button>
