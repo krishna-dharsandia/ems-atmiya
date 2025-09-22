@@ -1,4 +1,5 @@
 import { createClient } from "@/utils/supabase/server";
+import { PrismaClient } from "@prisma/client";
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 
@@ -18,10 +19,10 @@ export async function PUT(request: NextRequest) {
     }
 
     const body = await request.json();
-    
+
     // Validate the request body - only allow specific fields
     const validatedData = profileUpdateSchema.safeParse(body);
-    
+
     if (!validatedData.success) {
       return NextResponse.json(
         { error: "Invalid data", details: validatedData.error.errors },
@@ -48,9 +49,27 @@ export async function PUT(request: NextRequest) {
       );
     }
 
-    return NextResponse.json({ 
-      success: true, 
-      message: "Profile updated successfully" 
+    const prisma = new PrismaClient();
+
+    try {
+      await prisma.user.update({
+        where: { id: user.id },
+        data: {
+          firstName: allowedFields.full_name.split(" ")[0],
+          lastName: allowedFields.full_name.split(" ").slice(1).join(" ") || "user",
+        },
+      });
+    } catch (error) {
+      console.error("Error initializing Prisma Client:", error);
+      return NextResponse.json(
+        { error: "Internal server error" },
+        { status: 500 }
+      );
+    }
+
+    return NextResponse.json({
+      success: true,
+      message: "Profile updated successfully"
     });
 
   } catch (error) {
