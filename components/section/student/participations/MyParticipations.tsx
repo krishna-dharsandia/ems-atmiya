@@ -194,7 +194,7 @@ export function MyParticipations({
                           View Hackathon
                         </Button>
                       </Link>
-                      <Link href={`participations/${participation.hackathon.id}/manage`}>
+                      <Link href={`/student/participations/${participation.hackathon.id}/manage`}>
                         <Button size="sm">
                           {participation.isTeamOwner ? "Manage Team" : "View Team"}
                         </Button>
