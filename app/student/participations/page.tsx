@@ -62,6 +62,7 @@ export default async function ParticipationsPage() {
                 organizer_contact: true,
                 evaluationCriteria: true,
                 created_at: true,
+                open_submissions: true,
               },
             },
             members: {
@@ -189,6 +190,7 @@ export default async function ParticipationsPage() {
           organizer_contact: hackathon.organizer_contact,
           evaluationCriteria: hackathon.evaluationCriteria,
           created_at: hackathon.created_at.toISOString(),
+          open_submissions: hackathon.open_submissions,
         },
         team: {
           id: team.id,

@@ -60,6 +60,7 @@ export async function GET() {
                 organizer_contact: true,
                 evaluationCriteria: true,
                 created_at: true,
+                open_submissions: true,
               },
             },
             members: {
@@ -160,10 +161,10 @@ export async function GET() {
     const participations = teamMemberships.map((membership) => {
       const team = membership.team;
       const hackathon = team.hackathon;
-      
+
       // Determine if current student is team owner (first member)
       const isTeamOwner = team.members.length > 0 && team.members[0].studentId === student.id;
-      
+
       return {
         id: hackathon.id,
         hackathon: {
@@ -187,6 +188,7 @@ export async function GET() {
           organizer_contact: hackathon.organizer_contact,
           evaluationCriteria: hackathon.evaluationCriteria,
           created_at: hackathon.created_at.toISOString(),
+          open_submissions: hackathon.open_submissions,
         },
         team: {
           id: team.id,
