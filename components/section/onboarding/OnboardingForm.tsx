@@ -23,7 +23,7 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 export default function OnboardingForm() {
   const { departments, isError, isLoading } = useDepartment();
   const router = useRouter();
-  const [studentType, setStudentType] = useState<"atmiya" | "other">("atmiya");  const [universityQuery, setUniversityQuery] = useState("");
+  const [studentType, setStudentType] = useState<"atmiya" | "other">("atmiya"); const [universityQuery, setUniversityQuery] = useState("");
   const [universityOptions, setUniversityOptions] = useState([]);
   const [_, setShowDropdown] = useState(false);
   const [loadingUniversity, setLoadingUniversity] = useState(false);
@@ -56,6 +56,7 @@ export default function OnboardingForm() {
 
     return () => clearTimeout(timeoutId);
   }, [universityQuery, universitySelected, searchUniversities]);
+  
   const form = useForm<OnboardingStudentSchema>({
     resolver: zodResolver(onboardingStudentSchema),
     defaultValues: {
@@ -88,7 +89,7 @@ export default function OnboardingForm() {
       ...(value === "atmiya"
         ? { departmentId: "", programId: "", registrationNumber: "", universityName: "" }
         : { departmentId: undefined, programId: undefined, registrationNumber: undefined, universityName: "" }),
-    });    setUniversityQuery("");
+    }); setUniversityQuery("");
     setUniversityOptions([]);
     setUniversitySelected(false);
     setShowDropdown(false);
@@ -346,7 +347,7 @@ export default function OnboardingForm() {
                           <Command className="w-full border rounded-md">
                             <CommandInput
                               placeholder="Type to search university..."
-                              value={universityQuery}                              onValueChange={(val) => {
+                              value={universityQuery} onValueChange={(val) => {
                                 setUniversityQuery(val);
                                 field.onChange(val);
                                 if (universitySelected && val !== universityQuery) {
@@ -360,13 +361,14 @@ export default function OnboardingForm() {
                                 <div className="px-3 py-2 text-muted-foreground flex items-center gap-2">
                                   <Loader className="h-4 w-4 animate-spin" /> Searching...
                                 </div>
-                              )}                              {!loadingUniversity && universityOptions.length === 0 && universityQuery.length > 2 && !universitySelected && (
+                              )}
+                              {!loadingUniversity && universityOptions.length === 0 && universityQuery.length > 2 && !universitySelected && (
                                 <CommandEmpty>No results found</CommandEmpty>
                               )}
                               {universityOptions.map((item, idx) => (
                                 <CommandItem
                                   key={idx}
-                                  value={item}                                  onSelect={() => {
+                                  value={item} onSelect={() => {
                                     field.onChange(item);
                                     setUniversityQuery(item);
                                     setUniversityOptions([]); // Clear options after selection

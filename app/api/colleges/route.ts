@@ -1,10 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { createClient } from "@/utils/supabase/server";
 
 const API_BASE = 'https://colleges-api-india.fly.dev';
 
 export async function GET(req: NextRequest) {
-  
+
   const { searchParams } = new URL(req.url);
   const keyword = searchParams.get('keyword') || '';
 
@@ -33,6 +32,10 @@ export async function GET(req: NextRequest) {
 
     // Extract only college names (3rd element in each array)
     const collegeNames = data.map(item => item[2]);
+    collegeNames.sort((a, b) => a.localeCompare(b));
+
+    collegeNames.push('R.K. University');
+    collegeNames.push('Ganpat University');
 
     return NextResponse.json({ colleges: collegeNames });
   } catch (error) {
