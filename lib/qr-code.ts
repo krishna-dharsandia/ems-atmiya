@@ -3,9 +3,11 @@ import crypto from 'crypto';
 
 export interface QRCodeData {
   id: string;
-  type: 'user' | 'event';
+  type: 'user' | 'event' | 'teamMember';
   userId: string;
   eventId?: string;
+  teamId?: string;
+  hackathonId?: string;
   timestamp: number;
   signature: string; // For security verification
 }
@@ -70,6 +72,28 @@ export class QRCodeService {
     };
   }
   /**
+   * Generate QR code data for a team member
+   */
+  public static createTeamMemberQRData(
+    studentId: string,
+    teamId: string,
+    hackathonId: string
+  ): QRCodeData {
+    const data: Omit<QRCodeData, 'signature'> = {
+      id: crypto.randomUUID(),
+      type: 'teamMember',
+      userId: studentId,
+      teamId: teamId,
+      hackathonId: hackathonId,
+      timestamp: Date.now(),
+    };
+
+    return {
+      ...data,
+      signature: this.generateSignature(data),
+    };
+  }
+  /**
    * Generate QR code as base64 string
    */
   public static async generateQRCode(data: QRCodeData): Promise<string> {
@@ -125,6 +149,25 @@ export class QRCodeService {
       qrCodeData: JSON.stringify(qrData),
     };
   }
+  /**
+   * Generate QR code for team member
+   */
+  public static async generateTeamMemberQRCode(
+    studentId: string,
+    teamId: string,
+    hackathonId: string
+  ): Promise<{
+    qrCode: string;
+    qrCodeData: string;
+  }> {
+    const qrData = this.createTeamMemberQRData(studentId, teamId, hackathonId);
+    const qrCode = await this.generateQRCode(qrData);
+
+    return {
+      qrCode,
+      qrCodeData: JSON.stringify(qrData),
+    };
+  }
 
   /**
    * Generate QR code for event with URL (for direct scanning to event page)
@@ -137,9 +180,9 @@ export class QRCodeService {
   }> {
     const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000';
     const eventUrl = `${baseUrl}/events/${eventId}`;
-    
+
     const qrCode = await this.generateDisplayQRCode(eventUrl);
-    
+
     return {
       qrCode,
       qrCodeData: eventUrl,
@@ -156,9 +199,9 @@ export class QRCodeService {
   }> {
     const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000';
     const hackathonUrl = `${baseUrl}/hackathons/${hackathonId}`;
-    
+
     const qrCode = await this.generateDisplayQRCode(hackathonUrl);
-    
+
     return {
       qrCode,
       qrCodeData: hackathonUrl,
@@ -170,7 +213,7 @@ export class QRCodeService {
   public static parseQRCodeData(qrCodeString: string): QRCodeData | null {
     try {
       const data = JSON.parse(qrCodeString) as QRCodeData;
-      
+
       // Verify the signature
       if (!this.verifySignature(data)) {
         console.error('Invalid QR code signature');
@@ -179,7 +222,7 @@ export class QRCodeService {
 
       // QR codes now have lifetime validity - no expiration check
       // The timestamp is kept for tracking purposes but not for expiration
-      
+
       return data;
     } catch (error) {
       console.error('Error parsing QR code data:', error);

@@ -4,12 +4,15 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { format } from "date-fns";
-import { CalendarIcon, MapPinIcon, ArrowLeft, Users } from "lucide-react";
+import { CalendarIcon, MapPinIcon, ArrowLeft, Users, QrCode, Download, RefreshCw } from "lucide-react";
 import { getImageUrl } from "@/lib/utils";
 import { TeamMemberInvitation } from "@/components/section/student/hackathons/TeamMemberInvitation";
 import Link from "next/link";
 import { Hackathon, HackathonTeam, User } from "@/types/hackathon";
 import { KeyedMutator } from "swr";
+import { useEffect, useState } from "react";
+import { toast } from "sonner";
+import Image from "next/image";
 
 interface TeamManagementProps {
   hackathon: Hackathon;
@@ -28,11 +31,92 @@ export function TeamManagement({
   currentUser,
   mutate
 }: TeamManagementProps) {
+  const [qrData, setQrData] = useState<{
+    qrCode: string;
+    qrCodeData: string;
+    user: {
+      firstName: string;
+      lastName: string;
+      email: string;
+    };
+  } | null>(null);
+  const [qrLoading, setQrLoading] = useState(false);
+  const [qrGenerating, setQrGenerating] = useState(false);
+
   const formatDateTime = (dateString: string, timeString: string) => {
     const date = new Date(dateString);
     const time = new Date(timeString);
     date.setHours(time.getHours(), time.getMinutes());
     return format(date, "PPP 'at' p");
+  };
+
+  // Fetch QR code when component mounts
+  useEffect(() => {
+    if (team && studentId) {
+      fetchQRCode();
+    }
+  }, [team.id, studentId]);
+
+  // Fetch user's QR code for this team
+  const fetchQRCode = async () => {
+    setQrLoading(true);
+    try {
+      const response = await fetch(`/api/student/team-member/qr-code?teamId=${team.id}`);
+      if (response.ok) {
+        const data = await response.json();
+        setQrData(data);
+      } else if (response.status === 404) {
+        // QR code doesn't exist yet
+        setQrData(null);
+      } else {
+        console.error("Failed to fetch QR code");
+      }
+    } catch (error) {
+      console.error("Error fetching QR code:", error);
+    } finally {
+      setQrLoading(false);
+    }
+  };
+
+  // Generate QR code for this team member
+  const generateQRCode = async () => {
+    setQrGenerating(true);
+    try {
+      const response = await fetch('/api/student/team-member/qr-code', {
+        method: "POST",
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          teamId: team.id,
+          hackathonId: hackathon.id
+        })
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        setQrData(data);
+        toast.success("QR code generated successfully!");
+      } else {
+        const error = await response.json();
+        toast.error(error.error || "Failed to generate QR code");
+      }
+    } catch (error) {
+      console.error("Error generating QR code:", error);
+      toast.error("Failed to generate QR code");
+    } finally {
+      setQrGenerating(false);
+    }
+  };
+
+  // Download QR code
+  const downloadQRCode = () => {
+    if (!qrData) return;
+
+    const link = document.createElement("a");
+    link.href = `data:image/png;base64,${qrData.qrCode}`;
+    link.download = `${hackathon.name}-team-qr-code.png`;
+    link.click();
   };
 
   return (
@@ -56,8 +140,9 @@ export function TeamManagement({
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Left column - Hackathon Info */}
-        <div className="lg:col-span-1">
+        {/* Left column - Hackathon Info and QR Code */}
+        <div className="lg:col-span-1 space-y-6">
+          {/* Hackathon Details Card */}
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
@@ -137,6 +222,85 @@ export function TeamManagement({
                   </Badge>
                 </div>
               </div>
+            </CardContent>
+          </Card>
+
+          {/* Personal QR Code Card */}
+          <Card className="mt-6">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <QrCode className="h-5 w-5" />
+                Your Hackathon QR Code
+              </CardTitle>
+              <CardDescription>
+                Use this QR code for event check-in and identification
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              {qrLoading ? (
+                <div className="flex justify-center items-center py-12">
+                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+                </div>
+              ) : !qrData ? (
+                <div className="text-center py-8">
+                  <QrCode className="h-16 w-16 mx-auto text-muted-foreground mb-4" />
+                  <p className="text-muted-foreground mb-4">
+                    You don't have a QR code for this hackathon yet.
+                  </p>
+                  <Button onClick={generateQRCode} disabled={qrGenerating}>
+                    {qrGenerating ? (
+                      <>
+                        <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
+                        Generating...
+                      </>
+                    ) : (
+                      <>
+                        <QrCode className="h-4 w-4 mr-2" />
+                        Generate QR Code
+                      </>
+                    )}
+                  </Button>
+                </div>
+              ) : (
+                <div className="text-center space-y-4">
+                  <div className="flex items-center justify-center gap-2 mb-4">
+                    <Badge variant="outline" className="text-xs">Team Member</Badge>
+                    <Badge variant="secondary" className="text-xs">Hackathon: {hackathon.name}</Badge>
+                  </div>
+
+                  <div className="bg-white p-6 rounded-lg inline-block border-2 border-dashed border-primary/20">
+                    <Image
+                      width={200}
+                      height={200}
+                      src={`data:image/png;base64,${qrData.qrCode}`}
+                      alt="Personal QR Code"
+                      className="w-48 h-48 mx-auto"
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <p className="font-medium">{qrData.user.firstName} {qrData.user.lastName}</p>
+                    <p className="text-sm text-muted-foreground">{qrData.user.email}</p>
+                  </div>
+
+                  <div className="flex gap-2 justify-center">
+                    <Button variant="outline" size="sm" onClick={downloadQRCode}>
+                      <Download className="h-4 w-4 mr-2" />
+                      Download
+                    </Button>
+                    <Button variant="outline" size="sm" onClick={fetchQRCode}>
+                      <RefreshCw className="h-4 w-4 mr-2" />
+                      Refresh
+                    </Button>
+                  </div>
+
+                  <div className="mt-6 p-4 bg-blue-50 border border-blue-200 rounded-lg dark:bg-blue-900/20 dark:border-blue-800">
+                    <p className="text-sm text-blue-800 dark:text-blue-300">
+                      Show this QR code to organizers at the hackathon for check-in and attendance tracking. Make sure to save a copy on your device.
+                    </p>
+                  </div>
+                </div>
+              )}
             </CardContent>
           </Card>
         </div>

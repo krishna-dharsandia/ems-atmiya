@@ -109,6 +109,10 @@ export async function createTeamAction(teamData: TeamSchema, hackathonId: string
       }
     }
 
+    if (!hackathon.open_registrations) {
+      return { error: "Registrations are closed for this hackathon" };
+    }
+
     // Verify the problem statement belongs to this hackathon
     const problemStatement = await prisma.hackathonProblemStatement.findFirst({
       where: {

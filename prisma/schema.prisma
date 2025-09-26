@@ -233,15 +233,22 @@ model HackathonTeam {
   invites                  HackathonTeamInvite[]
   members                  HackathonTeamMember[]
   HackathonTemporaryInvite HackathonTemporaryInvite[]
+
+  @@unique([hackathonId, leaderId])
+  @@unique([hackathonId, teamId])
 }
 
 model HackathonTeamMember {
-  id        String        @id @default(uuid())
-  teamId    String
-  studentId String
-  attended  Boolean       @default(false)
-  student   Student       @relation(fields: [studentId], references: [id])
-  team      HackathonTeam @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  id         String        @id @default(uuid())
+  teamId     String
+  studentId  String
+  attended   Boolean       @default(false)
+  student    Student       @relation(fields: [studentId], references: [id])
+  team       HackathonTeam @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  qrCode     String?
+  qrCodeData String?
+
+  @@unique([teamId, studentId])
 }
 
 model HackathonTemporaryInvite {
