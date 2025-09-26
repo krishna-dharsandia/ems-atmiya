@@ -13,6 +13,12 @@ import { KeyedMutator } from "swr";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import Image from "next/image";
+import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { z } from "zod";
+import { submissionsAction } from "./submissionsAction";
+import { Input } from "@/components/ui/input";
 
 interface TeamManagementProps {
   hackathon: Hackathon;
@@ -22,6 +28,12 @@ interface TeamManagementProps {
   currentUser: User;
   mutate: KeyedMutator<any>;
 }
+
+export const submissionsSchema = z.object({
+  url: z.string().url("Please enter a valid URL")
+})
+
+export type SubmissionsFormValues = z.infer<typeof submissionsSchema>;
 
 export function TeamManagement({
   hackathon,
@@ -118,6 +130,23 @@ export function TeamManagement({
     link.download = `${hackathon.name}-team-qr-code.png`;
     link.click();
   };
+
+  const submissionsForm = useForm({
+    resolver: zodResolver(submissionsSchema),
+    defaultValues: {
+      url: ""
+    }
+  })
+
+  const submissionsOnSubmit = async (data: SubmissionsFormValues) => {
+    const response = await submissionsAction(data, hackathon.id, team.id);
+    if (response.error) {
+      toast.error(response.error);
+    } else {
+      toast.success("Submission URL updated successfully");
+      mutate();
+    }
+  }
 
   return (
     <div className="container mx-auto py-8 px-4">
@@ -472,6 +501,71 @@ export function TeamManagement({
                             Contact your team lead for team management tasks.
                           </p>
                         </div>
+                      </div>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+
+            {isTeamOwner ? (
+              <Card>
+                <CardHeader>
+                  <CardTitle>Solution Submission</CardTitle>
+                  <CardDescription>
+                    Submissions will be opened after the hackathon ends. You can submit only once.
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <Form {...submissionsForm}>
+                    <form>
+                      <div className="flex gap-2 items-center">
+                        <FormField
+                          control={submissionsForm.control}
+                          name="url"
+                          render={({ field }) => (
+                            <FormItem className="flex-1">
+                              <FormLabel>Submission URL</FormLabel>
+                              <FormControl>
+                                <Input
+                                  className="flex-grow"
+                                  type="url"
+                                  placeholder="https://github.com/your-repo"
+                                  {...field}
+                                />
+                              </FormControl>
+                              <FormDescription>
+                                Solution submissions must be public repositories on GitHub, GitLab, or Bitbucket.
+                              </FormDescription>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                        <Button type="submit" disabled={team.submissionUrl !== "" || hackathon.open_submissions === false}>
+                          Submit
+                        </Button>
+                      </div>
+                    </form>
+                  </Form>
+                </CardContent>
+              </Card>
+            ) : (
+              <Card>
+                <CardHeader>
+                  <CardTitle>Solution Submission</CardTitle>
+                  <CardDescription>
+                    Only team leads can submit solutions on behalf of the team.
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <div className="bg-yellow-50 border-l-4 border-yellow-400 p-4 rounded">
+                    <div className="flex items-start">
+                      <Users className="h-5 w-5 text-yellow-400 mr-2" />
+                      <div>
+                        <p className="text-yellow-700 font-medium">Team Member Notice</p>
+                        <p className="text-yellow-600 text-sm">
+                          As a team member, you cannot submit solutions. Please coordinate with your team lead to ensure your team's submission is completed on time.
+                        </p>
                       </div>
                     </div>
                   </div>
