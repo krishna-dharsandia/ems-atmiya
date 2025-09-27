@@ -56,6 +56,7 @@ export interface HackathonTeam {
   members: TeamMember[];
   invites: TeamInvite[];
   submissionUrl?: string;
+  disqualified: boolean;
   problemStatement?: {
     id: string;
     code: string;
@@ -90,6 +91,7 @@ export interface Hackathon {
   problemStatements?: ProblemStatement[];
   created_at: string;
   open_submissions: boolean;
+  open_registrations: boolean;
 }
 
 export interface Participation {
