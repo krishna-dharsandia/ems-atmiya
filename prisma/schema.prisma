@@ -263,7 +263,7 @@ model HackathonTeamInvite {
   teamId    String
   studentId String
   status    InviteStatus  @default(PENDING)
-  student   Student       @relation(fields: [studentId], references: [id])
+  student   Student       @relation(fields: [studentId], references: [id], onDelete: Cascade)
   team      HackathonTeam @relation(fields: [teamId], references: [id], onDelete: Cascade)
 }
 
