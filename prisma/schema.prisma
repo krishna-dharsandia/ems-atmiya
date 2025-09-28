@@ -243,7 +243,7 @@ model HackathonTeamMember {
   teamId     String
   studentId  String
   attended   Boolean       @default(false)
-  student    Student       @relation(fields: [studentId], references: [id])
+  student    Student       @relation(fields: [studentId], references: [id], onDelete: Cascade)
   team       HackathonTeam @relation(fields: [teamId], references: [id], onDelete: Cascade)
   qrCode     String?
   qrCodeData String?
