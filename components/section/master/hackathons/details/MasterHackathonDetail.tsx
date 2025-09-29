@@ -561,28 +561,28 @@ export default function MasterHackathonDetail({
           </div>
 
           <Tabs defaultValue="details" value={activeTab} onValueChange={setActiveTab}>
-            <TabsList
-              className="flex flex-nowrap overflow-x-auto gap-2 md:gap-0 md:flex-wrap"
-            >
-              <TabsTrigger value="details" className="flex-shrink-0">
-                Details
-              </TabsTrigger>
-              <TabsTrigger value="problems" className="flex-shrink-0">
-                Problem Statements
-              </TabsTrigger>
-              <TabsTrigger value="rules" className="flex-shrink-0">
-                Rules
-              </TabsTrigger>
-              <TabsTrigger value="teams" className="flex-shrink-0">
-                Teams
-              </TabsTrigger>
-              <TabsTrigger value="statistics" className="flex-shrink-0">
-                Statistics
-              </TabsTrigger>
-              <TabsTrigger value="analytics" className="flex-shrink-0">
-                Analytics
-              </TabsTrigger>
-            </TabsList>
+            <div className="overflow-x-auto">
+              <TabsList className="flex-nowrap min-w-[600px] sm:min-w-0">
+                <TabsTrigger value="details" className="flex-shrink-0">
+                  Details
+                </TabsTrigger>
+                <TabsTrigger value="problems" className="flex-shrink-0">
+                  Problem Statements
+                </TabsTrigger>
+                <TabsTrigger value="rules" className="flex-shrink-0">
+                  Rules
+                </TabsTrigger>
+                <TabsTrigger value="teams" className="flex-shrink-0">
+                  Teams
+                </TabsTrigger>
+                <TabsTrigger value="statistics" className="flex-shrink-0">
+                  Statistics
+                </TabsTrigger>
+                <TabsTrigger value="analytics" className="flex-shrink-0">
+                  Analytics
+                </TabsTrigger>
+              </TabsList>
+            </div>
 
             <TabsContent value="details" className="mt-4">
               <Card>
