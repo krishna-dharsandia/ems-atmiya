@@ -22,8 +22,6 @@ export async function editTeamAction(input: unknown) {
 
     // Members to remove
     const membersToRemove = existingTeam.members.filter((m) => !newMemberIds.has(m.studentId));
-    // Members to add
-    const membersToAdd = data.members.filter((m: any) => !existingMemberIds.has(m.studentId));
     // Members to update
     const membersToUpdate = data.members.filter((m: any) => existingMemberIds.has(m.studentId));
 
@@ -44,16 +42,7 @@ export async function editTeamAction(input: unknown) {
     for (const member of membersToRemove) {
       await prisma.hackathonTeamMember.delete({ where: { id: member.id } });
     }
-    // Add new members
-    for (const member of membersToAdd) {
-      await prisma.hackathonTeamMember.create({
-        data: {
-          teamId: data.id,
-          studentId: member.studentId,
-          attended: member.attended ?? false,
-        },
-      });
-    }
+
     // Update attended for existing members
     for (const member of membersToUpdate) {
       await prisma.hackathonTeamMember.updateMany({
