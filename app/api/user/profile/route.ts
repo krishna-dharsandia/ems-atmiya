@@ -53,7 +53,7 @@ export async function PUT(request: NextRequest) {
 
     try {
       await prisma.user.update({
-        where: { id: user.id },
+        where: { supabaseId: user.id },
         data: {
           firstName: allowedFields.full_name.split(" ")[0],
           lastName: allowedFields.full_name.split(" ").slice(1).join(" ") || "user",
