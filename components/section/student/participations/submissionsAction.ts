@@ -53,6 +53,10 @@ export async function submissionsAction(data: SubmissionsFormValues, hackathonId
     return { error: "Team not found" };
   }
 
+  if (team.disqualified) {
+    return { error: "Team is disqualified" };
+  }
+
   try {
     await prisma.hackathonTeam.update({
       where: { id: teamId },

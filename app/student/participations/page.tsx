@@ -63,6 +63,7 @@ export default async function ParticipationsPage() {
                 evaluationCriteria: true,
                 created_at: true,
                 open_submissions: true,
+                open_registrations: true,
               },
             },
             members: {
@@ -145,6 +146,8 @@ export default async function ParticipationsPage() {
                 organizer_contact: true,
                 evaluationCriteria: true,
                 created_at: true,
+                open_submissions: true,
+                open_registrations: true,
               },
             },
           },
@@ -191,6 +194,7 @@ export default async function ParticipationsPage() {
           evaluationCriteria: hackathon.evaluationCriteria,
           created_at: hackathon.created_at.toISOString(),
           open_submissions: hackathon.open_submissions,
+          open_registrations: hackathon.open_registrations,
         },
         team: {
           id: team.id,
@@ -199,6 +203,7 @@ export default async function ParticipationsPage() {
           members: team.members,
           invites: team.invites,
           problemStatement: team.problemStatement,
+          disqualified: team.disqualified ?? false,
         },
         isTeamOwner,
         attended: membership.attended,

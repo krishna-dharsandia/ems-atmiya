@@ -71,6 +71,8 @@ export function TeamManagement({
 
   // Fetch user's QR code for this team
   const fetchQRCode = async () => {
+    // For disqualified teams, we still allow fetching existing QR codes
+    // but we'll disable the buttons for generating/downloading
     setQrLoading(true);
     try {
       const response = await fetch(`/api/student/team-member/qr-code?teamId=${team.id}`);
@@ -92,6 +94,12 @@ export function TeamManagement({
 
   // Generate QR code for this team member
   const generateQRCode = async () => {
+    // Prevent QR code generation for disqualified teams
+    if (team.disqualified) {
+      toast.error("QR code generation is disabled for disqualified teams");
+      return;
+    }
+
     setQrGenerating(true);
     try {
       const response = await fetch('/api/student/team-member/qr-code', {
@@ -125,6 +133,12 @@ export function TeamManagement({
   const downloadQRCode = () => {
     if (!qrData) return;
 
+    // Prevent QR code download for disqualified teams
+    if (team.disqualified) {
+      toast.error("QR code download is disabled for disqualified teams");
+      return;
+    }
+
     const link = document.createElement("a");
     link.href = `data:image/png;base64,${qrData.qrCode}`;
     link.download = `${hackathon.name}-team-qr-code.png`;
@@ -139,6 +153,12 @@ export function TeamManagement({
   })
 
   const submissionsOnSubmit = async (data: SubmissionsFormValues) => {
+    // Prevent submissions for disqualified teams
+    if (team.disqualified) {
+      toast.error("Submissions are disabled for disqualified teams");
+      return;
+    }
+
     const response = await submissionsAction(data, hackathon.id, team.id);
     if (response.error) {
       toast.error(response.error);
@@ -167,6 +187,28 @@ export function TeamManagement({
           </div>
         </div>
       </div>
+
+       {/* Disqualification Notice - Show if team is disqualified */}
+      {team.disqualified && (
+        <div className="mb-8 p-4 bg-red-50 border border-red-200 rounded-lg dark:bg-red-900/20 dark:border-red-800">
+          <div className="flex items-center">
+            <div className="rounded-full bg-red-100 p-2 dark:bg-red-800">
+              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-red-600 dark:text-red-300">
+                <circle cx="12" cy="12" r="10" />
+                <line x1="12" y1="8" x2="12" y2="12" />
+                <line x1="12" y1="16" x2="12.01" y2="16" />
+              </svg>
+            </div>
+            <div className="ml-3">
+              <h3 className="text-lg font-medium text-red-800 dark:text-red-300">Team Disqualified</h3>
+              <div className="mt-2 text-red-700 dark:text-red-200">
+                <p>Your team has been disqualified from this hackathon. Some actions are restricted.</p>
+                <p className="text-sm mt-1">Please contact the hackathon organizers for more information.</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Left column - Hackathon Info and QR Code */}
@@ -276,7 +318,11 @@ export function TeamManagement({
                   <p className="text-muted-foreground mb-4">
                     You don't have a QR code for this hackathon yet.
                   </p>
-                  <Button onClick={generateQRCode} disabled={qrGenerating}>
+                  <Button
+                    onClick={generateQRCode}
+                    disabled={qrGenerating || team.disqualified}
+                    title={team.disqualified ? "QR code generation is disabled for disqualified teams" : ""}
+                  >
                     {qrGenerating ? (
                       <>
                         <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
@@ -289,6 +335,11 @@ export function TeamManagement({
                       </>
                     )}
                   </Button>
+                  {team.disqualified && (
+                    <p className="text-xs text-red-500 mt-2">
+                      QR code generation is disabled for disqualified teams
+                    </p>
+                  )}
                 </div>
               ) : (
                 <div className="text-center space-y-4">
@@ -313,19 +364,39 @@ export function TeamManagement({
                   </div>
 
                   <div className="flex gap-2 justify-center">
-                    <Button variant="outline" size="sm" onClick={downloadQRCode}>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={downloadQRCode}
+                      disabled={team.disqualified}
+                      title={team.disqualified ? "Download is disabled for disqualified teams" : ""}
+                    >
                       <Download className="h-4 w-4 mr-2" />
                       Download
                     </Button>
-                    <Button variant="outline" size="sm" onClick={fetchQRCode}>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={fetchQRCode}
+                      disabled={team.disqualified}
+                      title={team.disqualified ? "Refresh is disabled for disqualified teams" : ""}
+                    >
                       <RefreshCw className="h-4 w-4 mr-2" />
                       Refresh
                     </Button>
                   </div>
 
-                  <div className="mt-6 p-4 bg-blue-50 border border-blue-200 rounded-lg dark:bg-blue-900/20 dark:border-blue-800">
+                  {team.disqualified && (
+                    <p className="text-xs text-red-500 mt-2 text-center">
+                      QR code actions are disabled for disqualified teams
+                    </p>
+                  )}
+
+                    <div className="mt-6 p-4 bg-blue-50 border border-blue-200 rounded-lg dark:bg-blue-900/20 dark:border-blue-800">
                     <p className="text-sm text-blue-800 dark:text-blue-300">
-                      Show this QR code to organizers at the hackathon for check-in and attendance tracking. Make sure to save a copy on your device.
+                      {team.disqualified
+                        ? "Your team has been disqualified. This QR code is no longer valid for check-in."
+                        : "Show this QR code to organizers at the hackathon for check-in and attendance tracking. Make sure to save a copy on your device."}
                     </p>
                   </div>
                 </div>
@@ -360,7 +431,7 @@ export function TeamManagement({
                     </div>
                   )}
 
-                  <div className="flex items-center gap-4">
+                  <div className="flex flex-wrap items-center gap-4 mb-2">
                     <div>
                       <span className="text-sm text-muted-foreground">Your Role:</span>
                       <Badge variant={isTeamOwner ? "default" : "secondary"} className="ml-2">
@@ -373,16 +444,57 @@ export function TeamManagement({
                         {team.members.length} / {hackathon.team_size_limit || 5}
                       </span>
                     </div>
+                    {team.disqualified && (
+                      <div>
+                        <Badge variant="destructive" className="ml-2">Disqualified</Badge>
+                      </div>
+                    )}
                   </div>
 
-                  {isTeamOwner && (
-                    <div className="bg-green-50 border-l-4 border-green-400 p-3 rounded">
+                  {team.disqualified && (
+                    <div className="bg-red-50 border-l-4 border-red-400 p-3 rounded dark:bg-red-900/20 dark:border-red-800 mb-4">
                       <div className="flex items-center">
-                        <Users className="h-4 w-4 text-green-400 mr-2" />
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-red-600 mr-2 dark:text-red-300">
+                          <circle cx="12" cy="12" r="10" />
+                          <line x1="15" y1="9" x2="9" y2="15" />
+                          <line x1="9" y1="9" x2="15" y2="15" />
+                        </svg>
                         <div>
-                          <p className="text-green-700 font-medium text-sm">Team Lead Privileges</p>
-                          <p className="text-green-600 text-xs">
+                          <p className="text-red-700 font-medium text-sm dark:text-red-300">Team Disqualified</p>
+                          <p className="text-red-600 text-xs dark:text-red-200">
+                            This team has been disqualified from the hackathon. Certain features are restricted.
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
+                  {isTeamOwner && !team.disqualified && (
+                    <div className="bg-green-50 border-l-4 border-green-400 p-3 rounded dark:bg-green-900/20 dark:border-green-800">
+                      <div className="flex items-center">
+                        <Users className="h-4 w-4 text-green-400 mr-2 dark:text-green-300" />
+                        <div>
+                          <p className="text-green-700 font-medium text-sm dark:text-green-300">Team Lead Privileges</p>
+                          <p className="text-green-600 text-xs dark:text-green-200">
                             You can invite members and manage the team.
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
+                  {isTeamOwner && team.disqualified && (
+                    <div className="bg-amber-50 border-l-4 border-amber-400 p-3 rounded dark:bg-amber-900/20 dark:border-amber-800">
+                      <div className="flex items-center">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-amber-500 mr-2 dark:text-amber-300">
+                          <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path>
+                          <line x1="12" y1="9" x2="12" y2="13"></line>
+                          <line x1="12" y1="17" x2="12.01" y2="17"></line>
+                        </svg>
+                        <div>
+                          <p className="text-amber-700 font-medium text-sm dark:text-amber-300">Limited Team Lead Privileges</p>
+                          <p className="text-amber-600 text-xs dark:text-amber-200">
+                            Due to disqualification, some team management features are restricted.
                           </p>
                         </div>
                       </div>
@@ -392,8 +504,8 @@ export function TeamManagement({
               </CardContent>
             </Card>
 
-            {/* Team Management Component - Only show management features for team leads */}
-            {isTeamOwner ? (
+            {/* Team Management Component - Only show management features for team leads and non-disqualified teams */}
+            {isTeamOwner && !team.disqualified ? (
               <TeamMemberInvitation
                 team={team}
                 isTeamMember={true}
@@ -402,6 +514,73 @@ export function TeamManagement({
                 pendingInvites={[]}
                 mutate={mutate}
               />
+            ) : isTeamOwner && team.disqualified ? (
+              <Card>
+                <CardHeader>
+                  <CardTitle>Team Management</CardTitle>
+                  <CardDescription>
+                    Team management features are restricted for disqualified teams.
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-4">
+                    {/* Team Members Table - Read Only */}
+                    <div>
+                      <h3 className="text-lg font-medium mb-2">Current Members</h3>
+                      <div className="border rounded-lg overflow-hidden">
+                        <table className="w-full">
+                          <thead className="bg-muted">
+                            <tr>
+                              <th className="text-left p-3 font-medium">Name</th>
+                              <th className="text-left p-3 font-medium">Email</th>
+                              <th className="text-left p-3 font-medium">Role</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {team.members.map((member) => (
+                              <tr key={member.id} className="border-t">
+                                <td className="p-3">
+                                  {member.student.user.firstName} {member.student.user.lastName}
+                                </td>
+                                <td className="p-3 text-muted-foreground">
+                                  {member.student.user.email}
+                                </td>
+                                <td className="p-3">
+                                  <Badge variant={
+                                    member.student.id === studentId ? "default" :
+                                      team.members.indexOf(member) === 0 ? "default" :
+                                        "secondary"
+                                  }>
+                                    {member.student.id === studentId ? "You" :
+                                      team.members.indexOf(member) === 0 ? "Team Lead" :
+                                        "Member"}
+                                  </Badge>
+                                </td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      </div>
+                    </div>
+
+                    <div className="bg-red-50 border-l-4 border-red-400 p-4 rounded dark:bg-red-900/20 dark:border-red-800">
+                      <div className="flex items-start">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-red-600 mr-2 dark:text-red-300">
+                          <circle cx="12" cy="12" r="10" />
+                          <line x1="15" y1="9" x2="9" y2="15" />
+                          <line x1="9" y1="9" x2="15" y2="15" />
+                        </svg>
+                        <div>
+                          <p className="text-red-700 font-medium dark:text-red-300">Team Management Restricted</p>
+                          <p className="text-red-600 text-sm mt-1 dark:text-red-200">
+                            You cannot invite new members or manage the team because your team has been disqualified. Please contact the hackathon organizers for assistance.
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
             ) : (
               <Card>
                 <CardHeader>
@@ -508,7 +687,7 @@ export function TeamManagement({
               </Card>
             )}
 
-            {isTeamOwner ? (
+            {isTeamOwner && !team.disqualified ? (
               <Card>
                 <CardHeader>
                   <CardTitle>Solution Submission</CardTitle>
@@ -518,7 +697,7 @@ export function TeamManagement({
                 </CardHeader>
                 <CardContent>
                   <Form {...submissionsForm}>
-                    <form>
+                    <form onSubmit={submissionsForm.handleSubmit(submissionsOnSubmit)}>
                       <div className="flex gap-2 items-center">
                         <FormField
                           control={submissionsForm.control}
@@ -547,6 +726,43 @@ export function TeamManagement({
                       </div>
                     </form>
                   </Form>
+                </CardContent>
+              </Card>
+            ) : isTeamOwner && team.disqualified ? (
+              <Card>
+                <CardHeader>
+                  <CardTitle>Solution Submission</CardTitle>
+                  <CardDescription>
+                    Submissions are disabled for disqualified teams.
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <div className="bg-red-50 border-l-4 border-red-400 p-4 rounded dark:bg-red-900/20 dark:border-red-800">
+                    <div className="flex items-start">
+                      <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-red-600 mr-2 dark:text-red-300">
+                        <circle cx="12" cy="12" r="10" />
+                        <line x1="15" y1="9" x2="9" y2="15" />
+                        <line x1="9" y1="9" x2="15" y2="15" />
+                      </svg>
+                      <div>
+                        <p className="text-red-700 font-medium dark:text-red-300">Submissions Restricted</p>
+                        <p className="text-red-600 text-sm mt-1 dark:text-red-200">
+                          You cannot submit solutions because your team has been disqualified from the hackathon. Please contact the organizers for more information.
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+
+                  {team.submissionUrl && (
+                    <div className="mt-4">
+                      <h3 className="text-sm font-medium mb-2">Previous Submission</h3>
+                      <div className="p-3 bg-muted rounded-lg">
+                        <a href={team.submissionUrl} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline break-all">
+                          {team.submissionUrl}
+                        </a>
+                      </div>
+                    </div>
+                  )}
                 </CardContent>
               </Card>
             ) : (

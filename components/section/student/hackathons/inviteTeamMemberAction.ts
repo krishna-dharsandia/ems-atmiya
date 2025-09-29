@@ -32,6 +32,10 @@ export async function inviteTeamMemberAction(teamId: string, studentEmail: strin
       return { error: "Team not found" };
     }
 
+    if (team.disqualified) {
+      return { error: "This team has been disqualified and cannot invite new members." };
+    }
+
     // Check if the current user is a member of the team
     const currentStudent = await prisma.student.findFirst({
       where: {
