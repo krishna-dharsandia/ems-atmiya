@@ -208,6 +208,7 @@ export function TeamMemberInvitation({
                   <TableHead>Name</TableHead>
                   <TableHead>Email</TableHead>
                   <TableHead>Status</TableHead>
+                  <TableHead>Attendance</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -221,6 +222,17 @@ export function TeamMemberInvitation({
                       <Badge variant={member.student.id === studentId ? "default" : "secondary"}>
                         {member.student.id === studentId ? "You" : "Member"}
                       </Badge>
+                    </TableCell>
+                    <TableCell>
+                      {member.attended ? (
+                        <Badge variant="default" className="bg-green-600">
+                          Attended
+                        </Badge>
+                      ) : (
+                        <Badge variant="destructive" >
+                          Not Attended
+                        </Badge>
+                      )}
                     </TableCell>
                   </TableRow>
                 ))}

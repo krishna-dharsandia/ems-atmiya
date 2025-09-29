@@ -188,7 +188,7 @@ export function TeamManagement({
         </div>
       </div>
 
-       {/* Disqualification Notice - Show if team is disqualified */}
+      {/* Disqualification Notice - Show if team is disqualified */}
       {team.disqualified && (
         <div className="mb-8 p-4 bg-red-50 border border-red-200 rounded-lg dark:bg-red-900/20 dark:border-red-800">
           <div className="flex items-center">
@@ -392,7 +392,7 @@ export function TeamManagement({
                     </p>
                   )}
 
-                    <div className="mt-6 p-4 bg-blue-50 border border-blue-200 rounded-lg dark:bg-blue-900/20 dark:border-blue-800">
+                  <div className="mt-6 p-4 bg-blue-50 border border-blue-200 rounded-lg dark:bg-blue-900/20 dark:border-blue-800">
                     <p className="text-sm text-blue-800 dark:text-blue-300">
                       {team.disqualified
                         ? "Your team has been disqualified. This QR code is no longer valid for check-in."
@@ -534,6 +534,7 @@ export function TeamManagement({
                               <th className="text-left p-3 font-medium">Name</th>
                               <th className="text-left p-3 font-medium">Email</th>
                               <th className="text-left p-3 font-medium">Role</th>
+                              <th className="text-left p-3 font-medium">Attendance</th>
                             </tr>
                           </thead>
                           <tbody>
@@ -555,6 +556,17 @@ export function TeamManagement({
                                       team.members.indexOf(member) === 0 ? "Team Lead" :
                                         "Member"}
                                   </Badge>
+                                </td>
+                                <td className="p-3">
+                                  {member.attended ? (
+                                    <Badge variant="default" className="bg-green-600">
+                                      Attended
+                                    </Badge>
+                                  ) : (
+                                    <Badge variant="destructive" >
+                                      Not Attended
+                                    </Badge>
+                                  )}
                                 </td>
                               </tr>
                             ))}
