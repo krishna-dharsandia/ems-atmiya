@@ -61,6 +61,7 @@ export async function GET() {
                 evaluationCriteria: true,
                 created_at: true,
                 open_submissions: true,
+                open_registrations: true,
               },
             },
             members: {
@@ -143,6 +144,8 @@ export async function GET() {
                 organizer_contact: true,
                 evaluationCriteria: true,
                 created_at: true,
+                open_submissions: true,
+                open_registrations: true,
               },
             },
           },
@@ -189,6 +192,7 @@ export async function GET() {
           evaluationCriteria: hackathon.evaluationCriteria,
           created_at: hackathon.created_at.toISOString(),
           open_submissions: hackathon.open_submissions,
+          open_registrations: hackathon.open_registrations,
         },
         team: {
           id: team.id,
@@ -197,6 +201,7 @@ export async function GET() {
           members: team.members,
           invites: team.invites,
           problemStatement: team.problemStatement,
+          disqualified: team.disqualified ?? false,
         },
         isTeamOwner,
         attended: membership.attended,
@@ -227,6 +232,8 @@ export async function GET() {
         organizer_contact: invite.team.hackathon.organizer_contact,
         evaluationCriteria: invite.team.hackathon.evaluationCriteria,
         created_at: invite.team.hackathon.created_at.toISOString(),
+        open_submissions: invite.team.hackathon.open_submissions,
+        open_registrations: invite.team.hackathon.open_registrations,
       },
       team: {
         id: invite.team.id,
