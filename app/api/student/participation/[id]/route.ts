@@ -127,9 +127,7 @@ export async function GET(
 
     // Determine if current student is team leader
     // First check if leaderId is set (new way), fallback to first member (old way) for backward compatibility
-    const isTeamOwner = team.leaderId
-      ? team.leaderId === student.id
-      : team.members.length > 0 && team.members[0].studentId === student.id;
+    const isTeamOwner = team.leaderId === student.id;
 
     // Transform hackathon data to match expected format
     const transformedHackathon = {
