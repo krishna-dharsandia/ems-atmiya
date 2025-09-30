@@ -36,6 +36,10 @@ export async function inviteTeamMemberAction(teamId: string, studentEmail: strin
       return { error: "This team has been disqualified and cannot invite new members." };
     }
 
+    if (!team.hackathon.open_registrations) {
+      return { error: "Hackathon registrations are closed" };
+    }
+
     // Check if the current user is a member of the team
     const currentStudent = await prisma.student.findFirst({
       where: {
