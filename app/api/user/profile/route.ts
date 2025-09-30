@@ -57,6 +57,7 @@ export async function PUT(request: NextRequest) {
         data: {
           firstName: allowedFields.full_name.split(" ")[0],
           lastName: allowedFields.full_name.split(" ").slice(1).join(" ") || "user",
+          phone: allowedFields.phone || null,
         },
       });
     } catch (error) {

@@ -9,7 +9,7 @@ import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
-import { User, Mail, Calendar, UserCheck, Edit3, Save, X, QrCode, Download, RefreshCw } from "lucide-react";
+import { User, Mail, Calendar, UserCheck, Edit3, Save, X, QrCode, Download, RefreshCw, Phone } from "lucide-react";
 import Image from "next/image";
 import { useAuth } from "@/contexts/AuthContext";
 
@@ -287,6 +287,23 @@ export function AccountProfile({ role }: AccountProfileProps) {
                 <div className="flex items-center gap-2 p-3 bg-muted rounded-md">
                   <User className="h-4 w-4 text-muted-foreground" />
                   <span>{user.user_metadata?.full_name || "Not provided"}</span>
+                </div>
+              )}
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="phone">Mobile Number</Label>
+              {isEditing ? (
+                <Input
+                  id="phone"
+                  value={formData.phone}
+                  onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+                  placeholder="Enter your mobile number"
+                />
+              ) : (
+                <div className="flex items-center gap-2 p-3 bg-muted rounded-md">
+                  <Phone className="h-4 w-4 text-muted-foreground" />
+                  <span>{user.phone || "Not provided"}</span>
                 </div>
               )}
             </div>
