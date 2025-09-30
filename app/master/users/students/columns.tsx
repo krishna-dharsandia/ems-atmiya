@@ -11,9 +11,10 @@ import { toast } from "sonner";
 export type Student = {
   id: string;
   registrationNumber?: string;
-  user: { firstName: string; lastName: string; email: string, id: string };
+  user: { firstName: string; lastName: string; email: string, id: string, phone: string | null };
   department?: { name: string };
   program?: { name: string };
+  university?: string;
   currentSemester?: number;
   currentYear?: number;
 };
@@ -40,7 +41,8 @@ export const columns: ColumnDef<Student>[] = [
     },
   },
   {
-    accessorKey: "user.firstName",
+    accessorFn: (row) => row.user.firstName,
+    accessorKey: "firstName",
     header: "First Name",
     size: 130,
     minSize: 100,
@@ -70,8 +72,51 @@ export const columns: ColumnDef<Student>[] = [
         </div>
       );
     },
-  }, {
-    accessorKey: "department.name",
+  },
+  {
+    accessorFn: (row) => row.user.phone,
+    id: "phone",
+    header: "Phone",
+    size: 120,
+    minSize: 100,
+    maxSize: 150,
+    cell: ({ row }) => {
+      const phone = row.original.user.phone;
+      return (
+        <div className="max-w-[120px] break-words font-mono text-sm" title={phone || "N/A"}>
+          {phone || "N/A"}
+        </div>
+      );
+    },
+  },
+  {
+    accessorFn: (row) => row.university,
+    accessorKey: "university",
+    header: "University",
+    size: 200,
+    minSize: 150,
+    maxSize: 300,
+    cell: ({ row }) => {
+      const university = row.original.university;
+      return (
+        <TooltipProvider>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <div className="max-w-[200px] truncate text-sm cursor-help">
+                {university || "N/A"}
+              </div>
+            </TooltipTrigger>
+            <TooltipContent>
+              <p>{university || "N/A"}</p>
+            </TooltipContent>
+          </Tooltip>
+        </TooltipProvider>
+      );
+    }
+  },
+  {
+    accessorFn: (row) => row.department?.name,
+    accessorKey: "departmentName",
     header: "Department",
     size: 150,
     minSize: 120,
@@ -95,7 +140,8 @@ export const columns: ColumnDef<Student>[] = [
     },
   },
   {
-    accessorKey: "program.name",
+    accessorFn: (row) => row.program?.name,
+    accessorKey: "programName",
     header: "Program",
     size: 180,
     minSize: 140,
