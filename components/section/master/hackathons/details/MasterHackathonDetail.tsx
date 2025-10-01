@@ -22,7 +22,8 @@ import {
   DoorOpen,
   Captions,
   CaptionsOff,
-  QrCode
+  QrCode,
+  List
 } from "lucide-react";
 import {
   DropdownMenu,
@@ -52,7 +53,7 @@ import { toggleHackathonRegistration } from "./hackathonRegistrationTogglerActio
 import { toggleHackathonSubmission } from "./hackathonSubmissionsTogglerAction";
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart";
 import { PieChart, Pie, Cell, BarChart, Bar, XAxis, YAxis, Tooltip, Legend } from "recharts";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogClose } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogClose, DialogTrigger } from "@/components/ui/dialog";
 
 interface ProblemStatement {
   id: string;
@@ -871,10 +872,53 @@ export default function MasterHackathonDetail({
             <TabsContent value="analytics" className="mt-4">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-8">
                 {/* 0. Participation by University Pie Chart */}
-                <Card className="flex flex-col">
+                <Card className="flex flex-col col-span-2">
                   <CardHeader className="items-center pb-0">
-                    <CardTitle>Participation by University</CardTitle>
-                    <CardDescription>Distribution of participants by university</CardDescription>
+                    <div className="flex items-center justify-between w-full">
+                      <div className="flex flex-col items-center flex-1">
+                        <CardTitle>Participation by University</CardTitle>
+                        <CardDescription>Distribution of participants by university</CardDescription>
+                      </div>
+                      <Dialog>
+                        <DialogTrigger asChild>
+                          <Button variant="outline" size="sm">
+                            <List className="h-4 w-4" />
+                          </Button>
+                        </DialogTrigger>
+                        <DialogContent className="max-w-md sm:max-w-lg max-h-[80vh] overflow-hidden flex flex-col">
+                          <DialogHeader className="flex-shrink-0">
+                            <DialogTitle>University Distribution Details</DialogTitle>
+                          </DialogHeader>
+                          <div className="flex-1 overflow-y-auto px-1">
+                            <Table>
+                              <TableHeader>
+                                <TableRow>
+                                  <TableHead>University</TableHead>
+                                  <TableHead className="text-right">Participant Count</TableHead>
+                                </TableRow>
+                              </TableHeader>
+                              <TableBody>
+                                {(() => {
+                                  const uniCount: Record<string, number> = {};
+                                  hackathon.teams?.forEach(team => {
+                                    team.members.forEach(member => {
+                                      const uni = (member.student as any).university || "Unknown";
+                                      uniCount[uni] = (uniCount[uni] || 0) + 1;
+                                    });
+                                  });
+                                  return Object.entries(uniCount).map(([name, value]) => (
+                                    <TableRow key={name}>
+                                      <TableCell className="font-medium">{name}</TableCell>
+                                      <TableCell className="text-right">{value}</TableCell>
+                                    </TableRow>
+                                  ));
+                                })()}
+                              </TableBody>
+                            </Table>
+                          </div>
+                        </DialogContent>
+                      </Dialog>
+                    </div>
                   </CardHeader>
                   <CardContent className="flex-1 pb-0">
                     <ChartContainer config={{}} className="mx-auto aspect-square max-h-[250px]">
@@ -916,8 +960,51 @@ export default function MasterHackathonDetail({
                 {/* 1. Participation by Department Pie Chart */}
                 <Card className="flex flex-col">
                   <CardHeader className="items-center pb-0">
-                    <CardTitle>Participation by Department</CardTitle>
-                    <CardDescription>Distribution of participants by department</CardDescription>
+                    <div className="flex items-center justify-between w-full">
+                      <div className="flex flex-col items-center flex-1">
+                        <CardTitle>Participation by Department</CardTitle>
+                        <CardDescription>Distribution of participants by department</CardDescription>
+                      </div>
+                      <Dialog>
+                        <DialogTrigger asChild>
+                          <Button variant="outline" size="sm">
+                            <List className="h-4 w-4" />
+                          </Button>
+                        </DialogTrigger>
+                        <DialogContent className="max-w-md sm:max-w-lg max-h-[80vh] overflow-hidden flex flex-col">
+                          <DialogHeader className="flex-shrink-0">
+                            <DialogTitle>Department Distribution Details</DialogTitle>
+                          </DialogHeader>
+                          <div className="flex-1 overflow-y-auto px-1">
+                            <Table>
+                              <TableHeader>
+                                <TableRow>
+                                  <TableHead>Department</TableHead>
+                                  <TableHead className="text-right">Participant Count</TableHead>
+                                </TableRow>
+                              </TableHeader>
+                              <TableBody>
+                                {(() => {
+                                  const deptCount: Record<string, number> = {};
+                                  hackathon.teams?.forEach(team => {
+                                    team.members.forEach(member => {
+                                      const dept = member.student.department?.name || "Unknown";
+                                      deptCount[dept] = (deptCount[dept] || 0) + 1;
+                                    });
+                                  });
+                                  return Object.entries(deptCount).map(([name, value]) => (
+                                    <TableRow key={name}>
+                                      <TableCell className="font-medium">{name}</TableCell>
+                                      <TableCell className="text-right">{value}</TableCell>
+                                    </TableRow>
+                                  ));
+                                })()}
+                              </TableBody>
+                            </Table>
+                          </div>
+                        </DialogContent>
+                      </Dialog>
+                    </div>
                   </CardHeader>
                   <CardContent className="flex-1 pb-0">
                     <ChartContainer config={{}} className="mx-auto aspect-square max-h-[250px]">
@@ -959,8 +1046,53 @@ export default function MasterHackathonDetail({
                 {/* 2. Problem Statement Distribution Pie Chart */}
                 <Card className="flex flex-col">
                   <CardHeader className="items-center pb-0">
-                    <CardTitle>Problem Statement Distribution</CardTitle>
-                    <CardDescription>Teams per problem statement</CardDescription>
+                    <div className="flex items-center justify-between w-full">
+                      <div className="flex flex-col items-center flex-1">
+                        <CardTitle>Problem Statement Distribution</CardTitle>
+                        <CardDescription>Teams per problem statement</CardDescription>
+                      </div>
+                      <Dialog>
+                        <DialogTrigger asChild>
+                          <Button variant="outline" size="sm">
+                            <List className="h-4 w-4" />
+                          </Button>
+                        </DialogTrigger>
+                        <DialogContent className="max-w-md sm:max-w-lg max-h-[80vh] overflow-hidden flex flex-col">
+                          <DialogHeader className="flex-shrink-0">
+                            <DialogTitle>Problem Statement Distribution Details</DialogTitle>
+                          </DialogHeader>
+                          <div className="flex-1 overflow-y-auto px-1">
+                            <Table>
+                              <TableHeader>
+                                <TableRow>
+                                  <TableHead>Problem Statement</TableHead>
+                                  <TableHead className="text-right">Team Count</TableHead>
+                                </TableRow>
+                              </TableHeader>
+                              <TableBody>
+                                {(() => {
+                                  const psMap: Record<string, string> = {};
+                                  hackathon.problemStatements.forEach(ps => {
+                                    psMap[ps.id] = `${ps.code}: ${ps.title}`;
+                                  });
+                                  const counts: Record<string, number> = {};
+                                  hackathon.teams?.forEach(team => {
+                                    const psId = team.problemStatement?.id || "None";
+                                    counts[psId] = (counts[psId] || 0) + 1;
+                                  });
+                                  return Object.entries(counts).map(([id, count]) => (
+                                    <TableRow key={id}>
+                                      <TableCell className="font-medium">{psMap[id] || "None"}</TableCell>
+                                      <TableCell className="text-right">{count}</TableCell>
+                                    </TableRow>
+                                  ));
+                                })()}
+                              </TableBody>
+                            </Table>
+                          </div>
+                        </DialogContent>
+                      </Dialog>
+                    </div>
                   </CardHeader>
                   <CardContent className="flex-1 pb-0">
                     <ChartContainer config={{}} className="mx-auto aspect-square max-h-[250px]">
@@ -1006,8 +1138,53 @@ export default function MasterHackathonDetail({
                 {/* 3. Total Submissions Distribution Pie Chart */}
                 <Card className="flex flex-col">
                   <CardHeader className="items-center pb-0">
-                    <CardTitle>Total Submissions Distribution</CardTitle>
-                    <CardDescription>Teams with/without submissions</CardDescription>
+                    <div className="flex items-center justify-between w-full">
+                      <div className="flex flex-col items-center flex-1">
+                        <CardTitle>Total Submissions Distribution</CardTitle>
+                        <CardDescription>Teams with/without submissions</CardDescription>
+                      </div>
+                      <Dialog>
+                        <DialogTrigger asChild>
+                          <Button variant="outline" size="sm">
+                            <List className="h-4 w-4" />
+                          </Button>
+                        </DialogTrigger>
+                        <DialogContent className="max-w-md sm:max-w-lg max-h-[80vh] overflow-hidden flex flex-col">
+                          <DialogHeader className="flex-shrink-0">
+                            <DialogTitle>Submission Distribution Details</DialogTitle>
+                          </DialogHeader>
+                          <div className="flex-1 overflow-y-auto px-1">
+                            <Table>
+                              <TableHeader>
+                                <TableRow>
+                                  <TableHead>Submission Status</TableHead>
+                                  <TableHead className="text-right">Team Count</TableHead>
+                                </TableRow>
+                              </TableHeader>
+                              <TableBody>
+                                {(() => {
+                                  let withSub = 0, noSub = 0;
+                                  hackathon.teams?.forEach(team => {
+                                    if (team.submissionUrl) withSub++;
+                                    else noSub++;
+                                  });
+                                  return [
+                                    <TableRow key="with-submissions">
+                                      <TableCell className="font-medium">With Submissions</TableCell>
+                                      <TableCell className="text-right">{withSub}</TableCell>
+                                    </TableRow>,
+                                    <TableRow key="without-submissions">
+                                      <TableCell className="font-medium">Without Submissions</TableCell>
+                                      <TableCell className="text-right">{noSub}</TableCell>
+                                    </TableRow>
+                                  ];
+                                })()}
+                              </TableBody>
+                            </Table>
+                          </div>
+                        </DialogContent>
+                      </Dialog>
+                    </div>
                   </CardHeader>
                   <CardContent className="flex-1 pb-0">
                     <ChartContainer config={{}} className="mx-auto aspect-square max-h-[250px]">
@@ -1039,8 +1216,52 @@ export default function MasterHackathonDetail({
                 {/* 4. Team Disqualified Distribution Pie Chart */}
                 <Card className="flex flex-col">
                   <CardHeader className="items-center pb-0">
-                    <CardTitle>Team Disqualified Distribution</CardTitle>
-                    <CardDescription>Disqualified vs Not Disqualified</CardDescription>
+                    <div className="flex items-center justify-between w-full">
+                      <div className="flex flex-col items-center flex-1">
+                        <CardTitle>Team Disqualified Distribution</CardTitle>
+                        <CardDescription>Disqualified vs Not Disqualified</CardDescription>
+                      </div>
+                      <Dialog>
+                        <DialogTrigger asChild>
+                          <Button variant="outline" size="sm">
+                            <List className="h-4 w-4" />
+                          </Button>
+                        </DialogTrigger>
+                        <DialogContent className="max-w-md sm:max-w-lg max-h-[80vh] overflow-hidden flex flex-col">
+                          <DialogHeader className="flex-shrink-0">
+                            <DialogTitle>Disqualification Status Details</DialogTitle>
+                          </DialogHeader>
+                          <div className="flex-1 overflow-y-auto px-1">
+                            <Table>
+                              <TableHeader>
+                                <TableRow>
+                                  <TableHead>Disqualification Status</TableHead>
+                                  <TableHead className="text-right">Team Count</TableHead>
+                                </TableRow>
+                              </TableHeader>
+                              <TableBody>
+                                {(() => {
+                                  let dq = 0, notDq = 0;
+                                  hackathon.teams?.forEach((team: any) => {
+                                    if (team.disqualified) dq++; else notDq++;
+                                  });
+                                  return [
+                                    <TableRow key="disqualified">
+                                      <TableCell className="font-medium">Disqualified</TableCell>
+                                      <TableCell className="text-right">{dq}</TableCell>
+                                    </TableRow>,
+                                    <TableRow key="not-disqualified">
+                                      <TableCell className="font-medium">Not Disqualified</TableCell>
+                                      <TableCell className="text-right">{notDq}</TableCell>
+                                    </TableRow>
+                                  ];
+                                })()}
+                              </TableBody>
+                            </Table>
+                          </div>
+                        </DialogContent>
+                      </Dialog>
+                    </div>
                   </CardHeader>
                   <CardContent className="flex-1 pb-0">
                     <ChartContainer config={{}} className="mx-auto aspect-square max-h-[250px]">
@@ -1072,8 +1293,60 @@ export default function MasterHackathonDetail({
                 {/* 5. Team Count by Department Bar Chart */}
                 <Card className="flex flex-col">
                   <CardHeader className="items-center pb-0">
-                    <CardTitle>Team Count by Department</CardTitle>
-                    <CardDescription>Number of teams per department</CardDescription>
+                    <div className="flex items-center justify-between w-full">
+                      <div className="flex flex-col items-center flex-1">
+                        <CardTitle>Team Count by Department</CardTitle>
+                        <CardDescription>Number of teams per department</CardDescription>
+                      </div>
+                      <Dialog>
+                        <DialogTrigger asChild>
+                          <Button variant="outline" size="sm">
+                            <List className="h-4 w-4" />
+                          </Button>
+                        </DialogTrigger>
+                        <DialogContent className="max-w-md sm:max-w-lg max-h-[80vh] overflow-hidden flex flex-col">
+                          <DialogHeader className="flex-shrink-0">
+                            <DialogTitle>Team Count by Department Details</DialogTitle>
+                          </DialogHeader>
+                          <div className="flex-1 overflow-y-auto px-1">
+                            <Table>
+                              <TableHeader>
+                                <TableRow>
+                                  <TableHead>Department</TableHead>
+                                  <TableHead className="text-right">Team Count</TableHead>
+                                </TableRow>
+                              </TableHeader>
+                              <TableBody>
+                                {(() => {
+                                  // Count teams by department
+                                  const deptTeams: Record<string, number> = {};
+                                  hackathon.teams?.forEach(team => {
+                                    // For each team, find the departments represented
+                                    const deptSet = new Set<string>();
+                                    team.members.forEach(member => {
+                                      const dept = member.student.department?.name || "Unknown";
+                                      deptSet.add(dept);
+                                    });
+                                    // Count each department once per team
+                                    deptSet.forEach(dept => {
+                                      deptTeams[dept] = (deptTeams[dept] || 0) + 1;
+                                    });
+                                  });
+                                  return Object.entries(deptTeams)
+                                    .sort((a, b) => b[1] - a[1]) // Sort by count (descending)
+                                    .map(([name, count]) => (
+                                      <TableRow key={name}>
+                                        <TableCell className="font-medium">{name}</TableCell>
+                                        <TableCell className="text-right">{count}</TableCell>
+                                      </TableRow>
+                                    ));
+                                })()}
+                              </TableBody>
+                            </Table>
+                          </div>
+                        </DialogContent>
+                      </Dialog>
+                    </div>
                   </CardHeader>
                   <CardContent className="flex-1 pb-0">
                     <ChartContainer config={{}} className="mx-auto w-full max-h-[250px]">
