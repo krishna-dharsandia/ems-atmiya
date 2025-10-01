@@ -41,9 +41,14 @@ export const columns: ColumnDef<Student>[] = [
     },
   },
   {
-    accessorFn: (row) => row.user.firstName,
-    accessorKey: "firstName",
-    header: "First Name",
+    accessorFn: (row) => `${row.user.firstName} ${row.user.lastName}`,
+    accessorKey: "name",
+    header: ({ column }) => (
+      <Button variant="ghost" onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}>
+        Name
+        <ArrowUpDown className="ml-2 h-4 w-4" />
+      </Button>
+    ),
     size: 130,
     minSize: 100,
     maxSize: 180,
@@ -142,7 +147,12 @@ export const columns: ColumnDef<Student>[] = [
   {
     accessorFn: (row) => row.program?.name,
     accessorKey: "programName",
-    header: "Program",
+    header: ({ column }) => (
+      <Button variant="ghost" onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}>
+        Program
+        <ArrowUpDown className="ml-2 h-4 w-4" />
+      </Button>
+    ),
     size: 180,
     minSize: 140,
     maxSize: 250,
@@ -166,7 +176,12 @@ export const columns: ColumnDef<Student>[] = [
   },
   {
     accessorKey: "currentSemester",
-    header: "Semester",
+    header: ({ column }) => (
+      <Button variant="ghost" onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}>
+        Semester
+        <ArrowUpDown className="ml-2 h-4 w-4" />
+      </Button>
+    ),
     size: 80,
     minSize: 70,
     maxSize: 100,
