@@ -223,7 +223,7 @@ export default function MasterHackathonDetailPage() {
                 <ul className="list-disc ml-6">
                   {selectedTeam.members.map((member: any) => (
                     <li key={member.id}>
-                      {member.student?.user?.firstName} {member.student?.user?.lastName} ({member.student?.user?.email})
+                      {member.student?.user?.firstName} {member.student?.user?.lastName} ({member.student?.user?.email}) ({member.student?.user?.phone})
                       {member.attended && <span className="ml-2 text-green-600">(Attended)</span>}
                     </li>
                   ))}
