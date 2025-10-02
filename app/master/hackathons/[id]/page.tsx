@@ -211,7 +211,7 @@ export default function MasterHackathonDetailPage() {
               <div>
                 <strong>Team Leader:</strong> {
                   selectedTeam.members.find((m: any) => m.studentId === selectedTeam.leaderId)
-                    ? `${selectedTeam.members.find((m: any) => m.studentId === selectedTeam.leaderId).student?.user?.firstName} ${selectedTeam.members.find((m: any) => m.studentId === selectedTeam.leaderId).student?.user?.lastName} (${selectedTeam.members.find((m: any) => m.studentId === selectedTeam.leaderId).student?.user?.email})`
+                    ? `${selectedTeam.members.find((m: any) => m.studentId === selectedTeam.leaderId).student?.user?.firstName} ${selectedTeam.members.find((m: any) => m.studentId === selectedTeam.leaderId).student?.user?.lastName} (${selectedTeam.members.find((m: any) => m.studentId === selectedTeam.leaderId).student?.user?.email}) (${selectedTeam.members.find((m: any) => m.studentId === selectedTeam.leaderId).student?.user?.phone})`
                     : "Not selected"
                 }
               </div>
