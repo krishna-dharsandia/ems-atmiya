@@ -13,7 +13,6 @@ export async function GET() {
       include: {
         students: true,
         programs: true,
-        Admin: true,
       },
     });
     return NextResponse.json(departments, { status: 200 });

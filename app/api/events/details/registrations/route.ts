@@ -59,23 +59,6 @@ export async function GET(request: NextRequest) {
                 },
               },
             },
-            admins: {
-              include: {
-                department: {
-                  select: {
-                    name: true,
-                    id: true,
-                    faculty: true,
-                  },
-                },
-                program: {
-                  select: {
-                    name: true,
-                    id: true,
-                  },
-                },
-              },
-            },
           },
         },
       },
