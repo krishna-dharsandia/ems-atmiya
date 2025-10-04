@@ -24,8 +24,6 @@ export async function GET() {
 
     const admins = await prisma.admin.findMany({
       include: {
-        department: true,
-        program: true,
         user: true,
       },
     });

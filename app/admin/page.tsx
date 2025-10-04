@@ -5,7 +5,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { fetcher } from "@/fetcher";
 import { useSetAtom } from "jotai";
 import { sidebarBreadcrumbs } from "@/store/sidebar";
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import { KeyMetrics } from "../../components/section/admin/overview/KeyMetrics";
 import { DistributionCharts } from "../../components/section/admin/overview/DistributionCharts";
 import { EventCharts } from "../../components/section/admin/overview/EventCharts";
@@ -14,9 +14,6 @@ import { Separator } from "@/components/ui/separator";
 import { ChartArea } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Heading } from "@/components/global/heading/Heading";
-import { toast } from "sonner";
-import { createClient } from "@/utils/supabase/client";
-import { User } from "@supabase/supabase-js";
 import { useAuth } from "@/contexts/AuthContext";
 
 type AdminOverviewData = {
@@ -76,8 +73,8 @@ export default function AdminOverview() {
       <div className="flex items-start justify-between mb-4">
         <Heading
           title={`Welcome Back - ${user?.user_metadata.full_name
-              ? user?.user_metadata.full_name
-              : "Admin"
+            ? user?.user_metadata.full_name
+            : "Admin"
             }`}
           description="Platform-wide insights and analytics for the entire system."
         />
