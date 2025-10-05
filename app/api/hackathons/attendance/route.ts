@@ -2,6 +2,7 @@ import { createClient } from "@/utils/supabase/server";
 import { PrismaClient } from "@prisma/client";
 import { NextRequest, NextResponse } from "next/server";
 
+// Legacy attendance marking - for backward compatibility
 export async function POST(request: NextRequest) {
   const supabase = await createClient();
   const {

@@ -15,6 +15,8 @@ import { useForm, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { editTeamSchema, EditTeamInput } from "@/schemas/team";
 import { editTeamAction } from "./actions";
+import useSWR from "swr";
+import { fetcher } from "@/fetcher";
 
 export default function MasterHackathonDetailPage() {
   const params = useParams();
@@ -28,38 +30,41 @@ export default function MasterHackathonDetailPage() {
   const [editForm, setEditForm] = useState<any>({});
   const supabase = createClient();
 
+  // swr-fetcher import
+
+  // Authenticate user and fetch hackathon data with SWR
   useEffect(() => {
-    const fetchHackathonData = async () => {
-      try {
-        // Authenticate user
-        const { data: authData, error: authError } = await supabase.auth.getUser();
-
-        if (authError || !authData.user) {
-          throw new Error("Failed to authenticate user");
-        }
-
-        // Fetch hackathon data with teams
-        const hackathonResponse = await fetch(`/api/hackathons/${params.id}?includeMasterDetails=true`);
-
-        if (!hackathonResponse.ok) {
-          if (hackathonResponse.status === 404) {
-            notFound();
-          }
-          throw new Error("Failed to fetch hackathon details");
-        }
-
-        const data = await hackathonResponse.json();
-        setHackathonData(data.hackathon);
-      } catch (err) {
-        console.error("Error fetching data:", err);
-        setError("Failed to load hackathon details. Please try again later.");
-      } finally {
+    const checkAuth = async () => {
+      const { data: authData, error: authError } = await supabase.auth.getUser();
+      if (authError || !authData.user) {
+        setError("Failed to authenticate user");
         setIsLoading(false);
       }
     };
+    checkAuth();
+  }, [supabase.auth]);
 
-    fetchHackathonData();
-  }, [params.id, supabase.auth]);
+  const { data, error: swrError, isLoading: swrLoading } = useSWR<MasterHackathonDetailProps>(
+    params.id ? `/api/hackathons/${params.id}?includeMasterDetails=true` : null,
+    fetcher
+  );
+
+  useEffect(() => {
+    if (data) {
+      setHackathonData(data.hackathon);
+      setIsLoading(false);
+    }
+    if (swrError) {
+      if (swrError.status === 404) {
+        notFound();
+      }
+      setError("Failed to load hackathon details. Please try again later.");
+      setIsLoading(false);
+    }
+    if (swrLoading) {
+      setIsLoading(true);
+    }
+  }, [data, swrError, swrLoading]);
 
   const handleTeamClick = (team: any) => {
     setSelectedTeam(team);

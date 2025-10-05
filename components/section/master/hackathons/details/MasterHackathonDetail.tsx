@@ -2,10 +2,13 @@
 
 import { useState, useRef, useEffect } from "react";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import { Progress } from "@/components/ui/progress";
+import { DialogDescription, DialogFooter } from "@/components/ui/dialog";
+import { Calendar, Eye } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { format } from "date-fns";
+import { format, addDays, differenceInDays } from "date-fns";
 import {
   CalendarIcon,
   MapPinIcon,
@@ -14,7 +17,6 @@ import {
   Edit,
   Download,
   FileSpreadsheet,
-  Eye,
   Award,
   FileText,
   ChevronDown,
@@ -23,7 +25,10 @@ import {
   Captions,
   CaptionsOff,
   QrCode,
-  List
+  List,
+  Plus,
+  Trash2,
+  Loader2
 } from "lucide-react";
 import {
   DropdownMenu,
@@ -54,6 +59,10 @@ import { toggleHackathonSubmission } from "./hackathonSubmissionsTogglerAction";
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart";
 import { PieChart, Pie, Cell, BarChart, Bar, XAxis, YAxis, Tooltip, Legend } from "recharts";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogClose, DialogTrigger } from "@/components/ui/dialog";
+import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useForm } from "react-hook-form";
+import { AttendanceSchedule } from "@/types/attendance";
 
 interface ProblemStatement {
   id: string;
@@ -98,6 +107,10 @@ interface HackathonTeam {
   submissionUrl?: string | null;
 }
 
+// Remove interface as it will come from hackathon type
+
+import { z } from "zod";
+
 export interface MasterHackathonDetailProps {
   hackathon: {
     id: string;
@@ -127,10 +140,20 @@ export interface MasterHackathonDetailProps {
     teams: HackathonTeam[];
     qrCode?: string;
     qrCodeData?: string;
+    attendanceSchedules: AttendanceSchedule[];
   };
   onTeamClick?: (team: HackathonTeam) => void;
-  onEditTeamClick?: (team: HackathonTeam) => void; // <-- add this prop
+  onEditTeamClick?: (team: HackathonTeam) => void;
 }
+
+// Schema for attendance schedule form
+const attendanceScheduleSchema = z.object({
+  day: z.coerce.number().min(1, "Day must be at least 1"),
+  checkInTime: z.string().min(1, "Check-in time is required"),
+  description: z.string().optional(),
+});
+
+type AttendanceScheduleFormValues = z.infer<typeof attendanceScheduleSchema>;
 
 export default function MasterHackathonDetail({
   hackathon,
@@ -145,9 +168,23 @@ export default function MasterHackathonDetail({
   const [qrScannerOpen, setQrScannerOpen] = useState(false);
   const [isScanning, setIsScanning] = useState(false);
   const [processingQr, setProcessingQr] = useState(false);
+  const [attendanceDialogOpen, setAttendanceDialogOpen] = useState(false);
+  const [attendanceLoading, setAttendanceLoading] = useState(false);
+  const [isEditingSchedule, setIsEditingSchedule] = useState(false);
+  const [editingScheduleId, setEditingScheduleId] = useState<string | null>(null);
   const scannerRef = useRef<any>(null);
   const scannerDivId = "html5-qr-code-scanner";
   const router = useRouter();
+
+  // Form for managing attendance schedules
+  const attendanceForm = useForm<AttendanceScheduleFormValues>({
+    resolver: zodResolver(attendanceScheduleSchema),
+    defaultValues: {
+      day: 1,
+      checkInTime: '',
+      description: '',
+    },
+  });
 
   const formatDateTime = (dateString: string, timeString: string) => {
     const date = new Date(dateString);
@@ -483,9 +520,59 @@ export default function MasterHackathonDetail({
     setQrDialogOpen(true);
   };
 
-  const handleCloseQrDialog = () => {
-    setQrDialogOpen(false);
-    setQrCodeData(null);
+
+  // In the component function, add this function to handle attendance schedule form submission
+  const onAttendanceSubmit = async (values: AttendanceScheduleFormValues) => {
+    setAttendanceLoading(true);
+
+    try {
+      // Format the date-time properly
+      const checkInDateTime = new Date(values.checkInTime);
+
+      // Prepare API payload
+      const payload = {
+        hackathonId: hackathon.id,
+        day: values.day,
+        checkInTime: checkInDateTime.toISOString(),
+        description: values.description || null,
+      };
+
+      const url = isEditingSchedule
+        ? `/api/hackathons/attendance-schedule/${editingScheduleId}`
+        : `/api/hackathons/attendance-schedule`;
+
+      const method = isEditingSchedule ? 'PUT' : 'POST';
+
+      // Call API to create or update attendance schedule
+      const response = await fetch(url, {
+        method,
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(payload)
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Failed to save attendance schedule');
+      }
+
+      // Success handling
+      toast.success(isEditingSchedule
+        ? 'Attendance schedule updated successfully'
+        : 'Attendance schedule created successfully'
+      );
+
+      // Close dialog and refresh page
+      setAttendanceDialogOpen(false);
+      router.refresh();
+
+    } catch (error) {
+      console.error('Error saving attendance schedule:', error);
+      toast.error(error instanceof Error ? error.message : 'An error occurred');
+    } finally {
+      setAttendanceLoading(false);
+    }
   };
 
   return (
@@ -563,7 +650,7 @@ export default function MasterHackathonDetail({
 
           <Tabs defaultValue="details" value={activeTab} onValueChange={setActiveTab}>
             <div className="overflow-x-auto">
-              <TabsList className="flex-nowrap min-w-[600px] sm:min-w-0">
+              <TabsList className="flex-nowrap min-w-[700px] sm:min-w-0">
                 <TabsTrigger value="details" className="flex-shrink-0">
                   Details
                 </TabsTrigger>
@@ -575,6 +662,9 @@ export default function MasterHackathonDetail({
                 </TabsTrigger>
                 <TabsTrigger value="teams" className="flex-shrink-0">
                   Teams
+                </TabsTrigger>
+                <TabsTrigger value="attendance" className="flex-shrink-0">
+                  Attendance
                 </TabsTrigger>
                 <TabsTrigger value="statistics" className="flex-shrink-0">
                   Statistics
@@ -823,6 +913,166 @@ export default function MasterHackathonDetail({
               </Card>
             </TabsContent>
 
+            <TabsContent value="attendance" className="mt-4">
+              <Card>
+                <CardHeader className="flex flex-row items-center justify-between">
+                  <div>
+                    <CardTitle>Attendance Schedules</CardTitle>
+                    <CardDescription>
+                      Manage attendance check-ins for each day of the hackathon
+                    </CardDescription>
+                  </div>
+                  <Button onClick={() => {
+                    setIsEditingSchedule(false);
+                    setEditingScheduleId(null);
+                    attendanceForm.reset({
+                      day: 1,
+                      checkInTime: '',
+                      description: ''
+                    });
+                    setAttendanceDialogOpen(true);
+                  }}>
+                    <Plus className="mr-2 h-4 w-4" />
+                    Add Schedule
+                  </Button>
+                </CardHeader>
+                <CardContent>
+                  {(hackathon.attendanceSchedules ?? []).length > 0 ? (
+                    <div className="space-y-6">
+                      {/* Group schedules by day */}
+                      {Array.from(
+                        new Set(hackathon.attendanceSchedules?.map((schedule) => schedule.day) || [])
+                      ).sort((a, b) => a - b).map((day) => (
+                        <div key={day} className="rounded-lg border">
+                          <div className="bg-muted px-4 py-3 rounded-t-lg">
+                            <h3 className="font-medium">Day {day}</h3>
+                            <p className="text-sm text-muted-foreground">
+                              {format(addDays(new Date(hackathon.start_date), day - 1), 'EEEE, MMMM d, yyyy')}
+                            </p>
+                          </div>
+
+                          <Table>
+                            <TableHeader>
+                              <TableRow>
+                                <TableHead>Time</TableHead>
+                                <TableHead>Description</TableHead>
+                                <TableHead>Attendance Status</TableHead>
+                                <TableHead className="w-[100px]">Actions</TableHead>
+                              </TableRow>
+                            </TableHeader>
+                            <TableBody>
+                              {hackathon.attendanceSchedules?.
+                                filter((schedule) => schedule.day === day)
+                                .sort((a, b) =>
+                                  new Date(a.checkInTime).getTime() - new Date(b.checkInTime).getTime()
+                                )
+                                .map((schedule) => {
+                                  // Calculate attendance percentage if records exist
+                                  const totalMembers = hackathon.teams.reduce(
+                                    (count, team) => count + (team.members?.length || 0),
+                                    0
+                                  );
+                                  const attendedCount = schedule.attendanceRecords?.filter(
+                                    record => record.isPresent
+                                  ).length || 0;
+                                  const attendancePercentage = totalMembers > 0
+                                    ? Math.round((attendedCount / totalMembers) * 100)
+                                    : 0;
+
+                                  return (
+                                    <TableRow key={schedule.id}>
+                                      <TableCell>
+                                        {format(new Date(schedule.checkInTime), 'h:mm a')}
+                                      </TableCell>
+                                      <TableCell>{schedule.description || '-'}</TableCell>
+                                      <TableCell>
+                                        <div className="flex flex-col gap-1">
+                                          <div className="flex items-center gap-2">
+                                            <Progress value={attendancePercentage} className="h-2" />
+                                            <span className="text-xs font-medium">{attendancePercentage}%</span>
+                                          </div>
+                                          <p className="text-xs text-muted-foreground">
+                                            {attendedCount} / {totalMembers} members checked in
+                                          </p>
+                                        </div>
+                                      </TableCell>
+                                      <TableCell>
+                                        <div className="flex items-center gap-2">
+                                          <Button
+                                            variant="ghost"
+                                            size="icon"
+                                            onClick={() => {
+                                              setIsEditingSchedule(true);
+                                              setEditingScheduleId(schedule.id);
+                                              attendanceForm.reset({
+                                                day: schedule.day,
+                                                checkInTime: format(new Date(schedule.checkInTime), "yyyy-MM-dd'T'HH:mm"),
+                                                description: schedule.description || undefined,
+                                              });
+                                              setAttendanceDialogOpen(true);
+                                            }}
+                                          >
+                                            <Edit className="h-4 w-4" />
+                                            <span className="sr-only">Edit</span>
+                                          </Button>
+                                          <Button
+                                            variant="ghost"
+                                            size="icon"
+                                            onClick={() => {
+                                              // Handle viewing attendance details
+                                            }}
+                                          >
+                                            <Eye className="h-4 w-4" />
+                                            <span className="sr-only">View</span>
+                                          </Button>
+                                          <Button
+                                            variant="ghost"
+                                            size="icon"
+                                            onClick={() => {
+                                              // Handle deleting schedule
+                                              if (confirm("Are you sure you want to delete this attendance schedule? This action cannot be undone.")) {
+                                                // Delete schedule API call
+                                              }
+                                            }}
+                                          >
+                                            <Trash2 className="h-4 w-4 text-destructive" />
+                                            <span className="sr-only">Delete</span>
+                                          </Button>
+                                        </div>
+                                      </TableCell>
+                                    </TableRow>
+                                  );
+                                })}
+                            </TableBody>
+                          </Table>
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <div className="flex flex-col items-center justify-center py-8">
+                      <div className="rounded-full bg-muted p-3">
+                        <Calendar className="h-6 w-6 text-muted-foreground" />
+                      </div>
+                      <h3 className="mt-4 text-lg font-medium">No Attendance Schedules</h3>
+                      <p className="mt-2 text-center text-muted-foreground max-w-sm">
+                        You haven't created any attendance schedules for this hackathon yet.
+                        Add schedules to track participant attendance.
+                      </p>
+                      <Button
+                        className="mt-4"
+                        onClick={() => {
+                          setAttendanceDialogOpen(true);
+                        }}
+                      >
+                        <Plus className="mr-2 h-4 w-4" />
+                        Add First Schedule
+                      </Button>
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+            </TabsContent>
+
             <TabsContent value="statistics" className="mt-4">
               <Card>
                 <CardContent className="pt-6">
@@ -853,7 +1103,7 @@ export default function MasterHackathonDetail({
 
                     <div className="border rounded-lg p-6">
                       <h3 className="text-lg font-medium mb-4">Problem Statement Distribution</h3>
-                      {hackathon.problemStatements.map(problem => (
+                      {(Array.isArray(hackathon.problemStatements) ? hackathon.problemStatements : []).map(problem => (
                         <div key={problem.id} className="flex justify-between items-center mb-2">
                           <span className="truncate max-w-[70%]">{problem.code}: {problem.title}</span>
                           <Badge variant="outline">
@@ -951,7 +1201,7 @@ export default function MasterHackathonDetail({
                     </ChartContainer>
                   </CardContent>
                   <CardFooter className="flex-col gap-2 text-sm">
-                    <div className="flex items-center gap-2 leading-none font-medium">
+                    <div className="flex items-center gap-2 leading-none">
                       University-wide distribution
                     </div>
                     <div className="text-muted-foreground leading-none">Showing all universities</div>
@@ -1037,7 +1287,7 @@ export default function MasterHackathonDetail({
                     </ChartContainer>
                   </CardContent>
                   <CardFooter className="flex-col gap-2 text-sm">
-                    <div className="flex items-center gap-2 leading-none font-medium">
+                    <div className="flex items-center gap-2 leading-none">
                       Platform-wide distribution
                     </div>
                     <div className="text-muted-foreground leading-none">Showing all departments</div>
@@ -1129,7 +1379,7 @@ export default function MasterHackathonDetail({
                     </ChartContainer>
                   </CardContent>
                   <CardFooter className="flex-col gap-2 text-sm">
-                    <div className="flex items-center gap-2 leading-none font-medium">
+                    <div className="flex items-center gap-2 leading-none">
                       Problem statement breakdown
                     </div>
                     <div className="text-muted-foreground leading-none">All problem statements</div>
@@ -1207,7 +1457,7 @@ export default function MasterHackathonDetail({
                     </ChartContainer>
                   </CardContent>
                   <CardFooter className="flex-col gap-2 text-sm">
-                    <div className="flex items-center gap-2 leading-none font-medium">
+                    <div className="flex items-center gap-2 leading-none">
                       Submission status
                     </div>
                     <div className="text-muted-foreground leading-none">All teams</div>
@@ -1284,7 +1534,7 @@ export default function MasterHackathonDetail({
                     </ChartContainer>
                   </CardContent>
                   <CardFooter className="flex-col gap-2 text-sm">
-                    <div className="flex items-center gap-2 leading-none font-medium">
+                    <div className="flex items-center gap-2 leading-none">
                       Disqualification status
                     </div>
                     <div className="text-muted-foreground leading-none">All teams</div>
@@ -1378,7 +1628,7 @@ export default function MasterHackathonDetail({
                     </ChartContainer>
                   </CardContent>
                   <CardFooter className="flex-col gap-2 text-sm">
-                    <div className="flex items-center gap-2 leading-none font-medium">
+                    <div className="flex items-center gap-2 leading-none">
                       Team count by department
                     </div>
                     <div className="text-muted-foreground leading-none">All teams</div>
@@ -1628,6 +1878,113 @@ export default function MasterHackathonDetail({
           </DialogContent>
         </Dialog>
       )}
+
+      {/* Attendance Schedule Dialog */}
+      <Dialog open={attendanceDialogOpen} onOpenChange={setAttendanceDialogOpen}>
+        <DialogContent className="sm:max-w-[425px]">
+          <DialogHeader>
+            <DialogTitle>
+              {isEditingSchedule ? 'Edit Attendance Schedule' : 'New Attendance Schedule'}
+            </DialogTitle>
+            <DialogDescription>
+              Set up when attendance should be marked during the hackathon.
+            </DialogDescription>
+          </DialogHeader>
+
+          <Form {...attendanceForm}>
+            <form onSubmit={attendanceForm.handleSubmit(onAttendanceSubmit)} className="space-y-4 py-2">
+              <FormField
+                control={attendanceForm.control}
+                name="day"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Day</FormLabel>
+                    <FormControl>
+                      <Input
+                        type="number"
+                        min={1}
+                        max={
+                          differenceInDays(
+                            new Date(hackathon.end_date),
+                            new Date(hackathon.start_date)
+                          ) + 1
+                        }
+                        placeholder="1"
+                        {...field}
+                      />
+                    </FormControl>
+                    <FormDescription>
+                      Which day of the hackathon (Day 1, Day 2, etc.)
+                    </FormDescription>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={attendanceForm.control}
+                name="checkInTime"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Check-in Time</FormLabel>
+                    <FormControl>
+                      <Input
+                        type="datetime-local"
+                        {...field}
+                      />
+                    </FormControl>
+                    <FormDescription>
+                      When attendees should check in
+                    </FormDescription>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={attendanceForm.control}
+                name="description"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Description (Optional)</FormLabel>
+                    <FormControl>
+                      <Input
+                        placeholder="Morning Check-in"
+                        {...field}
+                        value={field.value || ''}
+                      />
+                    </FormControl>
+                    <FormDescription>
+                      A label to identify this check-in (e.g., "Morning", "Lunch")
+                    </FormDescription>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <DialogFooter>
+                <Button
+                  variant="outline"
+                  onClick={() => setAttendanceDialogOpen(false)}
+                  type="button"
+                >
+                  Cancel
+                </Button>
+                <Button type="submit" disabled={attendanceLoading}>
+                  {attendanceLoading ? (
+                    <>
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      {isEditingSchedule ? 'Updating...' : 'Creating...'}
+                    </>
+                  ) : (
+                    isEditingSchedule ? 'Update Schedule' : 'Create Schedule'
+                  )}
+                </Button>
+              </DialogFooter>
+            </form>
+          </Form>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

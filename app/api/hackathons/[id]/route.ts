@@ -6,7 +6,7 @@ export async function GET(
   req: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
-  const {id} = await params;
+  const { id } = await params;
   const searchParams = req.nextUrl.searchParams;
   const includeMasterDetails = searchParams.get('includeMasterDetails') === 'true';
 
@@ -24,6 +24,40 @@ export async function GET(
     const hackathon = await prisma.hackathon.findUnique({
       where: { id: hackathonId },
       include: {
+        attendanceSchedules: {
+          include: {
+            attendanceRecords: {
+              include: {
+                teamMember: {
+                  include: {
+                    student: {
+                      include: {
+                        user: {
+                          select: {
+                            firstName: true,
+                            lastName: true,
+                            email: true,
+                          },
+                        },
+                      },
+                    },
+                  },
+                },
+                checkedInByUser: {
+                  select: {
+                    firstName: true,
+                    lastName: true,
+                    email: true
+                  }
+                }
+              }
+            }
+          },
+          orderBy: [
+            { day: 'asc' },
+            { checkInTime: 'asc' }
+          ]
+        },
         problemStatements: true,
         rules: true,
         ...(includeMasterDetails ? {

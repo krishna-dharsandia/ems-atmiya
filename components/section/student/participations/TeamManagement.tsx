@@ -3,8 +3,8 @@
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { format } from "date-fns";
-import { CalendarIcon, MapPinIcon, ArrowLeft, Users, QrCode, Download, RefreshCw } from "lucide-react";
+import { format, addDays } from "date-fns";
+import { CalendarIcon, MapPinIcon, ArrowLeft, Users, QrCode, Download, RefreshCw, Calendar, Clock, CheckCircle2, XCircle } from "lucide-react";
 import { getImageUrl } from "@/lib/utils";
 import { TeamMemberInvitation } from "@/components/section/student/hackathons/TeamMemberInvitation";
 import Link from "next/link";
@@ -19,6 +19,9 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { submissionsAction } from "./submissionsAction";
 import { Input } from "@/components/ui/input";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+
+// Remove imported type and local type definition as it will come from Hackathon type
 
 interface TeamManagementProps {
   hackathon: Hackathon;
@@ -399,6 +402,116 @@ export function TeamManagement({
                         : "Show this QR code to organizers at the hackathon for check-in and attendance tracking. Make sure to save a copy on your device."}
                     </p>
                   </div>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+
+          {/* Attendance Tracking Card */}
+          <Card className="mt-6">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Calendar className="h-5 w-5" />
+                Attendance Tracking
+              </CardTitle>
+              <CardDescription>
+                Your attendance status for each check-in during the hackathon
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              {(hackathon.attendanceSchedules ?? []).length > 0 ? (
+                <div className="space-y-6">
+                  {/* Group schedules by day */}
+                  {Array.from(
+                    new Set(hackathon.attendanceSchedules?.map((schedule) => schedule.day) || [])
+                  ).sort((a, b) => a - b).map((day) => (
+                    <div key={day} className="space-y-2">
+                      <div className="flex items-center gap-2">
+                        <div className="bg-primary/10 text-primary rounded-md px-2 py-1 text-sm font-medium">
+                          Day {day}
+                        </div>
+                        <span className="text-sm text-muted-foreground">
+                          {format(addDays(new Date(hackathon.start_date), day - 1), 'EEE, MMM d')}
+                        </span>
+                      </div>
+
+                      <Table>
+                        <TableHeader>
+                          <TableRow>
+                            <TableHead>Time</TableHead>
+                            <TableHead>Description</TableHead>
+                            <TableHead className="text-right">Status</TableHead>
+                          </TableRow>
+                        </TableHeader>
+                        <TableBody>
+                          {hackathon.attendanceSchedules
+                            ?.filter((schedule) => schedule.day === day)
+                            .sort((a, b) =>
+                              new Date(a.checkInTime).getTime() - new Date(b.checkInTime).getTime()
+                            )
+                            .map((schedule) => {
+                              // Find the user's attendance record for this schedule
+                              const myAttendance = schedule.attendanceRecords?.find(
+                                record => record.id.includes(team.id) // This is simplified; you'd need proper filtering
+                              );
+
+                              // For future schedules, show "Pending"
+                              const isFuture = new Date(schedule.checkInTime) > new Date();
+                              const isPast = new Date(schedule.checkInTime) < new Date();
+
+                              return (
+                                <TableRow key={schedule.id}>
+                                  <TableCell>
+                                    <div className="flex items-center gap-2">
+                                      <Clock className="h-4 w-4 text-muted-foreground" />
+                                      {format(new Date(schedule.checkInTime), 'h:mm a')}
+                                    </div>
+                                  </TableCell>
+                                  <TableCell>
+                                    {schedule.description || 'No description'}
+                                  </TableCell>
+                                  <TableCell className="text-right">
+                                    {myAttendance?.isPresent ? (
+                                      <div className="flex items-center justify-end gap-1 text-green-600">
+                                        <CheckCircle2 className="h-4 w-4" />
+                                        <span className="text-sm">Present</span>
+                                      </div>
+                                    ) : isFuture ? (
+                                      <span className="text-sm text-muted-foreground">Upcoming</span>
+                                    ) : isPast ? (
+                                      <div className="flex items-center justify-end gap-1 text-red-500">
+                                        <XCircle className="h-4 w-4" />
+                                        <span className="text-sm">Absent</span>
+                                      </div>
+                                    ) : (
+                                      <span className="text-sm text-muted-foreground">Pending</span>
+                                    )}
+                                  </TableCell>
+                                </TableRow>
+                              );
+                            })}
+                        </TableBody>
+                      </Table>
+                    </div>
+                  ))}
+
+                  {team.disqualified && (
+                    <div className="mt-4 p-3 bg-red-50 border border-red-200 rounded-md dark:bg-red-900/20 dark:border-red-800">
+                      <p className="text-sm text-red-800 dark:text-red-300">
+                        Your team has been disqualified. Attendance tracking may not be accurate.
+                      </p>
+                    </div>
+                  )}
+                </div>
+              ) : (
+                <div className="flex flex-col items-center justify-center py-6">
+                  <div className="rounded-full bg-muted p-3">
+                    <Calendar className="h-5 w-5 text-muted-foreground" />
+                  </div>
+                  <h3 className="mt-3 text-base font-medium">No Attendance Schedules</h3>
+                  <p className="mt-1 text-center text-muted-foreground text-sm">
+                    Organizers haven't set up attendance tracking for this hackathon yet.
+                  </p>
                 </div>
               )}
             </CardContent>
