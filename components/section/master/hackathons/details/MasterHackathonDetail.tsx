@@ -1019,7 +1019,7 @@ export default function MasterHackathonDetail({
                                             variant="ghost"
                                             size="icon"
                                             onClick={() => {
-                                              // Handle viewing attendance details
+                                              router.push(`/master/hackathons/attendance/${schedule.id}`);
                                             }}
                                           >
                                             <Eye className="h-4 w-4" />
@@ -1028,10 +1028,26 @@ export default function MasterHackathonDetail({
                                           <Button
                                             variant="ghost"
                                             size="icon"
-                                            onClick={() => {
-                                              // Handle deleting schedule
+                                            onClick={async () => {
                                               if (confirm("Are you sure you want to delete this attendance schedule? This action cannot be undone.")) {
-                                                // Delete schedule API call
+                                                try {
+                                                  const loadingToast = toast.loading("Deleting schedule...");
+
+                                                  const { deleteAttendanceSchedule } = await import("@/utils/functions/attendanceScheduleUtils");
+                                                  const result = await deleteAttendanceSchedule(schedule.id);
+
+                                                  toast.dismiss(loadingToast);
+
+                                                  if (result.success) {
+                                                    toast.success(result.message);
+                                                    router.refresh();
+                                                  } else {
+                                                    toast.error(result.message);
+                                                  }
+                                                } catch (error) {
+                                                  toast.error("An error occurred while deleting the schedule");
+                                                  console.error("Error deleting schedule:", error);
+                                                }
                                               }
                                             }}
                                           >
