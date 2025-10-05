@@ -270,7 +270,6 @@ model HackathonAttendanceSchedule {
   day               Int // Day number of the hackathon (1, 2, etc.)
   checkInTime       DateTime // Scheduled time for check-in
   description       String? // Optional description like "Morning Check-in", "Lunch Check-in", etc.
-  attendanceType    String                @default("CHECKIN") // CHECKIN, CHECKOUT, MIDDAY, CUSTOM
   created_at        DateTime              @default(now())
   updated_at        DateTime              @updatedAt
   hackathon         Hackathon             @relation(fields: [hackathonId], references: [id], onDelete: Cascade)
