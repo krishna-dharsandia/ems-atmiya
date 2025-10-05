@@ -40,7 +40,6 @@ interface TeamMember {
   studentId: string;
   student: {
     id: string;
-    enrollment?: string;
     user: {
       id: string;
       firstName: string;
@@ -147,7 +146,6 @@ export default function AttendanceDetails({ scheduleId }: AttendanceDetailsProps
             "Team Name": team.teamName,
             "Team ID": team.teamId || "-",
             "Student Name": `${member.student.user.firstName} ${member.student.user.lastName}`,
-            "Enrollment": member.student.enrollment || "-",
             "Department": member.student.department?.name || "-",
             "Email": member.student.user.email,
             "Status": attendanceRecord?.isPresent ? "Present" : "Absent",
@@ -193,15 +191,13 @@ export default function AttendanceDetails({ scheduleId }: AttendanceDetailsProps
             const fullName = `${member.student.user.firstName} ${member.student.user.lastName}`.toLowerCase();
             const email = member.student.user.email.toLowerCase();
             const teamName = team.teamName.toLowerCase();
-            const enrollment = member.student.enrollment?.toLowerCase() || "";
             const query = searchQuery.toLowerCase();
 
             if (
               query === "" ||
               fullName.includes(query) ||
               email.includes(query) ||
-              teamName.includes(query) ||
-              enrollment.includes(query)
+              teamName.includes(query)
             ) {
               filteredMembers.push({ team, member });
             }
@@ -376,7 +372,6 @@ export default function AttendanceDetails({ scheduleId }: AttendanceDetailsProps
                 <TableRow>
                   <TableHead className="w-[100px]">Status</TableHead>
                   <TableHead>Name</TableHead>
-                  <TableHead className="hidden md:table-cell">Enrollment</TableHead>
                   <TableHead>Team</TableHead>
                   <TableHead className="hidden lg:table-cell">Department</TableHead>
                   <TableHead className="hidden md:table-cell">Check-in Time</TableHead>
@@ -399,15 +394,9 @@ export default function AttendanceDetails({ scheduleId }: AttendanceDetailsProps
                           <div className="font-medium">
                             {member.student.user.firstName} {member.student.user.lastName}
                           </div>
-                          <div className="text-sm text-muted-foreground md:hidden">
-                            {member.student.enrollment || "-"}
-                          </div>
                           <div className="text-xs text-muted-foreground lg:hidden">
                             {member.student.department?.name || "-"}
                           </div>
-                        </TableCell>
-                        <TableCell className="hidden md:table-cell">
-                          {member.student.enrollment || "-"}
                         </TableCell>
                         <TableCell>
                           <span className="font-medium">{team.teamName}</span>
