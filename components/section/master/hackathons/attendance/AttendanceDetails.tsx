@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { format, addDays, formatDate } from "date-fns";
 import {
@@ -31,9 +31,11 @@ import {
 import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
-import { ChevronLeft, Download, FileDown, Loader2, Search, X } from "lucide-react";
+import { ChevronLeft, Download, FileDown, Loader2, QrCode, Search, X } from "lucide-react";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import useSWR from "swr";
 import { fetcher } from "@/fetcher";
+import axios from "axios";
 
 interface TeamMember {
   id: string;
@@ -102,7 +104,173 @@ export default function AttendanceDetails({ scheduleId }: AttendanceDetailsProps
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [teamFilter, setTeamFilter] = useState<string>("all");
   const [exportLoading, setExportLoading] = useState(false);
+  const [qrScannerOpen, setQrScannerOpen] = useState(false);
+  const [isScanning, setIsScanning] = useState(false);
+  const [processingQr, setProcessingQr] = useState(false);
+  const scannerRef = useRef<any>(null);
+  const scannerDivId = "html5-qr-code-scanner";
   const router = useRouter();
+
+  // QR scanner styles
+  const qrScannerStyles = `
+    .qr-scanner-container {
+      width: 100%;
+      margin: 0 auto;
+      max-height: 70vh;
+    }
+    .qr-scanner-container section {
+      width: 100% !important;
+    }
+    .qr-scanner-container section div:first-child {
+      margin: 0 auto !important;
+    }
+    .qr-scanner-container button {
+      border-radius: 0.375rem;
+      padding: 0.5rem 1rem;
+      font-weight: 500;
+      background-color: hsl(var(--primary) / 0.9);
+      color: hsl(var(--primary-foreground));
+      margin: 0.25rem;
+    }
+    .qr-scanner-container button:hover {
+      background-color: hsl(var(--primary));
+    }
+    .qr-scanner-container select {
+      border-radius: 0.375rem;
+      padding: 0.5rem;
+      margin-bottom: 0.5rem;
+      border: 1px solid hsl(var(--border));
+    }
+    /* Mobile optimizations */
+    @media (max-width: 640px) {
+      .qr-scanner-container section {
+        padding: 0 !important;
+      }
+      .qr-scanner-container section > div {
+        flex-direction: column !important;
+      }
+      .qr-scanner-container video {
+        max-height: 40vh !important;
+      }
+      .qr-scanner-container button {
+        margin: 0.25rem 0;
+        width: 100%;
+      }
+    }
+  `;
+
+  // QR scanner functions
+  const startQrScanner = () => {
+    setQrScannerOpen(true);
+    setIsScanning(true);
+  };
+
+  const stopQrScanner = () => {
+    if (scannerRef.current) {
+      scannerRef.current.clear();
+      scannerRef.current = null;
+    }
+
+    setIsScanning(false);
+    setQrScannerOpen(false);
+  };
+
+  const processQrCode = async (qrData: string) => {
+    if (processingQr) return;
+
+    try {
+      setProcessingQr(true);
+
+      // Parse the QR code data (assuming it contains a user ID)
+      let userId;
+      let teamId;
+      try {
+        const userData = JSON.parse(qrData.trim());
+        userId = userData.userId;
+        teamId = userData.teamId;
+      } catch (error) {
+        // If not JSON, try using the raw data as userId
+        userId = qrData.trim();
+      }
+
+      if (!userId) {
+        toast.error("Invalid QR code data");
+        return;
+      }
+
+      if (!teamId) {
+        toast.error("Invalid QR code data");
+        return;
+      }
+
+      if (!attendanceData) {
+        toast.error("Attendance data not loaded");
+        return;
+      }
+
+      // Call the attendance API
+      const res = await axios.post("/api/hackathons/attendance-single", {
+        sheduleId: attendanceData.id,
+        studentId: userId,
+        teamId: teamId,
+      });
+
+      const data = res.data;
+
+      if (data.success) {
+        // Show success animation overlay before toast
+        const successOverlay = document.createElement('div');
+        successOverlay.className = 'fixed inset-0 flex items-center justify-center z-50 bg-black/50 backdrop-blur-sm';
+        successOverlay.innerHTML = `
+          <div class="bg-background rounded-lg p-6 shadow-lg flex flex-col items-center animate-in zoom-in-90 duration-300">
+            <div class="h-16 w-16 rounded-full bg-green-100 flex items-center justify-center mb-4">
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+              </svg>
+            </div>
+            <h3 class="text-lg font-medium">Attendance Marked!</h3>
+            <p class="text-sm text-muted-foreground mt-2">${data.message || 'Participant attendance recorded successfully'}</p>
+          </div>
+        `;
+        document.body.appendChild(successOverlay);
+
+        // Remove after animation
+        setTimeout(() => {
+          successOverlay.classList.add('animate-out', 'fade-out');
+          setTimeout(() => {
+            document.body.removeChild(successOverlay);
+          }, 300);
+        }, 1500);
+
+        // Refresh the data to update the attendance status
+        setTimeout(() => {
+          // Use SWR to refresh data instead of refreshing the whole page
+          const refreshUrl = `/api/hackathons/attendance-details/${scheduleId}`;
+          fetch(refreshUrl, { method: 'GET' })
+            .then(response => response.json())
+            .then(refreshedData => {
+              if (refreshedData.success) {
+                setAttendanceData(refreshedData.attendanceSchedule);
+                setStats(refreshedData.stats);
+              }
+            })
+            .catch(err => {
+              console.error("Error refreshing data:", err);
+            });
+        }, 2000);
+      } else {
+        toast.error(data.message || "Failed to mark attendance");
+      }
+    } catch (error) {
+      console.error("Error processing QR code:", error);
+      toast.error("An error occurred while processing the QR code");
+    } finally {
+      // Add a small delay before allowing next scan
+      setTimeout(() => {
+        setProcessingQr(false);
+      }, 1000);
+    }
+  };
 
   interface AttendanceDetailsResponse {
     success: boolean;
@@ -220,6 +388,66 @@ export default function AttendanceDetails({ scheduleId }: AttendanceDetailsProps
     return format(scheduleDate, "EEEE, MMMM d, yyyy");
   };
 
+  // Initialize QR scanner when dialog opens
+  useEffect(() => {
+    let styleEl: HTMLStyleElement | null = null;
+
+    if (qrScannerOpen && !scannerRef.current) {
+      // Add custom styles for the QR scanner
+      styleEl = document.createElement('style');
+      styleEl.innerHTML = qrScannerStyles;
+      document.head.appendChild(styleEl);
+
+      // Dynamically import the HTML5QrCode library
+      import('html5-qrcode').then(({ Html5QrcodeScanner: Scanner }) => {
+        // Small delay to ensure DOM is ready
+        setTimeout(() => {
+          try {
+            const scanner = new Scanner(
+              scannerDivId,
+              {
+                fps: 10,
+                qrbox: { width: 250, height: 250 },
+                aspectRatio: 1,
+                formatsToSupport: [0], // QR_CODE only
+              },
+              /* verbose= */ false
+            );
+
+            scanner.render(
+              // Success callback
+              (qrMessage: string) => {
+                processQrCode(qrMessage);
+              },
+              // Error callback
+              (errorMessage: string) => {
+                // This is called continuously when scanning is ongoing, so we don't want to show errors
+                console.debug("QR error:", errorMessage);
+              }
+            );
+
+            scannerRef.current = scanner;
+          } catch (error) {
+            console.error("Error initializing QR scanner:", error);
+            toast.error("Failed to initialize QR scanner");
+            stopQrScanner();
+          }
+        }, 100);
+      }).catch(error => {
+        console.error("Error loading QR scanner library:", error);
+        toast.error("Failed to load QR scanner library");
+        stopQrScanner();
+      });
+    }
+
+    return () => {
+      // Clean up style element on unmount
+      if (styleEl) {
+        styleEl.remove();
+      }
+    };
+  }, [qrScannerOpen]);
+
   if (loading) {
     return (
       <div className="flex flex-col items-center justify-center min-h-[60vh]">
@@ -261,13 +489,24 @@ export default function AttendanceDetails({ scheduleId }: AttendanceDetailsProps
           </p>
         </div>
 
-        <Button
-          variant="outline"
-          onClick={() => router.back()}
-        >
-          <ChevronLeft className="mr-2 h-4 w-4" />
-          Back to Hackathon
-        </Button>
+        <div className="flex flex-col sm:flex-row gap-2">
+          <Button
+            variant={isScanning ? "destructive" : "default"}
+            onClick={isScanning ? stopQrScanner : startQrScanner}
+            className="w-full sm:w-auto"
+          >
+            <QrCode className="mr-2 h-4 w-4" />
+            {isScanning ? "Stop Scanner" : "Scan Attendance"}
+          </Button>
+
+          <Button
+            variant="outline"
+            onClick={() => router.back()}
+          >
+            <ChevronLeft className="mr-2 h-4 w-4" />
+            Back to Hackathon
+          </Button>
+        </div>
       </div>
 
       {/* Stats Cards */}
@@ -467,6 +706,26 @@ export default function AttendanceDetails({ scheduleId }: AttendanceDetailsProps
           </div>
         </CardFooter>
       </Card>
+      {/* QR Scanner Dialog */}
+      <Dialog open={qrScannerOpen} onOpenChange={setQrScannerOpen}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Scan Attendance QR Code</DialogTitle>
+          </DialogHeader>
+          <div className="qr-scanner-container">
+            <div id={scannerDivId}></div>
+          </div>
+          <div className="flex justify-center mt-4">
+            <Button
+              variant="outline"
+              className="w-full"
+              onClick={stopQrScanner}
+            >
+              Close Scanner
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

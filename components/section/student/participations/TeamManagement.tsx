@@ -452,7 +452,7 @@ export function TeamManagement({
                             .map((schedule) => {
                               // Find the user's attendance record for this schedule
                               const myAttendance = schedule.attendanceRecords?.find(
-                                record => record.id.includes(team.id) // This is simplified; you'd need proper filtering
+                                record => record.teamMemberId === team.members.find(member => member.studentId === studentId)?.id
                               );
 
                               // For future schedules, show "Pending"

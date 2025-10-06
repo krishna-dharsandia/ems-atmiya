@@ -13,22 +13,14 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
+  if (user.app_metadata.role === 'STUDENT') {
+    return NextResponse.json(
+      { error: "Only master users can mark bulk attendance" },
+      { status: 403 }
+    );
+  }
   const prisma = new PrismaClient();
-
   try {
-    // Check if user is a Master
-    const master = await prisma.master.findFirst({
-      where: {
-        userId: user.id,
-      },
-    });
-
-    if (!master) {
-      return NextResponse.json(
-        { error: "Only master users can mark bulk attendance" },
-        { status: 403 }
-      );
-    }
 
     // Parse request body
     const body = await req.json();
