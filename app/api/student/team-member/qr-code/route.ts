@@ -91,46 +91,104 @@ export async function GET(request: NextRequest) {
 
     if (authError || !user) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    }
-
-    // Get search params
+    }    // Get search params
     const url = new URL(request.url);
     const teamId = url.searchParams.get('teamId');
+    const memberId = url.searchParams.get('memberId');
 
     if (!teamId) {
       return NextResponse.json({ error: 'Team ID is required' }, { status: 400 });
     }
 
-    // Get the student associated with the user
-    const student = await prisma.student.findUnique({
-      where: { userId: user.id },
-      include: {
-        user: {
-          select: {
-            firstName: true,
-            lastName: true,
-            email: true
+    let teamMember;
+    let targetStudent;    
+    
+    if (memberId) {
+      // If memberId is provided, fetch that specific member's data
+      teamMember = await prisma.hackathonTeamMember.findUnique({
+        where: {
+          id: memberId
+        },
+        include: {
+          student: {
+            include: {
+              user: {
+                select: {
+                  firstName: true,
+                  lastName: true,
+                  email: true
+                }
+              }
+            }
           }
         }
+      });
+
+      if (!teamMember) {
+        return NextResponse.json({ error: 'Team member not found' }, { status: 404 });
       }
-    });
 
-    if (!student) {
-      return NextResponse.json({ error: 'Student not found' }, { status: 404 });
-    }
+      if (teamMember.teamId !== teamId) {
+        return NextResponse.json({ error: 'Member does not belong to this team' }, { status: 403 });
+      }
 
-    // Get team member's QR code
-    const teamMember = await prisma.hackathonTeamMember.findUnique({
-      where: {
-        teamId_studentId: {
-          teamId: teamId,
-          studentId: student.id
+      // Additional security: Verify that the requesting user is also a member of this team
+      const requestingStudent = await prisma.student.findUnique({
+        where: { userId: user.id }
+      });
+
+      if (!requestingStudent) {
+        return NextResponse.json({ error: 'Student not found' }, { status: 404 });
+      }
+
+      const requestingMember = await prisma.hackathonTeamMember.findUnique({
+        where: {
+          teamId_studentId: {
+            teamId: teamId,
+            studentId: requestingStudent.id
+          }
         }
-      }
-    });
+      });
 
-    if (!teamMember) {
-      return NextResponse.json({ error: 'You are not a member of this team' }, { status: 403 });
+      if (!requestingMember) {
+        return NextResponse.json({ error: 'You are not authorized to access this team\'s data' }, { status: 403 });
+      }
+
+      targetStudent = teamMember.student;
+    } else {
+      // If no memberId, get the current user's data (existing behavior)
+      const student = await prisma.student.findUnique({
+        where: { userId: user.id },
+        include: {
+          user: {
+            select: {
+              firstName: true,
+              lastName: true,
+              email: true
+            }
+          }
+        }
+      });
+
+      if (!student) {
+        return NextResponse.json({ error: 'Student not found' }, { status: 404 });
+      }
+
+      // Get team member's QR code
+      teamMember = await prisma.hackathonTeamMember.findUnique({
+        where: {
+          teamId_studentId: {
+            teamId: teamId,
+            studentId: student.id
+          }
+        }
+      });
+
+      if (!teamMember) {
+        return NextResponse.json({ error: 'You are not a member of this team' }, { status: 403 });
+      }
+
+      targetStudent = student;
     }
 
     if (!teamMember.qrCode) {
@@ -138,15 +196,13 @@ export async function GET(request: NextRequest) {
         { error: 'QR code not found. Please generate one first.' },
         { status: 404 }
       );
-    }
-
-    return NextResponse.json({
+    }    return NextResponse.json({
       qrCode: teamMember.qrCode,
       qrCodeData: teamMember.qrCodeData,
       user: {
-        firstName: student.user.firstName,
-        lastName: student.user.lastName,
-        email: student.user.email
+        firstName: targetStudent.user.firstName,
+        lastName: targetStudent.user.lastName,
+        email: targetStudent.user.email
       }
     });
 

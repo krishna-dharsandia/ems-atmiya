@@ -1,4 +1,5 @@
 import { EventMode, EventStatus, InviteStatus } from "@prisma/client";
+import { AttendanceSchedule } from "./attendance";
 
 export interface ProblemStatement {
   id: string;
@@ -92,6 +93,7 @@ export interface Hackathon {
   created_at: string;
   open_submissions: boolean;
   open_registrations: boolean;
+  attendanceSchedules?: AttendanceSchedule[];
 }
 
 export interface Participation {

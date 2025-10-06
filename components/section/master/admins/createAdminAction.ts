@@ -46,14 +46,7 @@ export async function createAdminAction(data: AdminSchema, captchaToken: string)
         role: "ADMIN",
         admins: {
           create: {
-            department: {
-              connect: { id: departmentId },
-            },
-            program: {
-              connect: { id: programId },
-            },
-            position,
-          },
+          }
         },
       },
     });

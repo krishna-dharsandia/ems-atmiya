@@ -42,7 +42,7 @@ export default function Page() {
         <DataTable
           data={data}
           columns={columns}
-          search={{ column: "position", placeholder: "Search Admin" }}
+          search={{ column: "name", placeholder: "Search Admin" }}
           noData={{
             icon: <CircleQuestionMark size={40} />,
             title: "No results found",

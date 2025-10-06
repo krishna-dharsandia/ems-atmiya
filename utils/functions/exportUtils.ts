@@ -4,6 +4,7 @@ import { pdf } from '@react-pdf/renderer';
 import React from 'react';
 import EventExportPDF from '@/components/export/EventExportPDF';
 import HackathonExportPDF from '@/components/export/HackathonExportPDF';
+import { HackthonICARD } from '@/components/export/HackthonICARD';
 
 export interface ExportData {
   registrations?: RegistrationExportData[];
@@ -323,24 +324,27 @@ export const exportToPDF = async (
       throw new Error('PDF export is only available in browser environment');
     }
 
-    let MyDocument;
-
-    // Choose the appropriate PDF component based on export type
+    let MyDocument;    // Choose the appropriate PDF component based on export type
     if (type === 'teams' || (type === 'both' && data.teams && !data.registrations && !data.feedbacks)) {
       // Use HackathonExportPDF for team data
-      MyDocument = () => React.createElement(HackathonExportPDF, {
+      const HackathonDocument = () => React.createElement(HackathonExportPDF, {
         hackathonName: eventName || 'Hackathon',
         teams: data.teams,
         exportType: 'teams'
       });
+      HackathonDocument.displayName = 'HackathonDocument';
+      MyDocument = HackathonDocument;
+
     } else {
       // Use EventExportPDF for event data (registrations/feedbacks)
-      MyDocument = () => React.createElement(EventExportPDF, {
+      const EventDocument = () => React.createElement(EventExportPDF, {
         eventName: eventName || 'Event',
         registrations: data.registrations,
         feedbacks: data.feedbacks,
         exportType: type as 'registrations' | 'feedbacks' | 'both'
       });
+      EventDocument.displayName = 'EventDocument';
+      MyDocument = EventDocument;
     }
 
     // Generate PDF blob
@@ -364,6 +368,115 @@ export const exportToPDF = async (
   } catch (error) {
     console.error('Error exporting to PDF:', error);
     throw new Error('Failed to export PDF file');
+  }
+};
+
+/**
+ * Export hackathon ID card to PDF
+ */
+export const exportIdCardToPDF = async (
+  name: string,
+  teamName: string,
+  teamId: string | null,
+  participantId: string,
+  participantRole: string,
+  userType: string,
+  qrCode: string,
+  hackathonName: string
+) => {
+  try {
+    if (typeof window === 'undefined') {
+      throw new Error('PDF export is only available in browser environment');
+    }
+
+    // Create the ID card document (HackthonICARD already returns a Document)
+    const IdCardDocument = HackthonICARD({
+      name,
+      teamName,
+      teamId,
+      participantId,
+      participantRole,
+      userType,
+      qrCode
+    });
+
+    // Generate PDF blob
+    const blob = await pdf(IdCardDocument).toBlob();
+    
+    // Create filename
+    const fileName = `${hackathonName.replace(/\s+/g, '_')}_ID_Card_${name.replace(/\s+/g, '_')}.pdf`;
+    
+    // Create download link
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = fileName;
+    link.style.display = 'none';
+    
+    // Trigger download
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    
+    // Clean up URL
+    URL.revokeObjectURL(url);
+    
+  } catch (error) {
+    console.error('Error exporting ID card to PDF:', error);
+    throw new Error('Failed to export ID card PDF');
+  }
+};
+
+/**
+ * Bulk export multiple hackathon ID cards as separate PDF files
+ */
+export const bulkExportIdCardsToPDF = async (
+  members: Array<{
+    id: string;
+    name: string;
+    participantRole: string;
+    qrCode: string;
+  }>,
+  teamName: string,
+  teamId: string,
+  userType: string,
+  hackathonName: string,
+  onProgress?: (current: number, total: number) => void
+) => {
+  try {
+    if (typeof window === 'undefined') {
+      throw new Error('PDF export is only available in browser environment');
+    }
+
+    const total = members.length;
+    
+    for (let i = 0; i < members.length; i++) {
+      const member = members[i];
+      
+      // Call progress callback if provided
+      onProgress?.(i + 1, total);
+      
+      // Export individual ID card
+      await exportIdCardToPDF(
+        member.name,
+        teamName,
+        teamId,
+        member.id,
+        member.participantRole,
+        userType,
+        member.qrCode,
+        hackathonName
+      );
+      
+      // Add a small delay between downloads to prevent browser blocking
+      if (i < members.length - 1) {
+        await new Promise(resolve => setTimeout(resolve, 500));
+      }
+    }
+    
+  } catch (error) {
+    console.error('Error bulk exporting ID cards to PDF:', error);
+    throw new Error('Failed to bulk export ID cards');
   }
 };
 

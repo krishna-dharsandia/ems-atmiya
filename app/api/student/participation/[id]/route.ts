@@ -34,12 +34,36 @@ export async function GET(
       return NextResponse.json({ error: "Student not found" }, { status: 404 });
     }
 
-    // Get hackathon details
+    // Get hackathon details with attendance schedules
     const hackathon = await prisma.hackathon.findUnique({
       where: { id: hackathonId },
       include: {
         problemStatements: true,
         rules: true,
+        attendanceSchedules: {
+          include: {
+            attendanceRecords: {
+              where: {
+                teamMember: {
+                  studentId: student.id
+                }
+              },
+              include: {
+                checkedInByUser: {
+                  select: {
+                    firstName: true,
+                    lastName: true,
+                    email: true
+                  }
+                }
+              }
+            }
+          },
+          orderBy: [
+            { day: 'asc' },
+            { checkInTime: 'asc' }
+          ]
+        }
       },
     });
 
@@ -139,6 +163,19 @@ export async function GET(
       registration_start_date: hackathon.registration_start_date?.toISOString(),
       registration_end_date: hackathon.registration_end_date?.toISOString(),
       created_at: hackathon.created_at.toISOString(),
+      // Transform attendance schedules
+      attendanceSchedules: hackathon.attendanceSchedules.map(schedule => ({
+        ...schedule,
+        checkInTime: schedule.checkInTime.toISOString(),
+        created_at: schedule.created_at.toISOString(),
+        updated_at: schedule.updated_at.toISOString(),
+        attendanceRecords: schedule.attendanceRecords.map(record => ({
+          ...record,
+          checkedInAt: record.checkedInAt.toISOString(),
+          created_at: record.created_at.toISOString(),
+          updated_at: record.updated_at.toISOString(),
+        }))
+      })),
     };
 
     return NextResponse.json({

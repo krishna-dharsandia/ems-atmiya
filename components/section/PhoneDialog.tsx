@@ -20,7 +20,7 @@ type PhoneFormValues = z.infer<typeof phoneSchema>;
 export function PhoneDialog() {
   const [open, setOpen] = useState(true);
   const [loading, setLoading] = useState(false);
-  const { user } = useAuth();
+  const { user, refreshUser } = useAuth();
 
   useEffect(() => {
     if (!open && !user?.user_metadata.phone) {
@@ -43,6 +43,7 @@ export function PhoneDialog() {
     setLoading(true);
     const res = await updatePhone(values.phone);
     if (res.success) {
+      refreshUser();
       toast.success("Phone number updated successfully.");
       setOpen(false);
     } else {

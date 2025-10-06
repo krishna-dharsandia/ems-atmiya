@@ -15,6 +15,8 @@ import { useForm, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { editTeamSchema, EditTeamInput } from "@/schemas/team";
 import { editTeamAction } from "./actions";
+import useSWR from "swr";
+import { fetcher } from "@/fetcher";
 
 export default function MasterHackathonDetailPage() {
   const params = useParams();
@@ -28,38 +30,41 @@ export default function MasterHackathonDetailPage() {
   const [editForm, setEditForm] = useState<any>({});
   const supabase = createClient();
 
+  // swr-fetcher import
+
+  // Authenticate user and fetch hackathon data with SWR
   useEffect(() => {
-    const fetchHackathonData = async () => {
-      try {
-        // Authenticate user
-        const { data: authData, error: authError } = await supabase.auth.getUser();
-
-        if (authError || !authData.user) {
-          throw new Error("Failed to authenticate user");
-        }
-
-        // Fetch hackathon data with teams
-        const hackathonResponse = await fetch(`/api/hackathons/${params.id}?includeMasterDetails=true`);
-
-        if (!hackathonResponse.ok) {
-          if (hackathonResponse.status === 404) {
-            notFound();
-          }
-          throw new Error("Failed to fetch hackathon details");
-        }
-
-        const data = await hackathonResponse.json();
-        setHackathonData(data.hackathon);
-      } catch (err) {
-        console.error("Error fetching data:", err);
-        setError("Failed to load hackathon details. Please try again later.");
-      } finally {
+    const checkAuth = async () => {
+      const { data: authData, error: authError } = await supabase.auth.getUser();
+      if (authError || !authData.user) {
+        setError("Failed to authenticate user");
         setIsLoading(false);
       }
     };
+    checkAuth();
+  }, [supabase.auth]);
 
-    fetchHackathonData();
-  }, [params.id, supabase.auth]);
+  const { data, error: swrError, isLoading: swrLoading } = useSWR<MasterHackathonDetailProps>(
+    params.id ? `/api/hackathons/${params.id}?includeMasterDetails=true` : null,
+    fetcher
+  );
+
+  useEffect(() => {
+    if (data) {
+      setHackathonData(data.hackathon);
+      setIsLoading(false);
+    }
+    if (swrError) {
+      if (swrError.status === 404) {
+        notFound();
+      }
+      setError("Failed to load hackathon details. Please try again later.");
+      setIsLoading(false);
+    }
+    if (swrLoading) {
+      setIsLoading(true);
+    }
+  }, [data, swrError, swrLoading]);
 
   const handleTeamClick = (team: any) => {
     setSelectedTeam(team);
@@ -189,53 +194,115 @@ export default function MasterHackathonDetailPage() {
       />
       {/* View Team Dialog */}
       <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-        <DialogContent>
+        <DialogContent className="max-w-lg">
           <DialogHeader>
             <DialogTitle>Team Details</DialogTitle>
             <DialogClose onClick={handleDialogClose} />
           </DialogHeader>
-          {selectedTeam ? (
-            <div className="space-y-4">
-              <div>
-                <strong>Team ID:</strong> {selectedTeam.id}
+          {selectedTeam && (
+            <div className="space-y-6">
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <Label className="text-muted-foreground">Team ID</Label>
+                  <div className="font-medium">{selectedTeam.id}</div>
+                </div>
+                <div>
+                  <Label className="text-muted-foreground">Team Name</Label>
+                  <div className="font-medium">{selectedTeam.teamName}</div>
+                </div>
+                <div>
+                  <Label className="text-muted-foreground">Mentor Name</Label>
+                  <div>{selectedTeam.mentor || <span className="text-muted-foreground">Not assigned</span>}</div>
+                </div>
+                <div>
+                  <Label className="text-muted-foreground">Mentor Email</Label>
+                  <div>{selectedTeam.mentor_mail || <span className="text-muted-foreground">Not assigned</span>}</div>
+                </div>
+                <div>
+                  <Label className="text-muted-foreground">Problem Statement</Label>
+                  <div>
+                    {selectedTeam.problemStatement
+                      ? `${selectedTeam.problemStatement.code}: ${selectedTeam.problemStatement.title}`
+                      : <span className="text-muted-foreground">Not selected</span>
+                    }
+                  </div>
+                </div>
+                <div>
+                  <Label className="text-muted-foreground">Disqualified</Label>
+                  <div>
+                    {selectedTeam.disqualified
+                      ? <span className="text-red-600 font-semibold">Yes</span>
+                      : <span className="text-green-600 font-semibold">No</span>
+                    }
+                  </div>
+                </div>
+                <div className="col-span-2">
+                  <Label className="text-muted-foreground">Team Leader</Label>
+                  <div>
+                    {(() => {
+                      const leader = selectedTeam.members.find((m: any) => m.studentId === selectedTeam.leaderId);
+                      return leader
+                        ? (
+                          <span>
+                            {leader.student?.user?.firstName} {leader.student?.user?.lastName}
+                            <span className="ml-2 text-muted-foreground">({leader.student?.user?.email})</span>
+                            {leader.student?.user?.phone && (
+                              <span className="ml-2 text-muted-foreground">({leader.student?.user?.phone})</span>
+                            )}
+                          </span>
+                        )
+                        : <span className="text-muted-foreground">Not selected</span>;
+                    })()}
+                  </div>
+                </div>
               </div>
               <div>
-                <strong>Mentor Name:</strong> {selectedTeam.mentor}
-              </div>
-              <div>
-                <strong>Mentor Email:</strong> {selectedTeam.mentor_mail}
-              </div>
-              <div>
-                <strong>Team Name:</strong> {selectedTeam.teamName}
-              </div>
-              <div>
-                <strong>Team Leader:</strong> {
-                  selectedTeam.members.find((m: any) => m.studentId === selectedTeam.leaderId)
-                    ? `${selectedTeam.members.find((m: any) => m.studentId === selectedTeam.leaderId).student?.user?.firstName} ${selectedTeam.members.find((m: any) => m.studentId === selectedTeam.leaderId).student?.user?.lastName} (${selectedTeam.members.find((m: any) => m.studentId === selectedTeam.leaderId).student?.user?.email})`
-                    : "Not selected"
-                }
-              </div>
-              <div>
-                <strong>Problem Statement:</strong> {selectedTeam.problemStatement ? `${selectedTeam.problemStatement.code}: ${selectedTeam.problemStatement.title}` : "Not selected"}
-              </div>
-              <div>
-                <strong>Members:</strong>
-                <ul className="list-disc ml-6">
-                  {selectedTeam.members.map((member: any) => (
-                    <li key={member.id}>
-                      {member.student?.user?.firstName} {member.student?.user?.lastName} ({member.student?.user?.email})
-                      {member.attended && <span className="ml-2 text-green-600">(Attended)</span>}
-                    </li>
-                  ))}
-                </ul>
+                <Label className="text-muted-foreground">Members</Label>
+                <div className="overflow-x-auto">
+                  <table className="min-w-full border text-sm mt-2">
+                    <thead className="bg-muted">
+                      <tr>
+                        <th className="p-2 text-left">Name</th>
+                        <th className="p-2 text-left">Email</th>
+                        <th className="p-2 text-left">Phone</th>
+                        <th className="p-2 text-left">Attended</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {selectedTeam.members.map((member: any) => (
+                        <tr key={member.id} className="border-t">
+                          <td className="p-2">{member.student?.user?.firstName} {member.student?.user?.lastName}</td>
+                          <td className="p-2">{member.student?.user?.email}</td>
+                          <td className="p-2">{member.student?.user?.phone || <span className="text-muted-foreground">-</span>}</td>
+                          <td className="p-2">
+                            {member.attended
+                              ? <span className="text-green-600 font-semibold">Yes</span>
+                              : <span className="text-muted-foreground">No</span>
+                            }
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
               </div>
               {selectedTeam.submissionUrl && (
                 <div>
-                  <strong>Submission:</strong> <a href={selectedTeam.submissionUrl} target="_blank" rel="noopener noreferrer" className="text-blue-600 underline">View Submission</a>
+                  <Label className="text-muted-foreground">Submission</Label>
+                  <div>
+                    <a
+                      href={selectedTeam.submissionUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-blue-600 underline"
+                    >
+                      View Submission
+                    </a>
+                  </div>
                 </div>
               )}
             </div>
-          ) : null}
+          )}
         </DialogContent>
       </Dialog>
       {/* Edit Team Dialog */}

@@ -3,26 +3,28 @@
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { format } from "date-fns";
-import { CalendarIcon, MapPinIcon, ArrowLeft, Users, QrCode, Download, RefreshCw, Eye } from "lucide-react";
+import { format, addDays } from "date-fns";
+import { CalendarIcon, MapPinIcon, ArrowLeft, Users, QrCode, Download, RefreshCw, Calendar, Clock, CheckCircle2, XCircle, Loader2 } from "lucide-react";
 import { getImageUrl } from "@/lib/utils";
 import { TeamMemberInvitation } from "@/components/section/student/hackathons/TeamMemberInvitation";
 import Link from "next/link";
 import { Hackathon, HackathonTeam, User } from "@/types/hackathon";
 import { KeyedMutator } from "swr";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { toast } from "sonner";
 import Image from "next/image";
-import { PDFDownloadLink, PDFViewer } from "@react-pdf/renderer";
-import { HackthonICARD } from "@/components/export/HackthonICARD";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import QRCodeLib from "qrcode";
+// PDFViewer and HackthonICARD removed since we're not using preview functionality
+// Dialog components removed since we're not using preview functionality
 import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { submissionsAction } from "./submissionsAction";
 import { Input } from "@/components/ui/input";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { exportIdCardToPDF, bulkExportIdCardsToPDF } from "@/utils/functions/exportUtils";
+
+// Remove imported type and local type definition as it will come from Hackathon type
 
 interface TeamManagementProps {
   hackathon: Hackathon;
@@ -56,10 +58,11 @@ export function TeamManagement({
       email: string;
     };
   } | null>(null);
-  const [qrLoading, setQrLoading] = useState(false);
-  const [qrGenerating, setQrGenerating] = useState(false);
+  const [qrLoading, setQrLoading] = useState(false); const [qrGenerating, setQrGenerating] = useState(false);
   const [idCardQrCodes, setIdCardQrCodes] = useState<Record<string, string>>({});
-
+  const [generatingQrForMember, setGeneratingQrForMember] = useState<Record<string, boolean>>({});
+  const [bulkDownloading, setBulkDownloading] = useState(false);
+  const [bulkProgress, setBulkProgress] = useState({ current: 0, total: 0 });
   const formatDateTime = (dateString: string, timeString: string) => {
     const date = new Date(dateString);
     const time = new Date(timeString);
@@ -67,17 +70,8 @@ export function TeamManagement({
     return format(date, "PPP 'at' p");
   };
 
-  // Fetch QR code when component mounts
-  useEffect(() => {
-    if (team && studentId) {
-      fetchQRCode();
-    }
-  }, [team.id, studentId]);
-
   // Fetch user's QR code for this team
-  const fetchQRCode = async () => {
-    // For disqualified teams, we still allow fetching existing QR codes
-    // but we'll disable the buttons for generating/downloading
+  const fetchQRCode = useCallback(async () => {
     setQrLoading(true);
     try {
       const response = await fetch(`/api/student/team-member/qr-code?teamId=${team.id}`);
@@ -95,7 +89,14 @@ export function TeamManagement({
     } finally {
       setQrLoading(false);
     }
-  };
+  }, [team.id]);
+
+  // Fetch QR code when component mounts
+  useEffect(() => {
+    if (team && studentId) {
+      fetchQRCode();
+    }
+  }, [team, studentId, fetchQRCode]);
 
   // Generate QR code for this team member
   const generateQRCode = async () => {
@@ -171,9 +172,12 @@ export function TeamManagement({
       toast.success("Submission URL updated successfully");
       mutate();
     }
-  }
-  // Generate QR code for ID cards using existing team member QR data
+  }  // Generate QR code for team member (without downloading)
   const generateIdCardQRCode = async (memberId: string) => {
+
+    console.log("Generating QR code for member:", memberId);
+
+    // Check if QR code already exists in state
     if (idCardQrCodes[memberId]) {
       return idCardQrCodes[memberId];
     }
@@ -185,30 +189,71 @@ export function TeamManagement({
 
       if (response.ok) {
         const memberQrData = await response.json();
+        console.log(memberQrData)
         // Use the existing QR code data if available
-        qrData = memberQrData.qrCodeData || `HACKATHON_MEMBER_${memberId}_${hackathon.id}`;
+        qrData = `data:image/png;base64,${memberQrData.qrCode}` || `HACKATHON_MEMBER_${memberId}_${hackathon.id}`;
       } else {
         // Fallback to generating QR data
         qrData = `HACKATHON_MEMBER_${memberId}_${hackathon.id}`;
       }
 
-      // Generate QR code with inverted colors (white on black)
-      const qrCodeDataUrl = await QRCodeLib.toDataURL(qrData, {
-        width: 200,
-        margin: 1,
-      });
+      console.log(qrData)
 
+      // Store QR code in state for future use
       setIdCardQrCodes(prev => ({
         ...prev,
-        [memberId]: qrCodeDataUrl
+        [memberId]: qrData
       }));
 
-      return qrCodeDataUrl;
+      return qrData;
     } catch (error) {
       console.error('Error generating QR code:', error);
       return '';
     }
   };
+
+  // Download ID card for a specific member
+  const downloadIdCard = async (memberId: string) => {
+    // Set loading state for this member
+    setGeneratingQrForMember(prev => ({ ...prev, [memberId]: true }));
+
+    try {
+      // Find the member data
+      const member = team.members.find(m => m.id === memberId);
+      if (!member) {
+        throw new Error('Member not found');
+      }
+
+      // Generate or get QR code
+      const qrData = await generateIdCardQRCode(memberId);
+      if (!qrData) {
+        throw new Error('Failed to generate QR code');
+      }
+
+      // Export ID card with the QR code
+      await exportIdCardToPDF(
+        `${member.student.user.firstName} ${member.student.user.lastName}`,
+        team.teamName,
+        team.teamId || team.id,
+        member.id,
+        getParticipantRole(member, member.student.id === studentId),
+        getUserType(),
+        qrData,
+        hackathon.name
+      );
+
+      // Show success message
+      toast.success("ID card downloaded successfully!");
+
+    } catch (error) {
+      console.error('Error downloading ID card:', error);
+      toast.error("Failed to download ID card");
+    } finally {
+      // Clear loading state for this member
+      setGeneratingQrForMember(prev => ({ ...prev, [memberId]: false }));
+    }
+  };
+
 
   const getParticipantRole = (member: any, isCurrentUser: boolean) => {
     // Check if participant is team owner/leader
@@ -219,9 +264,59 @@ export function TeamManagement({
     // Default to team member
     return "Team Member";
   };
-
   const getUserType = () => {
     return "Participant";
+  };
+
+  // Bulk download all team member ID cards
+  const handleBulkDownload = async () => {
+    setBulkDownloading(true);
+    setBulkProgress({ current: 0, total: team.members.length });
+
+    try {
+      // Generate QR codes for all members first and store them
+      toast.loading("Generating QR codes for all members...");
+
+      const memberQrCodes: Record<string, string> = {};
+
+      for (const member of team.members) {
+        const qrCode = await generateIdCardQRCode(member.id);
+        memberQrCodes[member.id] = qrCode;
+      }
+
+      toast.dismiss();
+      toast.loading("Downloading ID cards...");
+
+      // Prepare member data for bulk export using the locally generated QR codes
+      const memberData = team.members.map(member => ({
+        id: member.id,
+        name: `${member.student.user.firstName} ${member.student.user.lastName}`,
+        participantRole: getParticipantRole(member, member.student.id === studentId),
+        qrCode: memberQrCodes[member.id]
+      }));
+
+      // Bulk export all ID cards
+      await bulkExportIdCardsToPDF(
+        memberData,
+        team.teamName,
+        team.teamId || team.id,
+        getUserType(),
+        hackathon.name,
+        (current, total) => {
+          setBulkProgress({ current, total });
+        }
+      );
+
+      toast.dismiss();
+      toast.success(`Successfully downloaded ${team.members.length} ID cards!`);
+    } catch (error) {
+      console.error("Error in bulk download:", error);
+      toast.dismiss();
+      toast.error("Failed to download some ID cards");
+    } finally {
+      setBulkDownloading(false);
+      setBulkProgress({ current: 0, total: 0 });
+    }
   };
 
   return (
@@ -279,10 +374,12 @@ export function TeamManagement({
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="relative">
-                <img
+                <Image
                   src={getImageUrl(hackathon.poster_url, "hackathon-posters")}
                   alt={hackathon.name}
                   className="w-full h-32 object-cover rounded-lg"
+                  width={128}
+                  height={128}
                 />
                 <Badge
                   className="absolute top-2 right-2"
@@ -455,6 +552,116 @@ export function TeamManagement({
                         : "Show this QR code to organizers at the hackathon for check-in and attendance tracking. Make sure to save a copy on your device."}
                     </p>
                   </div>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+
+          {/* Attendance Tracking Card */}
+          <Card className="mt-6">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Calendar className="h-5 w-5" />
+                Attendance Tracking
+              </CardTitle>
+              <CardDescription>
+                Your attendance status for each check-in during the hackathon
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              {(hackathon.attendanceSchedules ?? []).length > 0 ? (
+                <div className="space-y-6">
+                  {/* Group schedules by day */}
+                  {Array.from(
+                    new Set(hackathon.attendanceSchedules?.map((schedule) => schedule.day) || [])
+                  ).sort((a, b) => a - b).map((day) => (
+                    <div key={day} className="space-y-2">
+                      <div className="flex items-center gap-2">
+                        <div className="bg-primary/10 text-primary rounded-md px-2 py-1 text-sm font-medium">
+                          Day {day}
+                        </div>
+                        <span className="text-sm text-muted-foreground">
+                          {format(addDays(new Date(hackathon.start_date), day - 1), 'EEE, MMM d')}
+                        </span>
+                      </div>
+
+                      <Table>
+                        <TableHeader>
+                          <TableRow>
+                            <TableHead>Time</TableHead>
+                            <TableHead>Description</TableHead>
+                            <TableHead className="text-right">Status</TableHead>
+                          </TableRow>
+                        </TableHeader>
+                        <TableBody>
+                          {hackathon.attendanceSchedules
+                            ?.filter((schedule) => schedule.day === day)
+                            .sort((a, b) =>
+                              new Date(a.checkInTime).getTime() - new Date(b.checkInTime).getTime()
+                            )
+                            .map((schedule) => {
+                              // Find the user's attendance record for this schedule
+                              const myAttendance = schedule.attendanceRecords?.find(
+                                record => record.teamMemberId === team.members.find(member => member.studentId === studentId)?.id
+                              );
+
+                              // For future schedules, show "Pending"
+                              const isFuture = new Date(schedule.checkInTime) > new Date();
+                              const isPast = new Date(schedule.checkInTime) < new Date();
+
+                              return (
+                                <TableRow key={schedule.id}>
+                                  <TableCell>
+                                    <div className="flex items-center gap-2">
+                                      <Clock className="h-4 w-4 text-muted-foreground" />
+                                      {format(new Date(schedule.checkInTime), 'h:mm a')}
+                                    </div>
+                                  </TableCell>
+                                  <TableCell>
+                                    {schedule.description || 'No description'}
+                                  </TableCell>
+                                  <TableCell className="text-right">
+                                    {myAttendance?.isPresent ? (
+                                      <div className="flex items-center justify-end gap-1 text-green-600">
+                                        <CheckCircle2 className="h-4 w-4" />
+                                        <span className="text-sm">Present</span>
+                                      </div>
+                                    ) : isFuture ? (
+                                      <span className="text-sm text-muted-foreground">Upcoming</span>
+                                    ) : isPast ? (
+                                      <div className="flex items-center justify-end gap-1 text-red-500">
+                                        <XCircle className="h-4 w-4" />
+                                        <span className="text-sm">Absent</span>
+                                      </div>
+                                    ) : (
+                                      <span className="text-sm text-muted-foreground">Pending</span>
+                                    )}
+                                  </TableCell>
+                                </TableRow>
+                              );
+                            })}
+                        </TableBody>
+                      </Table>
+                    </div>
+                  ))}
+
+                  {team.disqualified && (
+                    <div className="mt-4 p-3 bg-red-50 border border-red-200 rounded-md dark:bg-red-900/20 dark:border-red-800">
+                      <p className="text-sm text-red-800 dark:text-red-300">
+                        Your team has been disqualified. Attendance tracking may not be accurate.
+                      </p>
+                    </div>
+                  )}
+                </div>
+              ) : (
+                <div className="flex flex-col items-center justify-center py-6">
+                  <div className="rounded-full bg-muted p-3">
+                    <Calendar className="h-5 w-5 text-muted-foreground" />
+                  </div>
+                  <h3 className="mt-3 text-base font-medium">No Attendance Schedules</h3>
+                  <p className="mt-1 text-center text-muted-foreground text-sm">
+                    Organizers haven't set up attendance tracking for this hackathon yet.
+                  </p>
                 </div>
               )}
             </CardContent>
@@ -655,7 +862,8 @@ export function TeamManagement({
                   </CardDescription>
                 </CardHeader>
                 <CardContent>
-                  <div className="space-y-4">                    {/* Team Members Table - Read Only */}
+                  {/* Team Members Table - Read Only */}
+                  <div className="space-y-4">
                     <div>
                       <h3 className="text-lg font-medium mb-2">Current Members</h3>
                       <div className="border rounded-lg overflow-hidden">
@@ -844,7 +1052,8 @@ export function TeamManagement({
                         </div>
                       </div>
                     </div>
-                  </CardContent>              </Card>
+                  </CardContent>
+                </Card>
               )}
 
             {/* Team ID Cards Section */}
@@ -892,76 +1101,21 @@ export function TeamManagement({
                                 Attended
                               </Badge>
                             )}
-                          </div>
-
-                          <div className="flex gap-2">
-                            {/* View ID Card */}
-                            <Dialog>
-                              <DialogTrigger asChild>
-                                <Button
-                                  variant="outline"
-                                  size="sm"
-                                  className="flex-1"
-                                  onClick={async () => {
-                                    await generateIdCardQRCode(member.id);
-                                  }}
-                                >
-                                  <Eye className="w-4 h-4 mr-1" />
-                                  View
-                                </Button>
-                              </DialogTrigger>
-                              <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
-                                <DialogHeader>
-                                  <DialogTitle>
-                                    {member.student.user.firstName} {member.student.user.lastName} - ID Card Preview
-                                  </DialogTitle>
-                                </DialogHeader>
-                                <div className="w-full h-[600px]">
-                                  <PDFViewer width="100%" height="100%">
-                                    <HackthonICARD
-                                      name={`${member.student.user.firstName} ${member.student.user.lastName}`}
-                                      teamName={team.teamName}
-                                      teamId={team.id}
-                                      participantId={member.id}
-                                      participantRole={getParticipantRole(member, member.student.id === studentId)}
-                                      userType={getUserType()}
-                                      qrCode={idCardQrCodes[member.id] || ""}
-                                    />
-                                  </PDFViewer>
-                                </div>
-                              </DialogContent>
-                            </Dialog>
-
-                            {/* Download ID Card */}
-                            <PDFDownloadLink
-                              document={
-                                <HackthonICARD
-                                  name={`${member.student.user.firstName} ${member.student.user.lastName}`}
-                                  teamName={team.teamName}
-                                  teamId={team.id}
-                                  participantId={member.id}
-                                  participantRole={getParticipantRole(member, member.student.id === studentId)}
-                                  userType={getUserType()}
-                                  qrCode={idCardQrCodes[member.id] || ""}
-                                />
-                              }
-                              fileName={`${hackathon.name.replace(/\s+/g, '_')}_ID_Card_${member.student.user.firstName}_${member.student.user.lastName}.pdf`}
+                          </div>                          <div className="flex gap-2">
+                            {/* Single Download ID Card Button */}
+                            <Button
+                              variant="default"
+                              size="sm"
+                              className="flex-1"
+                              disabled={generatingQrForMember[member.id]} onClick={() => downloadIdCard(member.id)}
                             >
-                              {({ loading }) => (
-                                <Button
-                                  variant="default"
-                                  size="sm"
-                                  className="flex-1"
-                                  disabled={loading}
-                                  onClick={async () => {
-                                    await generateIdCardQRCode(member.id);
-                                  }}
-                                >
-                                  <Download className="w-4 h-4 mr-1" />
-                                  {loading ? "..." : "Download"}
-                                </Button>
+                              {generatingQrForMember[member.id] ? (
+                                <Loader2 className="w-4 h-4 mr-1 animate-spin" />
+                              ) : (
+                                <Download className="w-4 h-4 mr-1" />
                               )}
-                            </PDFDownloadLink>
+                              {generatingQrForMember[member.id] ? "Generating..." : "Download ID Card"}
+                            </Button>
                           </div>
                         </div>
                       </CardContent>
@@ -977,20 +1131,20 @@ export function TeamManagement({
                       <p className="text-sm text-muted-foreground">
                         Download all team member ID cards at once
                       </p>
-                    </div>
-                    <Button
+                    </div>                    <Button
                       variant="outline"
-                      onClick={async () => {
-                        // Generate QR codes for all members first
-                        for (const member of team.members) {
-                          await generateIdCardQRCode(member.id);
-                        }
-
-                        toast.success(`Preparing ${team.members.length} ID cards for download...`);
-                      }}
+                      disabled={bulkDownloading}
+                      onClick={handleBulkDownload}
                     >
-                      <Download className="w-4 h-4 mr-2" />
-                      Download All ({team.members.length} cards)
+                      {bulkDownloading ? (
+                        <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                      ) : (
+                        <Download className="w-4 h-4 mr-2" />
+                      )}
+                      {bulkDownloading
+                        ? `Downloading ${bulkProgress.current}/${bulkProgress.total}...`
+                        : `Download All (${team.members.length} cards)`
+                      }
                     </Button>
                   </div>
                 </div>

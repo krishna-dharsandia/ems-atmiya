@@ -6,7 +6,7 @@ import ReactPDF from '@react-pdf/renderer';
 type HackthonICARDPros = {
     name: string;
     teamName: string;
-    teamId: string;
+    teamId: string | null;
     participantId: string;
     participantRole: string;
     userType: string;
@@ -17,12 +17,12 @@ export const HackthonICARD = ({
     name,
     participantId,
     participantRole,
-    teamId,
+    teamId = "TM000",
     teamName,
     userType,
     qrCode,
 }: HackthonICARDPros) => (
-    <Document>
+    <Document author='ADSC Atmiya' title='Hackathon ID Card' creator='ADSC Atmiya' subject='Hackathon ID Card'>
         <Page size={[198.43, 297.64]} style={styles.page}>
 
             {/* Header - Two Logos */}
@@ -44,7 +44,7 @@ export const HackthonICARD = ({
                 </View>
             </View>
 
-            <View style={{ paddingBottom: 10 }}>
+            <View style={{ paddingBottom: 4 }}>
                 {/* ALL-ACCESS */}
                 <View style={styles.allAccessSection}>
                     <Text style={styles.allAccessText}>{userType}</Text>
@@ -60,14 +60,14 @@ export const HackthonICARD = ({
                     {/* Team ID */}
                     <View style={styles.columnRight}>
                         <Text style={styles.quantumLabel}>TEAM ID</Text>
-                        <Text style={styles.infoValueText}>{teamId.substring(0, 5)}</Text>
+                        <Text style={styles.infoValueText}>{teamId}</Text>
                     </View>
                 </View>
             </View>
 
             <View style={styles.divider} />
 
-            <View style={{ paddingTop: 10, rowGap: 6 }}>
+            <View style={{ paddingTop: 6, rowGap: 3 }}>
                 {/* Student Name */}
                 <View>
                     <Text style={styles.quantumLabel}>STUDENT NAME</Text>
@@ -75,19 +75,39 @@ export const HackthonICARD = ({
                 </View>
 
                 {/* Participant ID */}
-                <View>
-                    <Text style={styles.quantumLabel}>ROLE</Text>
-                    <Text style={styles.infoValueText}>{participantRole}</Text>
-                </View>
-
-                {/* QR Code and Reference ID */}
-                <View style={styles.qrSection}>
-                    <View style={styles.qrCode}>
-                        <View style={styles.qrPattern} />
-                        <Image
-                            src={qrCode}
-                            style={styles.qrImage}
-                        />
+                <View style={[styles.twoColumnRow, { alignItems: 'flex-start' }]}>
+                    <View>
+                        <View>
+                            <Text style={styles.quantumLabel}>ROLE</Text>
+                            <Text style={styles.infoValueText}>{participantRole}</Text>
+                        </View>
+                        {/* QR Code and Reference ID */}
+                        <View style={styles.qrSection}>
+                            <View style={styles.qrCode}>
+                                <View style={styles.qrPattern} />
+                                <Image
+                                    src={qrCode}
+                                    style={styles.qrImage}
+                                />
+                            </View>
+                        </View>
+                    </View>
+                    <View style={styles.userTypeContainer}>
+                        {userType === 'Participant' && (
+                            <View style={styles.symbolContainer}>
+                                <View style={styles.circleSymbol} />
+                            </View>
+                        )}
+                        {userType === 'Volunteer' && (
+                            <View style={styles.symbolContainer}>
+                                <View style={styles.triangleSymbol} />
+                            </View>
+                        )}
+                        {userType === 'Core Team' && (
+                            <View style={styles.symbolContainer}>
+                                <View style={styles.squareSymbol} />
+                            </View>
+                        )}
                     </View>
                 </View>
             </View>
@@ -96,7 +116,7 @@ export const HackthonICARD = ({
             <View style={styles.bottomLogos}>
                 <View style={styles.orgLogoBox}>
                     <Image
-                        src="/images/ieee-logo.png"
+                        src="/images/atmiya-rit-logo.png"
                         style={styles.orgLogoImage}
                     />
                 </View>
@@ -114,7 +134,7 @@ export const HackthonICARD = ({
                 </View>
                 <View style={styles.orgLogoBox}>
                     <Image
-                        src="/images/atmiya-rit-logo.png"
+                        src="/images/ieee-logo.png"
                         style={styles.orgLogoImage}
                     />
                 </View>
@@ -241,19 +261,58 @@ const styles = StyleSheet.create({
     columnRight: {
         flex: 0.4,
         paddingLeft: 5,
+    },    // User Type Symbols
+    userTypeContainer: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        marginRight: -60,
+    },
+    symbolContainer: {
+        flexDirection: 'row',
+        alignItems: 'center',
+    },
+    circleSymbol: {
+        width: 100,
+        height: 100,
+        borderRadius: 50,
+        opacity: 0.4,
+        backgroundColor: 'black',
+        borderWidth: 14,
+        borderColor: '#6b7280',
+    },
+    triangleSymbol: {
+        width: 0,
+        height: 0,
+        backgroundColor: 'transparent',
+        borderStyle: 'solid',
+        borderLeftWidth: 4,
+        borderRightWidth: 4,
+        borderBottomWidth: 7,
+        borderLeftColor: 'transparent',
+        borderRightColor: 'transparent',
+        borderBottomColor: '#ffff00',
+    },
+    squareSymbol: {
+        width: 8,
+        height: 8,
+        backgroundColor: '#ff0000',
+    },
+    symbolText: {
+        color: '#ffffff',
+        fontSize: 8,
+        fontWeight: '600',
     },
 
     // QR Code Section
     qrSection: {
         flexDirection: 'row',
-        marginTop: 10,
         alignItems: 'center',
+        marginTop: 6,
     },
     qrCode: {
-        width: 50,
-        height: 50,
+        width: 70,
+        height: 70,
         backgroundColor: '#ffffff',
-        marginRight: 10,
         position: 'relative',
     },
     qrPattern: {
