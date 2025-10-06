@@ -13,6 +13,19 @@ type HackthonICARDPros = {
     qrCode: string;
 }
 
+// Helper function to get dynamic font size based on text length - prioritize small font over line breaks
+const getDynamicFontSize = (text: string, baseSize: number = 10, maxLength: number = 20): number => {
+    if (text.length <= maxLength) {
+        return baseSize;
+    }
+
+    // More aggressive reduction to keep everything on one line
+    const overflowRatio = text.length / maxLength;
+    const reductionFactor = Math.max(0.4, 0.9 / overflowRatio);
+
+    return Math.max(4, Math.round(baseSize * reductionFactor)); // Minimum font size of 4 (smaller minimum)
+};
+
 export const HackthonICARD = ({
     name,
     participantId,
@@ -44,34 +57,36 @@ export const HackthonICARD = ({
                 </View>
             </View>
 
-            <View style={{ paddingBottom: 4 }}>
+            <View style={{ paddingBottom: 6 }}>
                 {/* ALL-ACCESS */}
                 <View style={styles.allAccessSection}>
                     <Text style={styles.allAccessText}>{userType}</Text>
                 </View>
-
                 <View style={styles.twoColumnRow}>
                     {/* Team Name */}
                     <View style={styles.columnLeft}>
                         <Text style={styles.quantumLabel}>TEAM NAME</Text>
-                        <Text style={styles.infoValueText}>{teamName}</Text>
+                        <Text style={[styles.infoValueText, { fontSize: getDynamicFontSize(teamName, 10, 20) }]}>
+                            {teamName}
+                        </Text>
                     </View>
 
                     {/* Team ID */}
                     <View style={styles.columnRight}>
                         <Text style={styles.quantumLabel}>TEAM ID</Text>
-                        <Text style={styles.infoValueText}>{teamId}</Text>
+                        <Text style={[styles.infoValueText, { fontSize: getDynamicFontSize(teamName, 10, 20) }]}>{teamId}</Text>
                     </View>
                 </View>
             </View>
 
             <View style={styles.divider} />
-
-            <View style={{ paddingTop: 6, rowGap: 3 }}>
+            <View style={{ paddingTop: 10, rowGap: 8 }}>
                 {/* Student Name */}
                 <View>
                     <Text style={styles.quantumLabel}>STUDENT NAME</Text>
-                    <Text style={styles.nameText}>{name}</Text>
+                    <Text style={[styles.nameText, { fontSize: getDynamicFontSize(name, 10, 20) }]}>
+                        {name}
+                    </Text>
                 </View>
 
                 {/* Participant ID */}
@@ -232,26 +247,31 @@ const styles = StyleSheet.create({
     // Labels and Values
     quantumLabel: {
         color: '#6b7280',
-        fontSize: 7,
+        fontSize: 5,
         marginBottom: 2,
     },
     nameText: {
         color: '#ffffff',
-        fontSize: 14,
+        fontSize: 12,
         fontWeight: 'bold',
         letterSpacing: 1,
         fontFamily: 'Squids',
-    },
-    infoValueText: {
+        overflow: 'hidden',
+        lineHeight: 1.2,
+        textAlign: 'left',
+    }, infoValueText: {
         color: '#ffffff',
         fontSize: 10,
+        overflow: 'hidden',
+        lineHeight: 1.2,
+        textAlign: 'left',
     },
 
     // Two Column Layout
     twoColumnRow: {
         flexDirection: 'row',
         justifyContent: 'space-between',
-        alignItems: 'center',
+        alignItems: 'flex-start',
         marginTop: 2,
     },
     columnLeft: {
