@@ -61,6 +61,7 @@
     "nodemailer": "^7.0.5",
     "papaparse": "^5.5.3",
     "prisma": "^6.8.2",
+    "qr-code-styling": "^1.9.2",
     "qr-scanner": "^1.4.2",
     "qrcode": "^1.5.4",
     "react": "^19.0.0",

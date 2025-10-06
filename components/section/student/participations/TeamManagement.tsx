@@ -4,7 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { format } from "date-fns";
-import { CalendarIcon, MapPinIcon, ArrowLeft, Users, QrCode, Download, RefreshCw } from "lucide-react";
+import { CalendarIcon, MapPinIcon, ArrowLeft, Users, QrCode, Download, RefreshCw, Eye } from "lucide-react";
 import { getImageUrl } from "@/lib/utils";
 import { TeamMemberInvitation } from "@/components/section/student/hackathons/TeamMemberInvitation";
 import Link from "next/link";
@@ -13,6 +13,10 @@ import { KeyedMutator } from "swr";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import Image from "next/image";
+import { PDFDownloadLink, PDFViewer } from "@react-pdf/renderer";
+import { HackthonICARD } from "@/components/export/HackthonICARD";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import QRCodeLib from "qrcode";
 import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -54,6 +58,7 @@ export function TeamManagement({
   } | null>(null);
   const [qrLoading, setQrLoading] = useState(false);
   const [qrGenerating, setQrGenerating] = useState(false);
+  const [idCardQrCodes, setIdCardQrCodes] = useState<Record<string, string>>({});
 
   const formatDateTime = (dateString: string, timeString: string) => {
     const date = new Date(dateString);
@@ -167,6 +172,57 @@ export function TeamManagement({
       mutate();
     }
   }
+  // Generate QR code for ID cards using existing team member QR data
+  const generateIdCardQRCode = async (memberId: string) => {
+    if (idCardQrCodes[memberId]) {
+      return idCardQrCodes[memberId];
+    }
+
+    try {
+      // First try to fetch the member's existing QR code data
+      const response = await fetch(`/api/student/team-member/qr-code?teamId=${team.id}&memberId=${memberId}`);
+      let qrData;
+
+      if (response.ok) {
+        const memberQrData = await response.json();
+        // Use the existing QR code data if available
+        qrData = memberQrData.qrCodeData || `HACKATHON_MEMBER_${memberId}_${hackathon.id}`;
+      } else {
+        // Fallback to generating QR data
+        qrData = `HACKATHON_MEMBER_${memberId}_${hackathon.id}`;
+      }
+
+      // Generate QR code with inverted colors (white on black)
+      const qrCodeDataUrl = await QRCodeLib.toDataURL(qrData, {
+        width: 200,
+        margin: 1,
+      });
+
+      setIdCardQrCodes(prev => ({
+        ...prev,
+        [memberId]: qrCodeDataUrl
+      }));
+
+      return qrCodeDataUrl;
+    } catch (error) {
+      console.error('Error generating QR code:', error);
+      return '';
+    }
+  };
+
+  const getParticipantRole = (member: any, isCurrentUser: boolean) => {
+    // Check if participant is team owner/leader
+    if (team.members.indexOf(member) === 0) {
+      return "Team Leader";
+    }
+
+    // Default to team member
+    return "Team Member";
+  };
+
+  const getUserType = () => {
+    return "Participant";
+  };
 
   return (
     <div className="container mx-auto py-8 px-4">
@@ -523,15 +579,13 @@ export function TeamManagement({
                   </CardDescription>
                 </CardHeader>
                 <CardContent>
-                  <div className="space-y-4">
-                    {/* Team Members Table - Read Only */}
+                  <div className="space-y-4">                    {/* Team Members Table - Read Only */}
                     <div>
                       <h3 className="text-lg font-medium mb-2">Current Members</h3>
                       <div className="border rounded-lg overflow-hidden">
                         <table className="w-full">
                           <thead className="bg-muted">
-                            <tr>
-                              <th className="text-left p-3 font-medium">Name</th>
+                            <tr>                              <th className="text-left p-3 font-medium">Name</th>
                               <th className="text-left p-3 font-medium">Email</th>
                               <th className="text-left p-3 font-medium">Role</th>
                               <th className="text-left p-3 font-medium">Attendance</th>
@@ -556,8 +610,7 @@ export function TeamManagement({
                                       team.members.indexOf(member) === 0 ? "Team Lead" :
                                         "Member"}
                                   </Badge>
-                                </td>
-                                <td className="p-3">
+                                </td>                                <td className="p-3">
                                   {member.attended ? (
                                     <Badge variant="default" className="bg-green-600">
                                       Attended
@@ -602,15 +655,13 @@ export function TeamManagement({
                   </CardDescription>
                 </CardHeader>
                 <CardContent>
-                  <div className="space-y-4">
-                    {/* Team Members Table - Read Only */}
+                  <div className="space-y-4">                    {/* Team Members Table - Read Only */}
                     <div>
                       <h3 className="text-lg font-medium mb-2">Current Members</h3>
                       <div className="border rounded-lg overflow-hidden">
                         <table className="w-full">
                           <thead className="bg-muted">
-                            <tr>
-                              <th className="text-left p-3 font-medium">Name</th>
+                            <tr>                              <th className="text-left p-3 font-medium">Name</th>
                               <th className="text-left p-3 font-medium">Email</th>
                               <th className="text-left p-3 font-medium">Role</th>
                             </tr>
@@ -623,8 +674,7 @@ export function TeamManagement({
                                 </td>
                                 <td className="p-3 text-muted-foreground">
                                   {member.student.user.email}
-                                </td>
-                                <td className="p-3">
+                                </td>                                <td className="p-3">
                                   <Badge variant={
                                     member.student.id === studentId ? "default" :
                                       team.members.indexOf(member) === 0 ? "default" :
@@ -696,110 +746,256 @@ export function TeamManagement({
                     </div>
                   </div>
                 </CardContent>
-              </Card>
-            )}
+              </Card>)}            {isTeamOwner && !team.disqualified ? (
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Solution Submission</CardTitle>
+                    <CardDescription>
+                      Submissions will be opened after the hackathon ends. You can submit only once.
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <Form {...submissionsForm}>
+                      <form onSubmit={submissionsForm.handleSubmit(submissionsOnSubmit)}>
+                        <div className="flex gap-2 items-center">
+                          <FormField
+                            control={submissionsForm.control}
+                            name="url"
+                            render={({ field }) => (
+                              <FormItem className="flex-1">
+                                <FormLabel>Submission URL</FormLabel>
+                                <FormControl>
+                                  <Input
+                                    className="flex-grow"
+                                    type="url"
+                                    placeholder="https://github.com/your-repo"
+                                    {...field}
+                                  />
+                                </FormControl>
+                                <FormDescription>
+                                  Solution submissions must be public repositories on GitHub, GitLab, or Bitbucket.
+                                </FormDescription>
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+                          <Button type="submit" disabled={team.submissionUrl !== "" || hackathon.open_submissions === false}>
+                            Submit
+                          </Button>
+                        </div>
+                      </form>
+                    </Form>
+                  </CardContent>
+                </Card>
+              ) : isTeamOwner && team.disqualified ? (
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Solution Submission</CardTitle>
+                    <CardDescription>
+                      Submissions are disabled for disqualified teams.
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="bg-red-50 border-l-4 border-red-400 p-4 rounded dark:bg-red-900/20 dark:border-red-800">
+                      <div className="flex items-start">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-red-600 mr-2 dark:text-red-300">
+                          <circle cx="12" cy="12" r="10" />
+                          <line x1="15" y1="9" x2="9" y2="15" />
+                          <line x1="9" y1="9" x2="15" y2="15" />
+                        </svg>
+                        <div>
+                          <p className="text-red-700 font-medium dark:text-red-300">Submissions Restricted</p>
+                          <p className="text-red-600 text-sm mt-1 dark:text-red-200">
+                            You cannot submit solutions because your team has been disqualified from the hackathon. Please contact the organizers for more information.
+                          </p>
+                        </div>
+                      </div>
+                    </div>
 
-            {isTeamOwner && !team.disqualified ? (
-              <Card>
-                <CardHeader>
-                  <CardTitle>Solution Submission</CardTitle>
-                  <CardDescription>
-                    Submissions will be opened after the hackathon ends. You can submit only once.
-                  </CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <Form {...submissionsForm}>
-                    <form onSubmit={submissionsForm.handleSubmit(submissionsOnSubmit)}>
-                      <div className="flex gap-2 items-center">
-                        <FormField
-                          control={submissionsForm.control}
-                          name="url"
-                          render={({ field }) => (
-                            <FormItem className="flex-1">
-                              <FormLabel>Submission URL</FormLabel>
-                              <FormControl>
-                                <Input
-                                  className="flex-grow"
-                                  type="url"
-                                  placeholder="https://github.com/your-repo"
-                                  {...field}
+                    {team.submissionUrl && (
+                      <div className="mt-4">
+                        <h3 className="text-sm font-medium mb-2">Previous Submission</h3>
+                        <div className="p-3 bg-muted rounded-lg">
+                          <a href={team.submissionUrl} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline break-all">
+                            {team.submissionUrl}
+                          </a>
+                        </div>
+                      </div>
+                    )}
+                  </CardContent>
+                </Card>
+              ) : (
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Solution Submission</CardTitle>
+                    <CardDescription>
+                      Only team leads can submit solutions on behalf of the team.
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="bg-yellow-50 border-l-4 border-yellow-400 p-4 rounded">
+                      <div className="flex items-start">
+                        <Users className="h-5 w-5 text-yellow-400 mr-2" />
+                        <div>
+                          <p className="text-yellow-700 font-medium">Team Member Notice</p>
+                          <p className="text-yellow-600 text-sm">
+                            As a team member, you cannot submit solutions. Please coordinate with your team lead to ensure your team's submission is completed on time.
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  </CardContent>              </Card>
+              )}
+
+            {/* Team ID Cards Section */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <QrCode className="w-5 h-5" />
+                  Team ID Cards
+                </CardTitle>
+                <CardDescription>
+                  View and download hackathon ID cards for all team members
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                  {team.members.map((member) => (
+                    <Card key={member.id} className="border-2 border-dashed border-primary/20">
+                      <CardContent className="p-4">
+                        <div className="text-center space-y-3">
+                          <div className="w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center mx-auto">
+                            <Users className="w-6 h-6 text-primary" />
+                          </div>
+
+                          <div>
+                            <h3 className="font-medium text-sm">
+                              {member.student.user.firstName} {member.student.user.lastName}
+                            </h3>
+                            <p className="text-xs text-muted-foreground mb-2">
+                              {member.student.user.email}
+                            </p>
+                          </div>
+
+                          <div className="flex justify-center gap-1 mb-3">
+                            <Badge variant={
+                              member.student.id === studentId ? "default" :
+                                team.members.indexOf(member) === 0 ? "default" :
+                                  "secondary"
+                            } className="text-xs">
+                              {member.student.id === studentId ? "You" :
+                                team.members.indexOf(member) === 0 ? "Team Lead" :
+                                  "Member"}
+                            </Badge>
+                            {member.attended && (
+                              <Badge variant="default" className="bg-green-600 text-xs">
+                                Attended
+                              </Badge>
+                            )}
+                          </div>
+
+                          <div className="flex gap-2">
+                            {/* View ID Card */}
+                            <Dialog>
+                              <DialogTrigger asChild>
+                                <Button
+                                  variant="outline"
+                                  size="sm"
+                                  className="flex-1"
+                                  onClick={async () => {
+                                    await generateIdCardQRCode(member.id);
+                                  }}
+                                >
+                                  <Eye className="w-4 h-4 mr-1" />
+                                  View
+                                </Button>
+                              </DialogTrigger>
+                              <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
+                                <DialogHeader>
+                                  <DialogTitle>
+                                    {member.student.user.firstName} {member.student.user.lastName} - ID Card Preview
+                                  </DialogTitle>
+                                </DialogHeader>
+                                <div className="w-full h-[600px]">
+                                  <PDFViewer width="100%" height="100%">
+                                    <HackthonICARD
+                                      name={`${member.student.user.firstName} ${member.student.user.lastName}`}
+                                      teamName={team.teamName}
+                                      teamId={team.id}
+                                      participantId={member.id}
+                                      participantRole={getParticipantRole(member, member.student.id === studentId)}
+                                      userType={getUserType()}
+                                      qrCode={idCardQrCodes[member.id] || ""}
+                                    />
+                                  </PDFViewer>
+                                </div>
+                              </DialogContent>
+                            </Dialog>
+
+                            {/* Download ID Card */}
+                            <PDFDownloadLink
+                              document={
+                                <HackthonICARD
+                                  name={`${member.student.user.firstName} ${member.student.user.lastName}`}
+                                  teamName={team.teamName}
+                                  teamId={team.id}
+                                  participantId={member.id}
+                                  participantRole={getParticipantRole(member, member.student.id === studentId)}
+                                  userType={getUserType()}
+                                  qrCode={idCardQrCodes[member.id] || ""}
                                 />
-                              </FormControl>
-                              <FormDescription>
-                                Solution submissions must be public repositories on GitHub, GitLab, or Bitbucket.
-                              </FormDescription>
-                              <FormMessage />
-                            </FormItem>
-                          )}
-                        />
-                        <Button type="submit" disabled={team.submissionUrl !== "" || hackathon.open_submissions === false}>
-                          Submit
-                        </Button>
-                      </div>
-                    </form>
-                  </Form>
-                </CardContent>
-              </Card>
-            ) : isTeamOwner && team.disqualified ? (
-              <Card>
-                <CardHeader>
-                  <CardTitle>Solution Submission</CardTitle>
-                  <CardDescription>
-                    Submissions are disabled for disqualified teams.
-                  </CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <div className="bg-red-50 border-l-4 border-red-400 p-4 rounded dark:bg-red-900/20 dark:border-red-800">
-                    <div className="flex items-start">
-                      <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-red-600 mr-2 dark:text-red-300">
-                        <circle cx="12" cy="12" r="10" />
-                        <line x1="15" y1="9" x2="9" y2="15" />
-                        <line x1="9" y1="9" x2="15" y2="15" />
-                      </svg>
-                      <div>
-                        <p className="text-red-700 font-medium dark:text-red-300">Submissions Restricted</p>
-                        <p className="text-red-600 text-sm mt-1 dark:text-red-200">
-                          You cannot submit solutions because your team has been disqualified from the hackathon. Please contact the organizers for more information.
-                        </p>
-                      </div>
-                    </div>
-                  </div>
+                              }
+                              fileName={`${hackathon.name.replace(/\s+/g, '_')}_ID_Card_${member.student.user.firstName}_${member.student.user.lastName}.pdf`}
+                            >
+                              {({ loading }) => (
+                                <Button
+                                  variant="default"
+                                  size="sm"
+                                  className="flex-1"
+                                  disabled={loading}
+                                  onClick={async () => {
+                                    await generateIdCardQRCode(member.id);
+                                  }}
+                                >
+                                  <Download className="w-4 h-4 mr-1" />
+                                  {loading ? "..." : "Download"}
+                                </Button>
+                              )}
+                            </PDFDownloadLink>
+                          </div>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  ))}
+                </div>
 
-                  {team.submissionUrl && (
-                    <div className="mt-4">
-                      <h3 className="text-sm font-medium mb-2">Previous Submission</h3>
-                      <div className="p-3 bg-muted rounded-lg">
-                        <a href={team.submissionUrl} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline break-all">
-                          {team.submissionUrl}
-                        </a>
-                      </div>
+                {/* Download All ID Cards */}
+                <div className="mt-6 pt-4 border-t">
+                  <div className="flex justify-between items-center">
+                    <div>
+                      <h3 className="font-medium">Bulk Download</h3>
+                      <p className="text-sm text-muted-foreground">
+                        Download all team member ID cards at once
+                      </p>
                     </div>
-                  )}
-                </CardContent>
-              </Card>
-            ) : (
-              <Card>
-                <CardHeader>
-                  <CardTitle>Solution Submission</CardTitle>
-                  <CardDescription>
-                    Only team leads can submit solutions on behalf of the team.
-                  </CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <div className="bg-yellow-50 border-l-4 border-yellow-400 p-4 rounded">
-                    <div className="flex items-start">
-                      <Users className="h-5 w-5 text-yellow-400 mr-2" />
-                      <div>
-                        <p className="text-yellow-700 font-medium">Team Member Notice</p>
-                        <p className="text-yellow-600 text-sm">
-                          As a team member, you cannot submit solutions. Please coordinate with your team lead to ensure your team's submission is completed on time.
-                        </p>
-                      </div>
-                    </div>
+                    <Button
+                      variant="outline"
+                      onClick={async () => {
+                        // Generate QR codes for all members first
+                        for (const member of team.members) {
+                          await generateIdCardQRCode(member.id);
+                        }
+
+                        toast.success(`Preparing ${team.members.length} ID cards for download...`);
+                      }}
+                    >
+                      <Download className="w-4 h-4 mr-2" />
+                      Download All ({team.members.length} cards)
+                    </Button>
                   </div>
-                </CardContent>
-              </Card>
-            )}
+                </div>
+              </CardContent>
+            </Card>
           </div>
         </div>
       </div>
