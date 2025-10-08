@@ -56,7 +56,7 @@ export async function PUT(request: NextRequest) {
         where: { supabaseId: user.id },
         data: {
           firstName: allowedFields.full_name.split(" ")[0],
-          lastName: allowedFields.full_name.split(" ").slice(1).join(" "),
+          lastName: allowedFields.full_name.split(" ")[1],
           phone: allowedFields.phone || null,
         },
       });
