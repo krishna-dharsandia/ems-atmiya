@@ -27,7 +27,7 @@ export async function GET(
         attendanceSchedules: {
           include: {
             attendanceRecords: {
-              include: {
+              include: {                
                 teamMember: {
                   include: {
                     student: {
@@ -37,6 +37,7 @@ export async function GET(
                             firstName: true,
                             lastName: true,
                             email: true,
+                            phone: true,
                           },
                         },
                       },
@@ -77,7 +78,7 @@ export async function GET(
                   studentId: true,
                   attended: true,
                   qrCode: true,
-                  qrCodeData: true,
+                  qrCodeData: true,                  
                   student: {
                     include: {
                       user: {
@@ -85,6 +86,7 @@ export async function GET(
                           firstName: true,
                           lastName: true,
                           email: true,
+                          phone: true,
                         },
                       },
                       department: {

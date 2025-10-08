@@ -42,16 +42,14 @@ const styles = StyleSheet.create({
     backgroundColor: '#f3f4f6',
   },
   tableHeaderCell: {
-    padding: 8,
-    fontSize: 9,
+    padding: 6,
+    fontSize: 8,
     fontWeight: 600,
     color: '#374151',
     textAlign: 'center',
   },
   tableRow: {
-  },
-  tableRowEven: {
-    backgroundColor: '#f9fafb',
+    minHeight: 24
   },
   tableCell: {
     padding: 6,
@@ -126,11 +124,11 @@ const TeamMembersTable: React.FC<{ data: TeamExportData[] }> = ({ data }) => {
     <View style={styles.table}>
       <Table>
         <TR style={styles.tableHeader}>
+          <TD style={[styles.tableHeaderCell, { flex: 0.5 }]}>No.</TD>
           <TD style={[styles.tableHeaderCell, { flex: 0.8 }]}>Team ID</TD>
           <TD style={[styles.tableHeaderCell, { flex: 1.5 }]}>Team Name</TD>
           <TD style={[styles.tableHeaderCell, { flex: 1.8 }]}>Member Name</TD>
-          <TD style={[styles.tableHeaderCell, { flex: 2 }]}>Email</TD>
-          <TD style={[styles.tableHeaderCell, { flex: 1.2 }]}>Department</TD>
+          <TD style={[styles.tableHeaderCell, { flex: 1.2 }]}>Phone Number</TD>
           <TD style={[styles.tableHeaderCell, { flex: 0.8 }]}>Role</TD>
           <TD style={[styles.tableHeaderCell, { flex: 0.8 }]}>Attended</TD>
         </TR>
@@ -138,44 +136,44 @@ const TeamMembersTable: React.FC<{ data: TeamExportData[] }> = ({ data }) => {
           const { team, member } = item;
           const isTeamAdmin = member.isTeamAdmin;
 
-          return (
-            <TR
-              key={index}
-              style={[
-                index % 2 === 1 ? styles.tableRowEven : styles.tableRow,
-                ...(isTeamAdmin ? [{ backgroundColor: '#e5e7eb' }] : []) // Darker background for team admin
-              ]}
-            >
-              <TD style={[styles.tableCell, { flex: 0.8 }]}>
-                {team.teamId}
-              </TD>
-              <TD style={[styles.tableCell, { flex: 1.5 }]}>
-                {team.teamName.substring(0, 15)}
-              </TD>
-              <TD style={[
-                styles.tableCell,
-                { flex: 1.8 },
-                ...(isTeamAdmin ? [{ fontWeight: 600 }] : []) // Bold for team admin
-              ]}>
-                {member.name.substring(0, 18)}
-              </TD>
-              <TD style={[styles.tableCell, { flex: 2 }]}>
-                {member.email.substring(0, 20)}
-              </TD>
-              <TD style={[styles.tableCell, { flex: 1.2 }]}>
-                {member.department.substring(0, 10)}
-              </TD>
-              <TD style={[
-                styles.tableCell,
-                { flex: 0.8, textAlign: 'center' },
-                ...(isTeamAdmin ? [{ fontWeight: 600 }] : []) // Bold for team admin
-              ]}>
-                {isTeamAdmin ? 'Admin' : 'Member'}
-              </TD>
-              <TD style={[styles.tableCell, { flex: 0.8, textAlign: 'center' }]}>
-                <PDFCheckbox checked={member.attended} size={8} />
-              </TD>
-            </TR>
+          return (<TR
+            key={index}
+            wrap={false}
+            style={[
+              styles.tableRow,
+              ...(isTeamAdmin ? [{ backgroundColor: '#e5e7eb' }] : []) // Darker background for team admin
+            ]}
+            minPresenceAhead={25}
+          >
+            <TD style={[styles.tableCell, { flex: 0.5, textAlign: 'center' }]}>
+              {index + 1}
+            </TD>
+            <TD style={[styles.tableCell, { flex: 0.8 }]}>
+              {team.teamId}
+            </TD>
+            <TD style={[styles.tableCell, { flex: 1.5 }]}>
+              {team.teamName.substring(0, 15)}
+            </TD>              <TD style={[
+              styles.tableCell,
+              { flex: 1.8 },
+              ...(isTeamAdmin ? [{ fontWeight: 600 }] : []) // Bold for team admin
+            ]}>
+              {member.name.substring(0, 18)}
+            </TD>
+            <TD style={[styles.tableCell, { flex: 1.2 }]}>
+              {member.phoneNumber || "-"}
+            </TD>
+            <TD style={[
+              styles.tableCell,
+              { flex: 0.8, textAlign: 'center' },
+              ...(isTeamAdmin ? [{ fontWeight: 600 }] : []) // Bold for team admin
+            ]}>
+              {isTeamAdmin ? 'Admin' : 'Member'}
+            </TD>
+            <TD style={[styles.tableCell, { flex: 0.8, textAlign: 'center', justifyContent: 'center', alignItems: 'center' }]}>
+              <PDFCheckbox checked={member.attended} size={22} />
+            </TD>
+          </TR>
           );
         })}
       </Table>
@@ -198,8 +196,19 @@ const HackathonExportPDF: React.FC<HackathonExportPDFProps> = ({
 
   const totalTeams = teams.length;
   const totalParticipants = teams.reduce((acc, team) => acc + team.memberCount, 0);
-  const teamsWithSubmissions = teams.filter(team => team.hasSubmission === 'Yes').length;
-  const averageTeamSize = totalTeams > 0 ? (totalParticipants / totalTeams).toFixed(1) : '0';
+
+  // Calculate attendance statistics
+  const presentStudents = teams.reduce((acc, team) => {
+    return acc + (team.members?.filter(member => member.attended).length || 0);
+  }, 0);
+
+  const absentStudents = totalParticipants - presentStudents;
+
+  const presentTeams = teams.filter(team => {
+    return team.members && team.members.some(member => member.attended);
+  }).length;
+
+  const absentTeams = totalTeams - presentTeams;
 
   return (
     <Document>
@@ -207,61 +216,31 @@ const HackathonExportPDF: React.FC<HackathonExportPDFProps> = ({
         {/* Header */}
         <View style={styles.header}>
           <Text style={styles.title}>{hackathonName}</Text>
-          <Text style={styles.subtitle}>Hackathon Team Export Report</Text>
+          <Text style={styles.subtitle}>Hackathon Team Attendance Report</Text>
           <Text style={styles.generatedDate}>
             Generated on {exportDate} | {totalTeams} Teams | {totalParticipants} Participants
           </Text>
         </View>
 
-        {/* Summary Section */}
-        <View style={styles.summarySection}>
-          <Text style={styles.summaryTitle}>Summary Statistics</Text>
+        {/* Summary Section */}        <View style={styles.summarySection}>
+          <Text style={styles.summaryTitle}>Attendance Summary</Text>
           <View style={styles.summaryItem}>
-            <Text style={styles.summaryLabel}>Total Teams:</Text>
-            <Text style={styles.summaryValue}>{totalTeams}</Text>
+            <Text style={styles.summaryLabel}>Total Present Teams:</Text>
+            <Text style={styles.summaryValue}>{presentTeams}</Text>
           </View>
           <View style={styles.summaryItem}>
-            <Text style={styles.summaryLabel}>Total Participants:</Text>
-            <Text style={styles.summaryValue}>{totalParticipants}</Text>
+            <Text style={styles.summaryLabel}>Total Present Students:</Text>
+            <Text style={styles.summaryValue}>{presentStudents}</Text>
           </View>
           <View style={styles.summaryItem}>
-            <Text style={styles.summaryLabel}>Teams with Submissions:</Text>
-            <Text style={styles.summaryValue}>{teamsWithSubmissions}</Text>
+            <Text style={styles.summaryLabel}>Total Absent Teams:</Text>
+            <Text style={styles.summaryValue}>{absentTeams}</Text>
           </View>
           <View style={styles.summaryItem}>
-            <Text style={styles.summaryLabel}>Average Team Size:</Text>
-            <Text style={styles.summaryValue}>{averageTeamSize}</Text>
+            <Text style={styles.summaryLabel}>Total Absent Students:</Text>
+            <Text style={styles.summaryValue}>{absentStudents}</Text>
           </View>
         </View>
-
-        {/* Team Overview */}
-        {exportType === 'teams' && teams && teams.length > 0 && (
-          <View style={{ marginBottom: 20 }}>
-            <Text style={styles.sectionHeader}>Team Overview</Text>
-            {teams.map((team, index) => (
-              <View
-                key={index}
-                style={{
-                  marginBottom: 15,
-                  padding: 10,
-                  border: '1px solid #d1d5db',
-                  backgroundColor: index % 2 === 0 ? '#f9fafb' : '#ffffff'
-                }}
-              >
-                <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginBottom: 5 }}>
-                  <Text style={{ fontSize: 10, fontWeight: 600 }}>{team.teamName}</Text>
-                  <Text style={{ fontSize: 9, color: '#6b7280' }}>ID: {team.teamId}</Text>
-                </View>
-                <Text style={{ fontSize: 9, marginBottom: 3 }}>
-                  Problem: {team.problemCode} - {team.problemStatement.substring(0, 50)}...
-                </Text>
-                <Text style={{ fontSize: 9 }}>
-                  Members: {team.memberCount} | Attended: {team.attendedMembers} | Submission: {team.hasSubmission}
-                </Text>
-              </View>
-            ))}
-          </View>
-        )}
 
         {/* Teams Table */}
         {exportType === 'teams' && (

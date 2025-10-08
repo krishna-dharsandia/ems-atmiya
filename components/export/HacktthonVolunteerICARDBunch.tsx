@@ -103,19 +103,18 @@ const IDCardContent = ({
             {/* Participant ID */}
             <View>
                 <View style={styles.userTypeContainer}>
-
                     {userType === 'Volunteer' && (
-                        <View style={styles.symbolContainer}>                            
-                        <Svg width="150" height="150" viewBox="0 0 150 150">
-                            <Polygon
-                                points="50,5 100,100 5,100"
-                                fill="transparent"
-                                stroke="#e5e7eb"
-                                strokeWidth="10"
-                                strokeLinejoin="miter"
-                                opacity={0.4}
-                            />
-                        </Svg>
+                        <View style={styles.symbolContainer}>
+                            <Svg width="150" height="150" viewBox="0 0 150 150">
+                                <Polygon
+                                    points="50,5 100,100 5,100"
+                                    fill="transparent"
+                                    stroke="#e5e7eb"
+                                    strokeWidth="10"
+                                    strokeLinejoin="miter"
+                                    opacity={0.4}
+                                />
+                            </Svg>
                         </View>
                     )}
 
@@ -285,7 +284,7 @@ const styles = StyleSheet.create({
     columnRight: {
         flex: 0.4,
         paddingLeft: 5,
-    },    
+    },
     // User Type Symbols
     userTypeContainer: {
         flexDirection: 'row',
@@ -297,7 +296,8 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         marginTop: 0,
         right: -140,
-    }, circleSymbol: {
+    },
+    circleSymbol: {
         width: 100,
         height: 100,
         borderRadius: 50,
@@ -305,7 +305,8 @@ const styles = StyleSheet.create({
         backgroundColor: 'black',
         borderWidth: 14,
         borderColor: '#e5e7eb',
-    }, triangleSymbol: {
+    },
+    triangleSymbol: {
         width: 0,
         height: 0,
         borderStyle: 'solid',
@@ -316,7 +317,8 @@ const styles = StyleSheet.create({
         borderRightColor: 'black',
         borderBottomColor: '#e5e7eb',
         backgroundColor: 'black',
-    }, squareSymbol: {
+    },
+    squareSymbol: {
         width: 50,
         height: 50,
         opacity: 0.4,

@@ -18,12 +18,13 @@ export async function GET(
             id: true,
             name: true,
             start_date: true,
-            mode: true,
+            mode: true,            
             teams: {
               select: {
                 id: true,
                 teamName: true,
                 teamId: true,
+                leaderId: true,
                 members: {
                   select: {
                     id: true,
@@ -31,13 +32,14 @@ export async function GET(
                     attended: true,
                     student: {
                       select: {
-                        id: true,
+                        id: true,                        
                         user: {
                           select: {
                             id: true,
                             firstName: true,
                             lastName: true,
                             email: true,
+                            phone: true,
                           },
                         },
                         department: {
@@ -64,8 +66,20 @@ export async function GET(
                       },
                     },
                   },
+                  orderBy: [
+                    {
+                      student: {
+                        user: {
+                          firstName: 'asc'
+                        }
+                      }
+                    }
+                  ]
                 },
               },
+              orderBy: {
+                teamId: 'asc'
+              }
             },
           },
         },
@@ -93,9 +107,7 @@ export async function GET(
         { error: "Attendance schedule not found" },
         { status: 404 }
       );
-    }
-
-    // Calculate stats
+    }    // Calculate stats
     const totalMembers = attendanceSchedule.hackathon.teams.reduce(
       (count, team) => count + team.members.length,
       0
@@ -109,11 +121,22 @@ export async function GET(
       ? Math.round((presentCount / totalMembers) * 100)
       : 0;
 
+    // Calculate team stats
+    const totalTeams = attendanceSchedule.hackathon.teams.length;
+    const presentTeams = attendanceSchedule.hackathon.teams.filter(team => {
+      return team.members.some(member => {
+        return member.attendanceRecords.some(record => record.isPresent);
+      });
+    }).length;
+
     const stats = {
       totalMembers,
       presentCount,
       absentCount: totalMembers - presentCount,
       attendancePercentage,
+      totalTeams,
+      presentTeams,
+      absentTeams: totalTeams - presentTeams,
     };
 
     return NextResponse.json({

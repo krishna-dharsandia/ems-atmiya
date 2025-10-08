@@ -31,22 +31,25 @@ import {
 import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
-import { ChevronLeft, Download, FileDown, Loader2, QrCode, Search, X } from "lucide-react";
+import { ChevronLeft, Download, FileDown, Loader2, QrCode, Search, X, FileText } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import useSWR from "swr";
 import { fetcher } from "@/fetcher";
 import axios from "axios";
+import { pdf } from '@react-pdf/renderer';
+import AttendanceExportPDF from "@/components/export/AttendanceExportPDF";
+import { saveAs } from 'file-saver';
 
 interface TeamMember {
   id: string;
-  studentId: string;
-  student: {
+  studentId: string; student: {
     id: string;
     user: {
       id: string;
       firstName: string;
       lastName: string;
       email: string;
+      phone?: string;
     };
     department?: {
       name: string;
@@ -67,6 +70,7 @@ interface Team {
   id: string;
   teamName: string;
   teamId: string;
+  leaderId: string | null;
   members: TeamMember[];
 }
 
@@ -89,6 +93,9 @@ interface Stats {
   presentCount: number;
   absentCount: number;
   attendancePercentage: number;
+  totalTeams: number;
+  presentTeams: number;
+  absentTeams: number;
 }
 
 interface AttendanceDetailsProps {
@@ -300,40 +307,76 @@ export default function AttendanceDetails({ scheduleId }: AttendanceDetailsProps
     setLoading(isLoading);
   }, [data, error, isLoading]);
 
-  const handleExport = async (format: 'csv' | 'xlsx') => {
-    if (!attendanceData) return;
+
+  const handleExport = async (format: 'pdf') => {
+    if (!attendanceData || !stats) return;
 
     setExportLoading(true);
 
-    try {
-      // Format data for export
-      const exportData = attendanceData.hackathon.teams.flatMap(team =>
-        team.members.map(member => {
-          const attendanceRecord = member.attendanceRecords[0];
-          return {
-            "Team Name": team.teamName,
-            "Team ID": team.teamId || "-",
-            "Student Name": `${member.student.user.firstName} ${member.student.user.lastName}`,
-            "Department": member.student.department?.name || "-",
-            "Email": member.student.user.email,
-            "Status": attendanceRecord?.isPresent ? "Present" : "Absent",
-            "Check-in Time": attendanceRecord?.isPresent
-              ? formatDate(new Date(attendanceRecord.checkedInAt), "PPp")
-              : "-",
-            "Checked By": attendanceRecord?.isPresent
-              ? `${attendanceRecord.checkedInByUser.firstName} ${attendanceRecord.checkedInByUser.lastName}`
-              : "-"
-          };
-        })
+    try {      // Sort teams by teamId and format data for PDF export
+      const sortedTeams = [...attendanceData.hackathon.teams].sort((a, b) => 
+        (a.teamId || "").localeCompare(b.teamId || "")
       );
+
+      const exportData = sortedTeams.flatMap(team => {
+        // Sort members so team leader comes first
+        const sortedMembers = [...team.members].sort((a, b) => {
+          const aIsLeader = team.leaderId === a.student.id ? 0 : 1;
+          const bIsLeader = team.leaderId === b.student.id ? 0 : 1;
+          return aIsLeader - bIsLeader;
+        });
+
+        return sortedMembers.map(member => {
+          const attendanceRecord = member.attendanceRecords[0];
+          const isTeamLeader = team.leaderId === member.student.id;
+          
+          return {
+            teamName: team.teamName,
+            teamId: team.teamId || "-",
+            studentName: `${member.student.user.firstName} ${member.student.user.lastName}`,
+            phoneNumber: member.student.user.phone || "-",
+            email: member.student.user.email,
+            status: attendanceRecord?.isPresent ? "Present" : "Absent",
+            checkInTime: attendanceRecord?.isPresent
+              ? formatDate(new Date(attendanceRecord.checkedInAt), "PPp")
+              : undefined,
+            checkedBy: attendanceRecord?.isPresent
+              ? `${attendanceRecord.checkedInByUser.firstName} ${attendanceRecord.checkedInByUser.lastName}`
+              : undefined,
+            isTeamLeader: isTeamLeader
+          };
+        });
+      });
 
       const filename = `attendance_${attendanceData.hackathon.name.replace(/[^a-z0-9]/gi, '_').toLowerCase()}_day${attendanceData.day}_${new Date().toISOString().split('T')[0]}`;
 
-      if (format === 'csv') {
-        toast.success("Attendance data exported to CSV successfully");
-      } else {
-        toast.success("Attendance data exported to Excel successfully");
-      }
+      // PDF Export
+      const pdfData = {
+        hackathon: {
+          name: attendanceData.hackathon.name,
+          start_date: attendanceData.hackathon.start_date,
+        },
+        schedule: {
+          day: attendanceData.day,
+          checkInTime: attendanceData.checkInTime,
+          description: attendanceData.description || undefined,
+        },
+        stats: stats,        attendanceList: exportData.map(row => ({
+          teamName: row.teamName,
+          teamId: row.teamId,
+          studentName: row.studentName,
+          phoneNumber: row.phoneNumber,
+          email: row.email,
+          status: row.status as 'Present' | 'Absent',
+          checkInTime: row.checkInTime,
+          checkedBy: row.checkedBy,
+          isTeamLeader: row.isTeamLeader,
+        }))
+      };
+
+      const pdfBlob = await pdf(<AttendanceExportPDF data={pdfData} />).toBlob();
+      saveAs(pdfBlob, `${filename}.pdf`);
+      toast.success("Attendance data exported to PDF successfully");
     } catch (error) {
       console.error("Export error:", error);
       toast.error("Failed to export attendance data");
@@ -538,15 +581,31 @@ export default function AttendanceDetails({ scheduleId }: AttendanceDetailsProps
             <p className="text-sm text-muted-foreground">Attendance Rate</p>
           </CardContent>
         </Card>
-      </div>
-
-      {/* Search and Filter */}
+      </div>      {/* Search and Filter */}
       <Card>
         <CardHeader>
-          <CardTitle>Attendance List</CardTitle>
-          <CardDescription>
-            View and filter attendance records for this schedule
-          </CardDescription>
+          <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-4">
+            <div>
+              <CardTitle>Attendance List</CardTitle>
+              <CardDescription>
+                View and filter attendance records for this schedule
+              </CardDescription>
+            </div>            <div className="flex flex-wrap gap-2">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => handleExport('pdf')}
+                disabled={exportLoading}
+              >
+                {exportLoading ? (
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                ) : (
+                  <FileText className="mr-2 h-4 w-4" />
+                )}
+                Export PDF
+              </Button>
+            </div>
+          </div>
         </CardHeader>
         <CardContent>
           <div className="flex flex-col sm:flex-row gap-4 mb-4">
@@ -603,11 +662,10 @@ export default function AttendanceDetails({ scheduleId }: AttendanceDetailsProps
               </Select>
             </div>
           </div>
-
           {/* Attendance Table */}
-          <div className="border rounded-md">
+          <div className="border rounded-md max-h-[60vh] overflow-auto">
             <Table>
-              <TableHeader>
+              <TableHeader className="sticky top-0 bg-background z-10">
                 <TableRow>
                   <TableHead className="w-[100px]">Status</TableHead>
                   <TableHead>Name</TableHead>
@@ -671,38 +729,9 @@ export default function AttendanceDetails({ scheduleId }: AttendanceDetailsProps
               </TableBody>
             </Table>
           </div>
-        </CardContent>
-        <CardFooter className="flex justify-between border-t p-4">
+        </CardContent>        <CardFooter className="flex justify-between border-t p-4">
           <div className="text-sm text-muted-foreground">
             Showing {filteredMembers.length} of {stats?.totalMembers || 0} participants
-          </div>
-          <div className="flex gap-2">
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => handleExport('csv')}
-              disabled={exportLoading}
-            >
-              {exportLoading ? (
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-              ) : (
-                <FileDown className="mr-2 h-4 w-4" />
-              )}
-              Export CSV
-            </Button>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => handleExport('xlsx')}
-              disabled={exportLoading}
-            >
-              {exportLoading ? (
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-              ) : (
-                <Download className="mr-2 h-4 w-4" />
-              )}
-              Export Excel
-            </Button>
           </div>
         </CardFooter>
       </Card>

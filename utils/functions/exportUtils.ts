@@ -39,6 +39,7 @@ export interface TeamMemberData {
   email: string;
   department: string;
   enrollment: string;
+  phoneNumber?: string;
   attended: boolean;
   isTeamAdmin: boolean;
 }
@@ -325,7 +326,8 @@ export const exportToPDF = async (
       throw new Error('PDF export is only available in browser environment');
     }
 
-    let MyDocument;    // Choose the appropriate PDF component based on export type
+    let MyDocument;    
+    // Choose the appropriate PDF component based on export type
     if (type === 'teams' || (type === 'both' && data.teams && !data.registrations && !data.feedbacks)) {
       // Use HackathonExportPDF for team data
       const HackathonDocument = () => React.createElement(HackathonExportPDF, {
@@ -687,17 +689,16 @@ export const formatFeedbackData = (feedbacks: Record<string, unknown>[]): Feedba
  * Format team data for export
  */
 export const formatTeamData = (teams: Record<string, unknown>[]): TeamExportData[] => {
-  return teams.map(team => {
-    const teamMembers = (team.members as Array<{
+  return teams.map(team => {    const teamMembers = (team.members as Array<{
       id?: string;
       student?: {
         id?: string;
-        user?: { firstName?: string; lastName?: string; email?: string };
+        user?: { firstName?: string; lastName?: string; email?: string , phone?: string };
         department?: { name?: string };
         enrollment?: string;
       };
       attended?: boolean;
-    }>) || [];    // Get the team leader ID from the team data
+    }>) || [];// Get the team leader ID from the team data
     const teamLeaderId = (team as any).leaderId;
 
     // Sort members to put team admin (leader) first
@@ -710,12 +711,11 @@ export const formatTeamData = (teams: Record<string, unknown>[]): TeamExportData
       if (!aIsLeader && bIsLeader) return 1;
       
       return (a.id || '').localeCompare(b.id || '');
-    });
-
-    // Format individual member data
+    });    // Format individual member data
     const members: TeamMemberData[] = sortedMembers.map((member) => ({
       name: `${member.student?.user?.firstName || ''} ${member.student?.user?.lastName || ''}`.trim() || 'N/A',
       email: member.student?.user?.email || 'N/A',
+      phoneNumber: member.student?.user?.phone || 'N/A',
       department: member.student?.department?.name || 'N/A',
       enrollment: member.student?.enrollment || 'N/A',
       attended: member.attended || false,
