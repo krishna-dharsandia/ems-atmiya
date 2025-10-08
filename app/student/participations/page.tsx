@@ -165,7 +165,7 @@ export default async function ParticipationsPage() {
     // Transform the data to include participation status
     const participations = teamMemberships.map((membership) => {
       const team = membership.team;
-      const hackathon = team.hackathon;      // Determine if current student is team owner/leader
+      const hackathon = team.hackathon; // Determine if current student is team owner/leader
       const isTeamOwner = team.leaderId == student.id;
 
       return {
@@ -181,7 +181,8 @@ export default async function ParticipationsPage() {
           end_date: hackathon.end_date.toISOString(),
           start_time: hackathon.start_time.toISOString(),
           end_time: hackathon.end_time.toISOString(),
-          registration_start_date: hackathon.registration_start_date?.toISOString(),
+          registration_start_date:
+            hackathon.registration_start_date?.toISOString(),
           registration_end_date: hackathon.registration_end_date?.toISOString(),
           registration_limit: hackathon.registration_limit,
           status: hackathon.status,
@@ -243,6 +244,7 @@ export default async function ParticipationsPage() {
         <MyParticipations
           participations={participations as Participation[]}
           pendingInvitations={pendingInvitations as PendingInvitation[]}
+          studentId={student.id}
         />
       </ErrorBoundary>
     );
@@ -253,7 +255,8 @@ export default async function ParticipationsPage() {
         <div className="text-center">
           <h1 className="text-2xl font-bold text-red-600 mb-4">Error</h1>
           <p className="text-muted-foreground">
-            Failed to load your hackathon participations. Please try again later.
+            Failed to load your hackathon participations. Please try again
+            later.
           </p>
         </div>
       </div>

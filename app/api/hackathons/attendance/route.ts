@@ -13,13 +13,6 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ success: false, error: "Unauthorized" }, { status: 401 });
   }
 
-  if (user.app_metadata.role != "MASTER" && user.app_metadata.role != "ADMIN") {
-    return NextResponse.json(
-      { success: false, error: "Insufficient Permission" },
-      { status: 403 }
-    );
-  }
-
   const body = await request.json();
   const { id, hackathonId, teamId } = body;
 
