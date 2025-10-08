@@ -3,13 +3,31 @@
 import { useState, useEffect } from "react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
-import { User, Mail, Calendar, UserCheck, Edit3, Save, X, QrCode, Download, RefreshCw, Phone } from "lucide-react";
+import {
+  User,
+  Mail,
+  Calendar,
+  UserCheck,
+  Edit3,
+  Save,
+  X,
+  QrCode,
+  Download,
+  RefreshCw,
+  Phone,
+} from "lucide-react";
 import Image from "next/image";
 import { useAuth } from "@/contexts/AuthContext";
 
@@ -75,10 +93,13 @@ export function AccountProfile({ role }: AccountProfileProps) {
         ...authUser,
         full_name: authUser.user_metadata?.full_name || "",
         phone: authUser.user_metadata?.phone || "",
-        role: authUser.app_metadata?.role || role
+        role: authUser.app_metadata?.role || role,
       });
       setFormData({
-        full_name: authUser.user_metadata?.full_name || authUser.email?.split('@')[0] || "",
+        full_name:
+          authUser.user_metadata?.full_name ||
+          authUser.email?.split("@")[0] ||
+          "",
         phone: authUser.user_metadata?.phone || "",
       });
     } catch (error) {
@@ -93,10 +114,10 @@ export function AccountProfile({ role }: AccountProfileProps) {
     setSaving(true);
     try {
       // Use a secure API endpoint instead of direct supabase.auth.updateUser
-      const response = await fetch('/api/user/profile', {
-        method: 'PUT',
+      const response = await fetch("/api/user/profile", {
+        method: "PUT",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
         },
         body: JSON.stringify({
           full_name: formData.full_name,
@@ -123,7 +144,8 @@ export function AccountProfile({ role }: AccountProfileProps) {
 
   const handleCancel = () => {
     setFormData({
-      full_name: user?.user_metadata?.full_name || user?.email?.split('@')[0] || "",
+      full_name:
+        user?.user_metadata?.full_name || user?.email?.split("@")[0] || "",
       phone: user?.user_metadata?.phone || "",
     });
     setIsEditing(false);
@@ -132,7 +154,7 @@ export function AccountProfile({ role }: AccountProfileProps) {
   const fetchQRCode = async () => {
     setQrLoading(true);
     try {
-      const response = await fetch('/api/user/qr-code');
+      const response = await fetch("/api/user/qr-code");
       if (response.ok) {
         const data = await response.json();
         setQrData(data);
@@ -152,7 +174,7 @@ export function AccountProfile({ role }: AccountProfileProps) {
   const generateQRCode = async () => {
     setQrGenerating(true);
     try {
-      const response = await fetch('/api/user/qr-code', {
+      const response = await fetch("/api/user/qr-code", {
         method: "POST",
       });
 
@@ -218,17 +240,26 @@ export function AccountProfile({ role }: AccountProfileProps) {
           <div className="flex items-start justify-between">
             <div className="flex items-center space-x-4">
               <Avatar className="h-20 w-20">
-                <AvatarImage src={user.user_metadata?.avatar_url} alt={user.user_metadata?.full_name || "User"} />
+                <AvatarImage
+                  src={user.user_metadata?.avatar_url}
+                  alt={user.user_metadata?.full_name || "User"}
+                />
                 <AvatarFallback className="text-lg">
                   {user.user_metadata?.full_name
-                    ? user.user_metadata.full_name.split(' ').map(n => n[0]).join('').toUpperCase()
-                    : user.email?.[0]?.toUpperCase() || 'U'}
+                    ? user.user_metadata.full_name
+                        .split(" ")
+                        .map((n) => n[0])
+                        .join("")
+                        .toUpperCase()
+                    : user.email?.[0]?.toUpperCase() || "U"}
                 </AvatarFallback>
               </Avatar>
               <div className="space-y-2">
                 <div className="flex items-center gap-2">
                   <CardTitle className="text-2xl">
-                    {user.user_metadata?.full_name || user.email?.split('@')[0] || 'User'}
+                    {user.user_metadata?.full_name ||
+                      user.email?.split("@")[0] ||
+                      "User"}
                   </CardTitle>
                   <Badge variant={getRoleBadgeVariant(user.role || role)}>
                     {user.role || role}
@@ -236,7 +267,7 @@ export function AccountProfile({ role }: AccountProfileProps) {
                 </div>
                 <CardDescription className="flex items-center gap-2">
                   <Mail className="h-4 w-4" />
-                  {user.email || 'No email'}
+                  {user.email || "No email"}
                 </CardDescription>
               </div>
             </div>
@@ -280,7 +311,9 @@ export function AccountProfile({ role }: AccountProfileProps) {
                 <Input
                   id="full_name"
                   value={formData.full_name}
-                  onChange={(e) => setFormData({ ...formData, full_name: e.target.value })}
+                  onChange={(e) =>
+                    setFormData({ ...formData, full_name: e.target.value })
+                  }
                   placeholder="Enter your full name"
                 />
               ) : (
@@ -297,7 +330,9 @@ export function AccountProfile({ role }: AccountProfileProps) {
                 <Input
                   id="phone"
                   value={formData.phone}
-                  onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+                  onChange={(e) =>
+                    setFormData({ ...formData, phone: e.target.value })
+                  }
                   placeholder="Enter your mobile number"
                 />
               ) : (
@@ -312,7 +347,7 @@ export function AccountProfile({ role }: AccountProfileProps) {
               <Label htmlFor="email">Email Address</Label>
               <div className="flex items-center gap-2 p-3 bg-muted rounded-md">
                 <Mail className="h-4 w-4 text-muted-foreground" />
-                <span>{user.email || 'No email'}</span>
+                <span>{user.email || "No email"}</span>
               </div>
             </div>
 
@@ -339,7 +374,11 @@ export function AccountProfile({ role }: AccountProfileProps) {
             <>
               <Separator />
               <div className="flex justify-end gap-3">
-                <Button variant="outline" onClick={handleCancel} disabled={saving}>
+                <Button
+                  variant="outline"
+                  onClick={handleCancel}
+                  disabled={saving}
+                >
                   Cancel
                 </Button>
                 <Button onClick={handleSave} disabled={saving}>
@@ -400,12 +439,8 @@ export function AccountProfile({ role }: AccountProfileProps) {
           ) : (
             <div className="text-center space-y-4">
               <div className="flex items-center justify-center gap-2 mb-4">
-                <Badge variant="outline">
-                  {qrData.user.firstName} {qrData.user.lastName}
-                </Badge>
-                <Badge variant="secondary">
-                  {qrData.user.email}
-                </Badge>
+                <Badge variant="outline">{user.full_name}</Badge>
+                <Badge variant="secondary">{user.email}</Badge>
               </div>
 
               <div className="bg-white p-6 rounded-lg inline-block border-2 border-dashed border-primary/20">
@@ -420,10 +455,12 @@ export function AccountProfile({ role }: AccountProfileProps) {
 
               <div className="space-y-2">
                 <p className="text-sm text-muted-foreground">
-                  Show this QR code to event staff for quick access at any registered event.
+                  Show this QR code to event staff for quick access at any
+                  registered event.
                 </p>
                 <p className="text-xs text-muted-foreground">
-                  QR code has lifetime validity and contains encrypted identification data.
+                  QR code has lifetime validity and contains encrypted
+                  identification data.
                 </p>
               </div>
 
@@ -439,7 +476,9 @@ export function AccountProfile({ role }: AccountProfileProps) {
               </div>
 
               <div className="mt-6 p-4 bg-blue-50 border border-blue-200 rounded-lg dark:bg-blue-900/20 dark:border-blue-800">
-                <h4 className="font-semibold text-blue-800 dark:text-blue-300 mb-2">How to use:</h4>
+                <h4 className="font-semibold text-blue-800 dark:text-blue-300 mb-2">
+                  How to use:
+                </h4>
                 <ul className="text-sm text-blue-700 dark:text-blue-400 text-left space-y-1">
                   <li>• Save this QR code to your phone</li>
                   <li>• Show it to event staff when checking in</li>
@@ -468,7 +507,10 @@ export function AccountProfile({ role }: AccountProfileProps) {
                 Last updated: {new Date().toLocaleDateString()}
               </p>
             </div>
-            <Button variant="outline" onClick={() => window.location.href = '/reset-password'}>
+            <Button
+              variant="outline"
+              onClick={() => (window.location.href = "/reset-password")}
+            >
               Change Password
             </Button>
           </div>

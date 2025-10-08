@@ -18,9 +18,11 @@ import { KeyedMutator } from "swr";
 
 export interface HackathonDetailProps {
   hackathon: Hackathon;
-  currentUser: (User & {
-    students: Student[];
-  }) | null;
+  currentUser:
+    | (User & {
+        students: Student[];
+      })
+    | null;
   userTeam: HackathonTeam | null;
   isTeamOwner: boolean;
   pendingInvites: { teamId: string; teamName: string }[];
@@ -48,7 +50,8 @@ export default function HackathonDetail({
   const handleTeamCreated = () => {
     // Redirect to the hackathon's participation management page
     router.push(`/student/participations/${hackathon.id}/manage`);
-  }; const isStudent = currentUser?.role === "STUDENT";
+  };
+  const isStudent = currentUser?.role === "STUDENT";
   const studentId = currentUser?.students?.[0]?.id;
   const isTeamMember = userTeam !== null;
 
@@ -69,8 +72,8 @@ export default function HackathonDetail({
                 hackathon.status === "UPCOMING"
                   ? "default"
                   : hackathon.status === "COMPLETED"
-                    ? "secondary"
-                    : "destructive"
+                  ? "secondary"
+                  : "destructive"
               }
             >
               {hackathon.status}
@@ -88,12 +91,18 @@ export default function HackathonDetail({
             </div>
           </div>
 
-          <Tabs defaultValue="details" value={activeTab} onValueChange={setActiveTab}>
+          <Tabs
+            defaultValue="details"
+            value={activeTab}
+            onValueChange={setActiveTab}
+          >
             <TabsList>
               <TabsTrigger value="details">Details</TabsTrigger>
               <TabsTrigger value="problems">Problem Statements</TabsTrigger>
               <TabsTrigger value="rules">Rules</TabsTrigger>
-              {isStudent && !isTeamMember && pendingInvites.length > 0 && <TabsTrigger value="invitations">Invitations</TabsTrigger>}
+              {isStudent && !isTeamMember && pendingInvites.length > 0 && (
+                <TabsTrigger value="invitations">Invitations</TabsTrigger>
+              )}
             </TabsList>
 
             <TabsContent value="details" className="mt-4">
@@ -110,7 +119,10 @@ export default function HackathonDetail({
                         <div>
                           <p className="font-medium">Start Date & Time</p>
                           <p className="text-sm text-muted-foreground">
-                            {formatDateTime(hackathon.start_date, hackathon.start_time)}
+                            {formatDateTime(
+                              hackathon.start_date,
+                              hackathon.start_time
+                            )}
                           </p>
                         </div>
                       </div>
@@ -120,7 +132,10 @@ export default function HackathonDetail({
                         <div>
                           <p className="font-medium">End Date & Time</p>
                           <p className="text-sm text-muted-foreground">
-                            {formatDateTime(hackathon.end_date, hackathon.end_time)}
+                            {formatDateTime(
+                              hackathon.end_date,
+                              hackathon.end_time
+                            )}
                           </p>
                         </div>
                       </div>
@@ -130,7 +145,8 @@ export default function HackathonDetail({
                         <div>
                           <p className="font-medium">Mode</p>
                           <p className="text-sm text-muted-foreground">
-                            {hackathon.mode} {hackathon.location && `- ${hackathon.location}`}
+                            {hackathon.mode}{" "}
+                            {hackathon.location && `- ${hackathon.location}`}
                           </p>
                         </div>
                       </div>
@@ -141,38 +157,59 @@ export default function HackathonDetail({
                           <p className="font-medium">Organizer</p>
                           <p className="text-sm text-muted-foreground">
                             {hackathon.organizer_name}
-                            {hackathon.organizer_contact && ` - ${hackathon.organizer_contact}`}
+                            {hackathon.organizer_contact &&
+                              ` - ${hackathon.organizer_contact}`}
                           </p>
                         </div>
                       </div>
                     </div>
 
-                    {hackathon.evaluationCriteria && hackathon.evaluationCriteria.length > 0 && (
-                      <div>
-                        <h3 className="text-lg font-medium mb-2">Evaluation Criteria</h3>
-                        <ul className="list-disc list-inside space-y-1">
-                          {hackathon.evaluationCriteria.map((criterion, index) => (
-                            <li key={index} className="text-muted-foreground">
-                              {criterion}
-                            </li>
-                          ))}
-                        </ul>
-                      </div>
-                    )}
+                    {hackathon.evaluationCriteria &&
+                      hackathon.evaluationCriteria.length > 0 && (
+                        <div>
+                          <h3 className="text-lg font-medium mb-2">
+                            Evaluation Criteria
+                          </h3>
+                          <ul className="list-disc list-inside space-y-1">
+                            {hackathon.evaluationCriteria.map(
+                              (criterion, index) => (
+                                <li
+                                  key={index}
+                                  className="text-muted-foreground"
+                                >
+                                  {criterion}
+                                </li>
+                              )
+                            )}
+                          </ul>
+                        </div>
+                      )}
 
                     <div>
-                      <h3 className="text-lg font-medium mb-2">Registration Period</h3>
+                      <h3 className="text-lg font-medium mb-2">
+                        Registration Period
+                      </h3>
                       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                         <div>
                           <p className="font-medium">Registration Opens</p>
                           <p className="text-sm text-muted-foreground">
-                            {hackathon.registration_start_date ? format(new Date(hackathon.registration_start_date), "PPP") : "Not specified"}
+                            {hackathon.registration_start_date
+                              ? format(
+                                  new Date(hackathon.registration_start_date),
+                                  "PPP"
+                                )
+                              : "Not specified"}
                           </p>
                         </div>
                         <div>
                           <p className="font-medium">Registration Closes</p>
                           <p className="text-sm text-muted-foreground">
-                            {hackathon.registration_end_date ? format(new Date(hackathon.registration_end_date), "PPP") : "Not specified"}
+                            {hackathon.registration_end_date
+                              ? format(
+                                  new Date(hackathon.registration_end_date),
+                                  "PPP"
+                                )
+                              : "Not specified"}
                           </p>
                         </div>
                       </div>
@@ -185,22 +222,30 @@ export default function HackathonDetail({
             <TabsContent value="problems" className="mt-4">
               <Card>
                 <CardContent className="pt-6">
-                  {hackathon.problemStatements && hackathon.problemStatements.length > 0 ? (hackathon.problemStatements.map((problem, index) => (
-                    <div
-                      key={problem.id}
-                      className={`border rounded-lg p-4 ${index !== (hackathon.problemStatements?.length ?? 0) - 1 ? "mb-4" : ""
+                  {hackathon.problemStatements &&
+                  hackathon.problemStatements.length > 0 ? (
+                    hackathon.problemStatements.map((problem, index) => (
+                      <div
+                        key={problem.id}
+                        className={`border rounded-lg p-4 ${
+                          index !==
+                          (hackathon.problemStatements?.length ?? 0) - 1
+                            ? "mb-4"
+                            : ""
                         }`}
-                    >
-                      <h3 className="text-lg font-medium mb-1">
-                        {problem.code}: {problem.title}
-                      </h3>
-                      <p className="text-muted-foreground whitespace-pre-wrap">
-                        {problem.description}
-                      </p>
-                    </div>
-                  ))
+                      >
+                        <h3 className="text-lg font-medium mb-1">
+                          {problem.code}: {problem.title}
+                        </h3>
+                        <p className="text-muted-foreground whitespace-pre-wrap">
+                          {problem.description}
+                        </p>
+                      </div>
+                    ))
                   ) : (
-                    <p className="text-muted-foreground">No problem statements available.</p>
+                    <p className="text-muted-foreground">
+                      No problem statements available.
+                    </p>
                   )}
                 </CardContent>
               </Card>
@@ -225,7 +270,6 @@ export default function HackathonDetail({
               </Card>
             </TabsContent>
 
-
             {isStudent && !isTeamMember && pendingInvites.length > 0 && (
               <TabsContent value="invitations" className="mt-4">
                 <TeamMemberInvitation
@@ -237,7 +281,6 @@ export default function HackathonDetail({
                 />
               </TabsContent>
             )}
-
           </Tabs>
         </div>
 
@@ -253,7 +296,9 @@ export default function HackathonDetail({
                     ? `Limited to ${hackathon.registration_limit} teams`
                     : "No registration limit"}
                 </span> */}
-                <Badge variant="outline">{hackathon.team_size_limit || 5} members per team</Badge>
+                <Badge variant="outline">
+                  {hackathon.team_size_limit || 5} members per team
+                </Badge>
               </div>
 
               {isStudent && !isTeamMember && pendingInvites.length > 0 && (
@@ -302,7 +347,9 @@ export default function HackathonDetail({
           {/* Quick info */}
           <Card>
             <CardContent className="pt-6">
-              <h3 className="text-lg font-medium mb-2">Hackathon Information</h3>
+              <h3 className="text-lg font-medium mb-2">
+                Hackathon Information
+              </h3>
               <div className="space-y-2">
                 <div className="flex justify-between">
                   <span className="text-sm text-muted-foreground">Mode:</span>
@@ -310,17 +357,21 @@ export default function HackathonDetail({
                 </div>
                 {hackathon.location && (
                   <div className="flex justify-between">
-                    <span className="text-sm text-muted-foreground">Location:</span>
+                    <span className="text-sm text-muted-foreground">
+                      Location:
+                    </span>
                     <span className="font-medium">{hackathon.location}</span>
                   </div>
                 )}
                 <div className="flex justify-between">
-                  <span className="text-sm text-muted-foreground">Duration:</span>
+                  <span className="text-sm text-muted-foreground">
+                    Duration:
+                  </span>
                   <span className="font-medium">
                     {Math.ceil(
                       (new Date(hackathon.end_date).getTime() -
                         new Date(hackathon.start_date).getTime()) /
-                      (1000 * 60 * 60 * 24)
+                        (1000 * 60 * 60 * 24)
                     )}{" "}
                     days
                   </span>
