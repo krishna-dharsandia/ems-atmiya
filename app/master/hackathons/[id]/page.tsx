@@ -4,12 +4,27 @@ import { useEffect, useState } from "react";
 import { notFound, useParams } from "next/navigation";
 import { Skeleton } from "@/components/ui/skeleton";
 import { createClient } from "@/utils/supabase/client";
-import MasterHackathonDetail, { MasterHackathonDetailProps } from "@/components/section/master/hackathons/details/MasterHackathonDetail";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogClose } from "@/components/ui/dialog";
+import MasterHackathonDetail, {
+  MasterHackathonDetailProps,
+} from "@/components/section/master/hackathons/details/MasterHackathonDetail";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+  DialogClose,
+} from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
 import { useForm, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -21,7 +36,9 @@ import { fetcher } from "@/fetcher";
 export default function MasterHackathonDetailPage() {
   const params = useParams();
   const [isLoading, setIsLoading] = useState(true);
-  const [hackathonData, setHackathonData] = useState<MasterHackathonDetailProps["hackathon"] | null>(null);
+  const [hackathonData, setHackathonData] = useState<
+    MasterHackathonDetailProps["hackathon"] | null
+  >(null);
   const [error, setError] = useState<string | null>(null);
   const [selectedTeam, setSelectedTeam] = useState<any | null>(null);
   const [editTeam, setEditTeam] = useState<any | null>(null);
@@ -35,7 +52,8 @@ export default function MasterHackathonDetailPage() {
   // Authenticate user and fetch hackathon data with SWR
   useEffect(() => {
     const checkAuth = async () => {
-      const { data: authData, error: authError } = await supabase.auth.getUser();
+      const { data: authData, error: authError } =
+        await supabase.auth.getUser();
       if (authError || !authData.user) {
         setError("Failed to authenticate user");
         setIsLoading(false);
@@ -44,7 +62,11 @@ export default function MasterHackathonDetailPage() {
     checkAuth();
   }, [supabase.auth]);
 
-  const { data, error: swrError, isLoading: swrLoading } = useSWR<MasterHackathonDetailProps>(
+  const {
+    data,
+    error: swrError,
+    isLoading: swrLoading,
+  } = useSWR<MasterHackathonDetailProps>(
     params.id ? `/api/hackathons/${params.id}?includeMasterDetails=true` : null,
     fetcher
   );
@@ -204,54 +226,85 @@ export default function MasterHackathonDetailPage() {
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <Label className="text-muted-foreground">Team ID</Label>
-                  <div className="font-medium">{selectedTeam.id}</div>
+                  <div className="font-medium">{selectedTeam.teamId}</div>
                 </div>
                 <div>
                   <Label className="text-muted-foreground">Team Name</Label>
                   <div className="font-medium">{selectedTeam.teamName}</div>
                 </div>
                 <div>
+                  <Label className="text-muted-foreground">Team DB ID</Label>
+                  <div className="font-medium">{selectedTeam.id}</div>
+                </div>
+                <div>
                   <Label className="text-muted-foreground">Mentor Name</Label>
-                  <div>{selectedTeam.mentor || <span className="text-muted-foreground">Not assigned</span>}</div>
+                  <div>
+                    {selectedTeam.mentor || (
+                      <span className="text-muted-foreground">
+                        Not assigned
+                      </span>
+                    )}
+                  </div>
                 </div>
                 <div>
                   <Label className="text-muted-foreground">Mentor Email</Label>
-                  <div>{selectedTeam.mentor_mail || <span className="text-muted-foreground">Not assigned</span>}</div>
+                  <div>
+                    {selectedTeam.mentor_mail || (
+                      <span className="text-muted-foreground">
+                        Not assigned
+                      </span>
+                    )}
+                  </div>
                 </div>
                 <div>
-                  <Label className="text-muted-foreground">Problem Statement</Label>
+                  <Label className="text-muted-foreground">
+                    Problem Statement
+                  </Label>
                   <div>
-                    {selectedTeam.problemStatement
-                      ? `${selectedTeam.problemStatement.code}: ${selectedTeam.problemStatement.title}`
-                      : <span className="text-muted-foreground">Not selected</span>
-                    }
+                    {selectedTeam.problemStatement ? (
+                      `${selectedTeam.problemStatement.code}: ${selectedTeam.problemStatement.title}`
+                    ) : (
+                      <span className="text-muted-foreground">
+                        Not selected
+                      </span>
+                    )}
                   </div>
                 </div>
                 <div>
                   <Label className="text-muted-foreground">Disqualified</Label>
                   <div>
-                    {selectedTeam.disqualified
-                      ? <span className="text-red-600 font-semibold">Yes</span>
-                      : <span className="text-green-600 font-semibold">No</span>
-                    }
+                    {selectedTeam.disqualified ? (
+                      <span className="text-red-600 font-semibold">Yes</span>
+                    ) : (
+                      <span className="text-green-600 font-semibold">No</span>
+                    )}
                   </div>
                 </div>
                 <div className="col-span-2">
                   <Label className="text-muted-foreground">Team Leader</Label>
                   <div>
                     {(() => {
-                      const leader = selectedTeam.members.find((m: any) => m.studentId === selectedTeam.leaderId);
-                      return leader
-                        ? (
-                          <span>
-                            {leader.student?.user?.firstName} {leader.student?.user?.lastName}
-                            <span className="ml-2 text-muted-foreground">({leader.student?.user?.email})</span>
-                            {leader.student?.user?.phone && (
-                              <span className="ml-2 text-muted-foreground">({leader.student?.user?.phone})</span>
-                            )}
+                      const leader = selectedTeam.members.find(
+                        (m: any) => m.studentId === selectedTeam.leaderId
+                      );
+                      return leader ? (
+                        <span>
+                          {leader.student?.user?.firstName}{" "}
+                          {leader.student?.user?.lastName}
+                          <span className="ml-2 text-muted-foreground">
+                            ({leader.student?.user?.email})
                           </span>
-                        )
-                        : <span className="text-muted-foreground">Not selected</span>;
+                          {leader.student?.user?.phone && (
+                            <span className="ml-2 text-muted-foreground">
+                              ({leader.student?.user?.phone})
+                            </span>
+                          )}
+                        </span>
+                      ) : (
+                        <span className="text-muted-foreground">
+                          Not selected
+                        </span>
+                      );
                     })()}
                   </div>
                 </div>
@@ -271,14 +324,24 @@ export default function MasterHackathonDetailPage() {
                     <tbody>
                       {selectedTeam.members.map((member: any) => (
                         <tr key={member.id} className="border-t">
-                          <td className="p-2">{member.student?.user?.firstName} {member.student?.user?.lastName}</td>
-                          <td className="p-2">{member.student?.user?.email}</td>
-                          <td className="p-2">{member.student?.user?.phone || <span className="text-muted-foreground">-</span>}</td>
                           <td className="p-2">
-                            {member.attended
-                              ? <span className="text-green-600 font-semibold">Yes</span>
-                              : <span className="text-muted-foreground">No</span>
-                            }
+                            {member.student?.user?.firstName}{" "}
+                            {member.student?.user?.lastName}
+                          </td>
+                          <td className="p-2">{member.student?.user?.email}</td>
+                          <td className="p-2">
+                            {member.student?.user?.phone || (
+                              <span className="text-muted-foreground">-</span>
+                            )}
+                          </td>
+                          <td className="p-2">
+                            {member.attended ? (
+                              <span className="text-green-600 font-semibold">
+                                Yes
+                              </span>
+                            ) : (
+                              <span className="text-muted-foreground">No</span>
+                            )}
                           </td>
                         </tr>
                       ))}
@@ -318,12 +381,24 @@ export default function MasterHackathonDetailPage() {
               <div className="space-y-2">
                 <Label htmlFor="mentor">Mentor Name</Label>
                 <Input id="mentor" {...register("mentor")} />
-                {errors.mentor && <p className="text-red-500 text-xs">{errors.mentor.message}</p>}
+                {errors.mentor && (
+                  <p className="text-red-500 text-xs">
+                    {errors.mentor.message}
+                  </p>
+                )}
               </div>
               <div className="space-y-2">
                 <Label htmlFor="mentor_mail">Mentor Email</Label>
-                <Input id="mentor_mail" type="email" {...register("mentor_mail")} />
-                {errors.mentor_mail && <p className="text-red-500 text-xs">{errors.mentor_mail.message}</p>}
+                <Input
+                  id="mentor_mail"
+                  type="email"
+                  {...register("mentor_mail")}
+                />
+                {errors.mentor_mail && (
+                  <p className="text-red-500 text-xs">
+                    {errors.mentor_mail.message}
+                  </p>
+                )}
               </div>
               <div className="flex items-center space-x-2">
                 <Controller
@@ -338,7 +413,11 @@ export default function MasterHackathonDetailPage() {
                   )}
                 />
                 <Label htmlFor="disqualified">Disqualified</Label>
-                {errors.disqualified && <p className="text-red-500 text-xs">{errors.disqualified.message}</p>}
+                {errors.disqualified && (
+                  <p className="text-red-500 text-xs">
+                    {errors.disqualified.message}
+                  </p>
+                )}
               </div>
               <div className="space-y-2">
                 <Label htmlFor="problemStatementId">Problem Statement</Label>
@@ -346,25 +425,38 @@ export default function MasterHackathonDetailPage() {
                   name="problemStatementId"
                   control={control}
                   render={({ field }) => (
-                    <Select value={field.value || ""} onValueChange={field.onChange}>
+                    <Select
+                      value={field.value || ""}
+                      onValueChange={field.onChange}
+                    >
                       <SelectTrigger id="problemStatementId">
                         <SelectValue placeholder="Select Problem Statement" />
                       </SelectTrigger>
                       <SelectContent>
                         <SelectItem value="none">None</SelectItem>
                         {hackathonData?.problemStatements?.map((ps: any) => (
-                          <SelectItem key={ps.id} value={ps.id}>{ps.code}: {ps.title}</SelectItem>
+                          <SelectItem key={ps.id} value={ps.id}>
+                            {ps.code}: {ps.title}
+                          </SelectItem>
                         ))}
                       </SelectContent>
                     </Select>
                   )}
                 />
-                {errors.problemStatementId && <p className="text-red-500 text-xs">{errors.problemStatementId.message}</p>}
+                {errors.problemStatementId && (
+                  <p className="text-red-500 text-xs">
+                    {errors.problemStatementId.message}
+                  </p>
+                )}
               </div>
               <div className="space-y-2">
                 <Label htmlFor="teamName">Team Name</Label>
                 <Input id="teamName" {...register("teamName")} />
-                {errors.teamName && <p className="text-red-500 text-xs">{errors.teamName.message}</p>}
+                {errors.teamName && (
+                  <p className="text-red-500 text-xs">
+                    {errors.teamName.message}
+                  </p>
+                )}
               </div>
               <div className="space-y-2">
                 <Label htmlFor="leaderId">Team Leader</Label>
@@ -372,25 +464,40 @@ export default function MasterHackathonDetailPage() {
                   name="leaderId"
                   control={control}
                   render={({ field }) => (
-                    <Select value={field.value || ""} onValueChange={field.onChange}>
+                    <Select
+                      value={field.value || ""}
+                      onValueChange={field.onChange}
+                    >
                       <SelectTrigger id="leaderId">
                         <SelectValue placeholder="Select Team Leader" />
                       </SelectTrigger>
                       <SelectContent>
                         {control._formValues.members?.map((member: any) => (
-                          <SelectItem key={member.studentId} value={member.studentId}>
-                            {member.student?.user?.firstName} {member.student?.user?.lastName} ({member.student?.user?.email})
+                          <SelectItem
+                            key={member.studentId}
+                            value={member.studentId}
+                          >
+                            {member.student?.user?.firstName}{" "}
+                            {member.student?.user?.lastName} (
+                            {member.student?.user?.email})
                           </SelectItem>
                         ))}
                       </SelectContent>
                     </Select>
                   )}
                 />
-                {errors.leaderId && <p className="text-red-500 text-xs">{errors.leaderId.message}</p>}
+                {errors.leaderId && (
+                  <p className="text-red-500 text-xs">
+                    {errors.leaderId.message}
+                  </p>
+                )}
               </div>
               <div className="space-y-2">
                 <Label>Members</Label>
-                <div className="overflow-x-auto" style={{ maxHeight: 300, overflowY: 'auto' }}>
+                <div
+                  className="overflow-x-auto"
+                  style={{ maxHeight: 300, overflowY: "auto" }}
+                >
                   <table className="min-w-full border text-sm">
                     <thead className="bg-muted">
                       <tr>
@@ -401,39 +508,67 @@ export default function MasterHackathonDetailPage() {
                       </tr>
                     </thead>
                     <tbody>
-                      {control._formValues.members?.map((member: any, idx: number) => (
-                        <tr key={member.id} className="border-t">
-                          <td className="p-2">{member.student?.user?.firstName} {member.student?.user?.lastName}</td>
-                          <td className="p-2">{member.student?.user?.email}</td>
-                          <td className="p-2">
-                            <Controller
-                              name={`members.${idx}.attended`}
-                              control={control}
-                              render={({ field }) => (
-                                <Checkbox
-                                  checked={field.value}
-                                  onCheckedChange={field.onChange}
-                                />
-                              )}
-                            />
-                          </td>
-                          <td className="p-2">
-                            <Button type="button" variant="destructive" size="sm" onClick={() => {
-                              const newMembers = [...control._formValues.members];
-                              newMembers.splice(idx, 1);
-                              setValue("members", newMembers);
-                            }}>Remove</Button>
-                          </td>
-                        </tr>
-                      ))}
+                      {control._formValues.members?.map(
+                        (member: any, idx: number) => (
+                          <tr key={member.id} className="border-t">
+                            <td className="p-2">
+                              {member.student?.user?.firstName}{" "}
+                              {member.student?.user?.lastName}
+                            </td>
+                            <td className="p-2">
+                              {member.student?.user?.email}
+                            </td>
+                            <td className="p-2">
+                              <Controller
+                                name={`members.${idx}.attended`}
+                                control={control}
+                                render={({ field }) => (
+                                  <Checkbox
+                                    checked={field.value}
+                                    onCheckedChange={field.onChange}
+                                  />
+                                )}
+                              />
+                            </td>
+                            <td className="p-2">
+                              <Button
+                                type="button"
+                                variant="destructive"
+                                size="sm"
+                                onClick={() => {
+                                  const newMembers = [
+                                    ...control._formValues.members,
+                                  ];
+                                  newMembers.splice(idx, 1);
+                                  setValue("members", newMembers);
+                                }}
+                              >
+                                Remove
+                              </Button>
+                            </td>
+                          </tr>
+                        )
+                      )}
                     </tbody>
                   </table>
                 </div>
-                {errors.members && <p className="text-red-500 text-xs">{errors.members.message}</p>}
+                {errors.members && (
+                  <p className="text-red-500 text-xs">
+                    {errors.members.message}
+                  </p>
+                )}
               </div>
               <div className="flex justify-end gap-2">
-                <Button type="button" variant="outline" onClick={handleEditDialogClose}>Cancel</Button>
-                <Button type="submit" disabled={isSubmitting}>Save</Button>
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={handleEditDialogClose}
+                >
+                  Cancel
+                </Button>
+                <Button type="submit" disabled={isSubmitting}>
+                  Save
+                </Button>
               </div>
             </form>
           )}

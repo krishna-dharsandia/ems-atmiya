@@ -806,9 +806,19 @@ export function TeamManagement({
               </CardHeader>
               <CardContent>
                 <div className="space-y-4">
-                  <div>
-                    <h3 className="font-medium mb-2">Team Name</h3>
-                    <p className="text-lg">{team.teamName}</p>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <h3 className="font-medium mb-2">Team Name</h3>
+                      <p className="text-sm text-muted-foreground">
+                        {team.teamName}
+                      </p>
+                    </div>
+                    <div>
+                      <h3 className="font-medium mb-2">Team ID</h3>
+                      <p className="text-sm text-muted-foreground">
+                        {team.teamId}
+                      </p>
+                    </div>
                   </div>
 
                   {team.problemStatement && (
