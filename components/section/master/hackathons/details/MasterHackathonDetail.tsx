@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef, useEffect } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { DialogDescription, DialogFooter } from "@/components/ui/dialog";
@@ -92,19 +92,23 @@ interface TeamMember {
     enrollment: string;
   };
   attended: boolean;
+  qrCode?: string;
+  qrCodeData?: string;
 }
 
 interface HackathonTeam {
   id: string;
   teamName: string;
-  teamId: string;
+  teamId: string | null;
+  disqualified: boolean;
+  submissionUrl?: string | null;
+  leaderId?: string | null;
   members: TeamMember[];
   problemStatement?: {
     id: string;
     code: string;
     title: string;
   };
-  submissionUrl?: string | null;
 }
 
 // Remove interface as it will come from hackathon type
@@ -574,6 +578,275 @@ export default function MasterHackathonDetail({
       setAttendanceLoading(false);
     }
   };
+  // Static data for Core Team
+  const coreTeamMembers = [
+    "Jenil Desai",
+    "Cheshta Trivedi",
+    "Kishan Viradiya",
+    "Punit Gondaliya",
+    "Dev Kacha",
+    "Anand Trambadiya",
+    "Krishna Dharsandia"
+  ];
+
+  // Static data for Volunteers
+  const volunteerMembers = [
+    "Khilan Vachhani",
+    "Meet Vanpariya",
+    "Abhi Sanepara",
+    "Prit Vekariya",
+    "Jenil Vachhani",
+    "Viraj Garacha",
+    "Meetraj Chauhan",
+    "Radhika Modhvadiya",
+    "Yashvi Bhuva",
+    "Jayshan Hirani",
+
+    "Ridhi Sharma",
+    "Urvashi Chandani",
+    "Suhani Kadecha",
+    "Rishu Kumari",
+    "Bhautik Parmar",
+    "Apurva Vyas",
+    "Veelan Nakum",
+    "Raksha Shiyani",
+    "Vidhya Shiyani",
+    "Om Trivedi",
+
+    "Keval Chauhan",
+    "Kruti Vyas",
+    "Ravi Gehlot",
+    "Heer Chokshi",
+    "Dhruvi Kachalia",
+    "Dhara Vaghela",
+    "Prashant Bhuva",
+
+
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+  ];
+
+  const handleDownloadCoreTeamIDCards = async () => {
+    try {
+      toast.loading("Generating Core Team ID cards, please wait...");
+
+      const participants = coreTeamMembers.map(name => ({
+        name,
+        userType: 'Core Team'
+      }));
+
+      if (participants.length === 0) {
+        toast.dismiss();
+        toast.error("No core team members found");
+        return;
+      }
+
+      // Import the HackthonICARDBunch component dynamically
+      const { pdf } = await import('@react-pdf/renderer');
+      const { HackthonICARDBunch } = await import('@/components/export/HacktthonVolunteerICARDBunch');
+
+      // Generate PDF
+      const pdfDoc = <HackthonICARDBunch participants={participants} />;
+      const pdfBlob = await pdf(pdfDoc).toBlob();
+
+      // Create download link
+      const url = URL.createObjectURL(pdfBlob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `${hackathon.name}_Core_Team_ID_Cards.pdf`;
+      link.click();
+      URL.revokeObjectURL(url);
+
+      toast.dismiss();
+      toast.success(`Successfully generated Core Team ID cards for ${participants.length} members!`);
+
+    } catch (error) {
+      console.error('Error generating Core Team ID cards:', error);
+      toast.dismiss();
+      toast.error(error instanceof Error ? error.message : "Failed to download Core Team ID cards");
+    }
+  };
+
+  const handleDownloadVolunteerIDCards = async () => {
+    try {
+      toast.loading("Generating Volunteer ID cards, please wait...");
+
+      const participants = volunteerMembers.map(name => ({
+        name,
+        userType: 'Volunteer'
+      }));
+
+      if (participants.length === 0) {
+        toast.dismiss();
+        toast.error("No volunteers found");
+        return;
+      }
+
+      // Import the HackthonICARDBunch component dynamically
+      const { pdf } = await import('@react-pdf/renderer');
+      const { HackthonICARDBunch } = await import('@/components/export/HacktthonVolunteerICARDBunch');
+
+      // Generate PDF
+      const pdfDoc = <HackthonICARDBunch participants={participants} />;
+      const pdfBlob = await pdf(pdfDoc).toBlob();
+
+      // Create download link
+      const url = URL.createObjectURL(pdfBlob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `${hackathon.name}_Volunteer_ID_Cards.pdf`;
+      link.click();
+      URL.revokeObjectURL(url);
+
+      toast.dismiss();
+      toast.success(`Successfully generated Volunteer ID cards for ${participants.length} members!`);
+
+    } catch (error) {
+      console.error('Error generating Volunteer ID cards:', error);
+      toast.dismiss();
+      toast.error(error instanceof Error ? error.message : "Failed to download Volunteer ID cards");
+    }
+  };
+
+  const handleDownloadHackathonIDCards = async () => {
+    try {
+      toast.loading("Generating ID cards, please wait...");
+
+      // Get all participants from hackathon teams
+      if (!hackathon.teams || hackathon.teams.length === 0) {
+        toast.dismiss();
+        toast.error("No teams found for this hackathon");
+        return;
+      }
+
+      // Flatten all team members into participants array
+      const participants: Array<{
+        name: string;
+        teamName: string;
+        teamId: string | null;
+        participantId: string;
+        participantRole: string;
+        userType: string;
+        qrCode: string;
+      }> = [];
+
+      console.log(`Processing ${hackathon.teams.length} teams for ID cards...`);
+
+      // Process each team and their members
+      for (const team of hackathon.teams) {
+        if (team.members && team.members.length > 0) {
+          for (let memberIndex = 0; memberIndex < team.members.length; memberIndex++) {
+            const member = team.members[memberIndex];
+            try {
+              // Get QR code directly from team member
+              let qrCodeBase64 = member.qrCode;
+
+              // Add base64 prefix if QR code exists and doesn't already have it
+              if (qrCodeBase64 && !qrCodeBase64.startsWith('data:image/png;base64,')) {
+                qrCodeBase64 = `data:image/png;base64,${qrCodeBase64}`;
+              }
+
+              // Generate QR code if not available
+              if (!qrCodeBase64) {
+                console.log(`Generating QR code for ${member.student.user.firstName} ${member.student.user.lastName}`);
+                // Call API to generate QR code (don't save to database for ID card generation)
+                const response = await fetch('/api/qr-code/generate', {
+                  method: 'POST',
+                  headers: {
+                    'Content-Type': 'application/json',
+                  },
+                  body: JSON.stringify({
+                    type: 'teamMember',
+                    teamMemberId: member.id,
+                    studentId: member.studentId,
+                    teamId: team.teamId || '',
+                    hackathonId: hackathon.id,
+                    saveToDatabase: true,
+                  }),
+                });
+
+                if (!response.ok) {
+                  throw new Error('Failed to generate QR code');
+                }
+
+                const qrResult = await response.json();
+                qrCodeBase64 = `data:image/png;base64,${qrResult.qrCode}`;
+              }
+              participants.push({
+                name: `${member.student.user.firstName} ${member.student.user.lastName}`.trim(),
+                teamName: team.teamName,
+                teamId: team.teamId,
+                participantId: member.student.id,
+                participantRole: member.student.id === team.leaderId ? 'Team Leader' : 'Member',
+                userType: 'Participant',
+                qrCode: qrCodeBase64,
+              });
+            } catch (error) {
+              console.error(`Error processing member ${member.student.user.firstName}:`, error);
+              continue;
+            }
+          }
+        }
+      }
+
+      if (participants.length === 0) {
+        toast.dismiss();
+        toast.error("No participants found to generate ID cards");
+        return;
+      }
+
+      toast.dismiss();
+      toast.loading(`Generating ID cards for ${participants.length} participants...`);
+
+      // Import the export function dynamically
+      const { exportBatchIdCardsToPDF } = await import('@/utils/functions/exportUtils');
+
+      // Export batch ID cards
+      await exportBatchIdCardsToPDF(
+        participants,
+        hackathon.name,
+        (current, total) => {
+          toast.loading(`Generating batch ${current} of ${total}...`);
+        }
+      );
+
+      toast.dismiss();
+      toast.success(`Successfully generated ID cards for ${participants.length} participants!`);
+
+    } catch (error) {
+      console.error('Error generating ID cards:', error);
+      toast.dismiss();
+      toast.error(error instanceof Error ? error.message : "Failed to download ID cards");
+    }
+  }
 
   return (
     <div className="container mx-auto py-8 px-2 sm:px-4">
@@ -587,10 +860,18 @@ export default function MasterHackathonDetail({
           <Button variant="outline" onClick={editHackathon} className="w-full sm:w-auto">
             <Edit className="mr-2 h-4 w-4" />
             Edit Hackathon
-          </Button>
-          <Button variant="outline" onClick={handleDownloadHackathonQR} className="w-full sm:w-auto">
+          </Button>          <Button variant="outline" onClick={handleDownloadHackathonQR} className="w-full sm:w-auto">
             <Download className="mr-2 h-4 w-4" />
             Download QR
+          </Button>
+          <Button
+            variant="outline"
+            onClick={handleDownloadHackathonIDCards}
+            className="w-full sm:w-auto"
+            disabled={!hackathon.teams || hackathon.teams.length === 0}
+          >
+            <Download className="mr-2 h-4 w-4" />
+            Download ID Cards
           </Button>
           <Button variant="outline" onClick={handleOpenQrDialog} className="w-full sm:w-auto">
             <QrCode className="mr-2 h-4 w-4" />
@@ -1758,6 +2039,39 @@ export default function MasterHackathonDetail({
                     <DropdownMenuItem onClick={() => handleExport('pdf')}>
                       <Download className="mr-2 h-4 w-4" />
                       Export as PDF
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button
+                      variant="outline"
+                      className="w-full justify-start"
+                    >
+                      {isExporting ? (
+                        <>
+                          <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-gray-600 mr-2"></div>
+                          Exporting...
+                        </>
+                      ) : (
+                        <>
+                          <Download className="mr-2 h-4 w-4" />
+                          Export ID Cards
+                        </>
+                      )}
+                    </Button>
+                  </DropdownMenuTrigger>                  <DropdownMenuContent align="start" className="w-56">
+                    <DropdownMenuItem onClick={() => handleDownloadHackathonIDCards()}>
+                      <FileText className="mr-2 h-4 w-4" />
+                      Participant ID Cards
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => handleDownloadCoreTeamIDCards()}>
+                      <Users className="mr-2 h-4 w-4" />
+                      Core Team ID Cards
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => handleDownloadVolunteerIDCards()}>
+                      <UserIcon className="mr-2 h-4 w-4" />
+                      Volunteer ID Cards
                     </DropdownMenuItem>
                   </DropdownMenuContent>
                 </DropdownMenu>

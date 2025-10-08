@@ -46,15 +46,13 @@ export default function HackathonDetail({
   const handleTeamCreated = () => {
     // Redirect to the hackathon's participation management page
     router.push(`/student/participations/${hackathon.id}/manage`);
-  };
-
-  const isStudent = currentUser?.role === "STUDENT";
+  };  const isStudent = currentUser?.role === "STUDENT";
   const studentId = currentUser?.students?.[0]?.id;
   const isTeamMember = userTeam !== null;
 
-  // Determine if the current user is the team owner (first member)
-  const isTeamOwner = userTeam && userTeam.members.length > 0
-    ? userTeam.members[0].studentId === studentId
+  // Determine if the current user is the team owner/leader
+  const isTeamOwner = userTeam && studentId && userTeam.leaderId
+    ? userTeam.leaderId === studentId
     : false;
 
   return (
@@ -190,11 +188,10 @@ export default function HackathonDetail({
             <TabsContent value="problems" className="mt-4">
               <Card>
                 <CardContent className="pt-6">
-                  {hackathon.problemStatements && hackathon.problemStatements.length > 0 ? (
-                    hackathon.problemStatements.map((problem, index) => (
+                  {hackathon.problemStatements && hackathon.problemStatements.length > 0 ? (                    hackathon.problemStatements.map((problem, index) => (
                       <div
                         key={problem.id}
-                        className={`border rounded-lg p-4 ${index !== hackathon.problemStatements!.length - 1 ? "mb-4" : ""
+                        className={`border rounded-lg p-4 ${index !== (hackathon.problemStatements?.length ?? 0) - 1 ? "mb-4" : ""
                           }`}
                       >
                         <h3 className="text-lg font-medium mb-1">

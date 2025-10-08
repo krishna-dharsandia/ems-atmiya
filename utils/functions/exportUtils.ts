@@ -5,6 +5,7 @@ import React from 'react';
 import EventExportPDF from '@/components/export/EventExportPDF';
 import HackathonExportPDF from '@/components/export/HackathonExportPDF';
 import { HackthonICARD } from '@/components/export/HackthonICARD';
+import { HackthonICARDBunch } from '@/components/export/HacktthonICARDBunch';
 
 export interface ExportData {
   registrations?: RegistrationExportData[];
@@ -481,6 +482,148 @@ export const bulkExportIdCardsToPDF = async (
 };
 
 /**
+ * Export batch hackathon ID cards (up to 10 per page) to PDF - Single PDF with multiple pages
+ */
+export const exportBatchIdCardsToPDF = async (
+  participants: Array<{
+    name: string;
+    teamName: string;
+    teamId: string | null;
+    participantId: string;
+    participantRole: string;
+    userType: string;
+    qrCode: string;
+  }>,
+  hackathonName: string,
+  onProgress?: (current: number, total: number) => void
+) => {
+  try {
+    if (typeof window === 'undefined') {
+      throw new Error('PDF export is only available in browser environment');
+    }
+
+    if (!participants || participants.length === 0) {
+      throw new Error('No participants provided for ID card export');
+    }
+
+    // Calculate total pages (10 participants per page)
+    const totalPages = Math.ceil(participants.length / 10);
+    
+    // Call progress callback if provided
+    onProgress?.(1, 1); // Single PDF generation
+
+    // Create the batch ID card document with all participants
+    // The component will automatically create multiple pages as needed
+    const BatchIdCardDocument = HackthonICARDBunch({
+      participants: participants
+    });
+
+    // Generate PDF blob
+    const blob = await pdf(BatchIdCardDocument).toBlob();
+    
+    // Create filename
+    const fileName = `${hackathonName.replace(/\s+/g, '_')}_ID_Cards_${participants.length}_participants_${totalPages}_pages.pdf`;
+    
+    // Create download link
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = fileName;
+    link.style.display = 'none';
+    
+    // Trigger download
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    
+    // Clean up URL
+    URL.revokeObjectURL(url);
+    
+  } catch (error) {
+    console.error('Error exporting batch ID cards to PDF:', error);
+    throw new Error('Failed to export batch ID cards PDF');
+  }
+};
+
+/**
+ * Export batch hackathon ID cards as separate PDF files (legacy behavior)
+ */
+export const exportBatchIdCardsToSeparatePDFs = async (
+  participants: Array<{
+    name: string;
+    teamName: string;
+    teamId: string | null;
+    participantId: string;
+    participantRole: string;
+    userType: string;
+    qrCode: string;
+  }>,
+  hackathonName: string,
+  onProgress?: (current: number, total: number) => void
+) => {
+  try {
+    if (typeof window === 'undefined') {
+      throw new Error('PDF export is only available in browser environment');
+    }
+
+    if (!participants || participants.length === 0) {
+      throw new Error('No participants provided for ID card export');
+    }
+
+    // Split participants into chunks of 10 (max per page)
+    const chunks = [];
+    for (let i = 0; i < participants.length; i += 10) {
+      chunks.push(participants.slice(i, i + 10));
+    }
+
+    const totalChunks = chunks.length;
+
+    for (let chunkIndex = 0; chunkIndex < chunks.length; chunkIndex++) {
+      const chunk = chunks[chunkIndex];
+      
+      // Call progress callback if provided
+      onProgress?.(chunkIndex + 1, totalChunks);
+
+      // Create the batch ID card document for this chunk only
+      const BatchIdCardDocument = HackthonICARDBunch({
+        participants: chunk
+      });
+
+      // Generate PDF blob
+      const blob = await pdf(BatchIdCardDocument).toBlob();
+      
+      // Create filename with chunk number if multiple chunks
+      const chunkSuffix = totalChunks > 1 ? `_batch_${chunkIndex + 1}_of_${totalChunks}` : '';
+      const fileName = `${hackathonName.replace(/\s+/g, '_')}_ID_Cards${chunkSuffix}.pdf`;
+      
+      // Create download link
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = fileName;
+      link.style.display = 'none';
+      
+      // Trigger download
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      
+      // Clean up URL
+      URL.revokeObjectURL(url);
+
+      // Add a small delay between downloads to prevent browser blocking multiple files
+      if (chunkIndex < chunks.length - 1) {
+        await new Promise(resolve => setTimeout(resolve, 1000));
+      }
+    }
+    
+  } catch (error) {
+    console.error('Error exporting batch ID cards to separate PDFs:', error);
+    throw new Error('Failed to export batch ID cards to separate PDFs');
+  }
+};
+
+/**
  * Format registration data for export
  */
 export const formatRegistrationData = (registrations: Record<string, unknown>[]): RegistrationExportData[] => {
@@ -554,23 +697,29 @@ export const formatTeamData = (teams: Record<string, unknown>[]): TeamExportData
         enrollment?: string;
       };
       attended?: boolean;
-    }>) || [];
+    }>) || [];    // Get the team leader ID from the team data
+    const teamLeaderId = (team as any).leaderId;
 
-    // Sort members to put team admin (first member) first
+    // Sort members to put team admin (leader) first
     const sortedMembers = [...teamMembers].sort((a, b) => {
-      // In most cases, the first member to join is the team admin (team creator)
-      // We'll use the member ID or creation order as proxy for this
+      // Put the team leader first, then sort others by ID
+      const aIsLeader = a.student?.id === teamLeaderId;
+      const bIsLeader = b.student?.id === teamLeaderId;
+      
+      if (aIsLeader && !bIsLeader) return -1;
+      if (!aIsLeader && bIsLeader) return 1;
+      
       return (a.id || '').localeCompare(b.id || '');
     });
 
     // Format individual member data
-    const members: TeamMemberData[] = sortedMembers.map((member, index) => ({
+    const members: TeamMemberData[] = sortedMembers.map((member) => ({
       name: `${member.student?.user?.firstName || ''} ${member.student?.user?.lastName || ''}`.trim() || 'N/A',
       email: member.student?.user?.email || 'N/A',
       department: member.student?.department?.name || 'N/A',
       enrollment: member.student?.enrollment || 'N/A',
       attended: member.attended || false,
-      isTeamAdmin: index === 0 // First member is considered team admin
+      isTeamAdmin: member.student?.id === teamLeaderId // Check against leaderId
     }));
 
     // Legacy concatenated strings for backward compatibility

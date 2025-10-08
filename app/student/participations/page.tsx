@@ -165,10 +165,8 @@ export default async function ParticipationsPage() {
     // Transform the data to include participation status
     const participations = teamMemberships.map((membership) => {
       const team = membership.team;
-      const hackathon = team.hackathon;
-
-      // Determine if current student is team owner (first member)
-      const isTeamOwner = team.members.length > 0 && team.members[0].studentId === student.id;
+      const hackathon = team.hackathon;      // Determine if current student is team owner/leader
+      const isTeamOwner = team.leaderId === student.id;
 
       return {
         id: hackathon.id,

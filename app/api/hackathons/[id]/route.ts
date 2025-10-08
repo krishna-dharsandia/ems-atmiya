@@ -59,12 +59,23 @@ export async function GET(
           ]
         },
         problemStatements: true,
-        rules: true,
+        rules: true,     
         ...(includeMasterDetails ? {
           teams: {
-            include: {
+            select: {
+              id: true,
+              teamName: true,
+              teamId: true,
+              disqualified: true,
+              submissionUrl: true,
+              leaderId: true,
               members: {
-                include: {
+                select: {
+                  id: true,
+                  studentId: true,
+                  attended: true,
+                  qrCode: true,
+                  qrCodeData: true,
                   student: {
                     include: {
                       user: {
@@ -90,6 +101,9 @@ export async function GET(
                   title: true,
                 },
               },
+            },
+            orderBy: {
+              teamId: 'asc'
             },
           },
         } : {}),

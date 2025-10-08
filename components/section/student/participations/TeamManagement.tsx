@@ -254,10 +254,9 @@ export function TeamManagement({
     }
   };
 
-
   const getParticipantRole = (member: any, isCurrentUser: boolean) => {
     // Check if participant is team owner/leader
-    if (team.members.indexOf(member) === 0) {
+    if (member.studentId === team.leaderId) {
       return "Team Leader";
     }
 
@@ -803,18 +802,17 @@ export function TeamManagement({
                               <tr key={member.id} className="border-t">
                                 <td className="p-3">
                                   {member.student.user.firstName} {member.student.user.lastName}
-                                </td>
-                                <td className="p-3 text-muted-foreground">
+                                </td>                                <td className="p-3 text-muted-foreground">
                                   {member.student.user.email}
                                 </td>
                                 <td className="p-3">
                                   <Badge variant={
                                     member.student.id === studentId ? "default" :
-                                      team.members.indexOf(member) === 0 ? "default" :
+                                      member.studentId === team.leaderId ? "default" :
                                         "secondary"
                                   }>
                                     {member.student.id === studentId ? "You" :
-                                      team.members.indexOf(member) === 0 ? "Team Lead" :
+                                      member.studentId === team.leaderId ? "Team Lead" :
                                         "Member"}
                                   </Badge>
                                 </td>                                <td className="p-3">
@@ -881,15 +879,14 @@ export function TeamManagement({
                                   {member.student.user.firstName} {member.student.user.lastName}
                                 </td>
                                 <td className="p-3 text-muted-foreground">
-                                  {member.student.user.email}
-                                </td>                                <td className="p-3">
+                                  {member.student.user.email}                                </td>                                <td className="p-3">
                                   <Badge variant={
                                     member.student.id === studentId ? "default" :
-                                      team.members.indexOf(member) === 0 ? "default" :
+                                      member.studentId === team.leaderId ? "default" :
                                         "secondary"
                                   }>
                                     {member.student.id === studentId ? "You" :
-                                      team.members.indexOf(member) === 0 ? "Team Lead" :
+                                      member.studentId === team.leaderId ? "Team Lead" :
                                         "Member"}
                                   </Badge>
                                 </td>
@@ -1084,16 +1081,14 @@ export function TeamManagement({
                             <p className="text-xs text-muted-foreground mb-2">
                               {member.student.user.email}
                             </p>
-                          </div>
-
-                          <div className="flex justify-center gap-1 mb-3">
+                          </div>                          <div className="flex justify-center gap-1 mb-3">
                             <Badge variant={
                               member.student.id === studentId ? "default" :
-                                team.members.indexOf(member) === 0 ? "default" :
+                                member.studentId === team.leaderId ? "default" :
                                   "secondary"
                             } className="text-xs">
                               {member.student.id === studentId ? "You" :
-                                team.members.indexOf(member) === 0 ? "Team Lead" :
+                                member.studentId === team.leaderId ? "Team Lead" :
                                   "Member"}
                             </Badge>
                             {member.attended && (
@@ -1101,7 +1096,7 @@ export function TeamManagement({
                                 Attended
                               </Badge>
                             )}
-                          </div>                          <div className="flex gap-2">
+                          </div><div className="flex gap-2">
                             {/* Single Download ID Card Button */}
                             <Button
                               variant="default"
