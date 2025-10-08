@@ -164,7 +164,7 @@ export async function GET() {
     const participations = teamMemberships.map((membership) => {
       const team = membership.team;
       const hackathon = team.hackathon;      // Determine if current student is team owner/leader
-      const isTeamOwner = team.leaderId === student.id;
+      const isTeamOwner = team.leaderId == student.id;
 
       return {
         id: hackathon.id,

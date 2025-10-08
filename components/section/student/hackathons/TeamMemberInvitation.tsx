@@ -67,7 +67,6 @@ interface HackathonTeam {
 interface TeamMemberInvitationProps {
   team: HackathonTeam | null;
   isTeamMember: boolean;
-  isTeamOwner: boolean;
   studentId: string;
   pendingInvites?: { teamId: string; teamName: string }[];
   mutate: KeyedMutator<any>;
@@ -76,7 +75,6 @@ interface TeamMemberInvitationProps {
 export function TeamMemberInvitation({
   team,
   isTeamMember,
-  isTeamOwner,
   studentId,
   pendingInvites = [],
   mutate

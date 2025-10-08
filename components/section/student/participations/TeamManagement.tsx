@@ -771,7 +771,6 @@ export function TeamManagement({
               <TeamMemberInvitation
                 team={team}
                 isTeamMember={true}
-                isTeamOwner={isTeamOwner}
                 studentId={studentId}
                 pendingInvites={[]}
                 mutate={mutate}
@@ -791,7 +790,8 @@ export function TeamManagement({
                       <div className="border rounded-lg overflow-hidden">
                         <table className="w-full">
                           <thead className="bg-muted">
-                            <tr>                              <th className="text-left p-3 font-medium">Name</th>
+                            <tr>
+                              <th className="text-left p-3 font-medium">Name</th>
                               <th className="text-left p-3 font-medium">Email</th>
                               <th className="text-left p-3 font-medium">Role</th>
                               <th className="text-left p-3 font-medium">Attendance</th>

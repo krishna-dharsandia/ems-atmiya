@@ -120,6 +120,7 @@ export default function HackathonDetailPage() {
     <div>
       <LandingHeader />
       <HackathonDetail
+        isTeamOwner={hackathonData.userTeam?.leaderId == currentUser?.id}
         hackathon={hackathonData.hackathon}
         currentUser={currentUser}
         userTeam={hackathonData.userTeam || null}

@@ -59,7 +59,7 @@ export async function GET(
           ]
         },
         problemStatements: true,
-        rules: true,     
+        rules: true,
         ...(includeMasterDetails ? {
           teams: {
             select: {
@@ -69,6 +69,8 @@ export async function GET(
               disqualified: true,
               submissionUrl: true,
               leaderId: true,
+              mentor: true,
+              mentor_mail: true,
               members: {
                 select: {
                   id: true,
