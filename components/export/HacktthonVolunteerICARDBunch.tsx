@@ -83,7 +83,7 @@ const IDCardContent = ({
             </View>
         </View>
 
-        <View style={{ paddingBottom: 6, marginTop: 4 }}>
+        <View style={{ paddingBottom: 2, marginTop: 2 }}>
             {/* ALL-ACCESS */}
             <View style={styles.allAccessSection}>
                 <Text style={styles.allAccessText}>{userType}</Text>
@@ -91,7 +91,7 @@ const IDCardContent = ({
         </View>
 
         <View style={styles.divider} />
-        <View style={{ paddingTop: 10, rowGap: 8 }}>
+        <View style={{ paddingTop: 4, rowGap: 2 }}>
             {/* Student Name */}
             <View>
                 <Text style={styles.quantumLabel}>STUDENT NAME</Text>
@@ -105,7 +105,8 @@ const IDCardContent = ({
                 <View style={styles.userTypeContainer}>
 
                     {userType === 'Volunteer' && (
-                        <View style={styles.symbolContainer}>                            <Svg width="150" height="150" viewBox="0 0 150 150">
+                        <View style={styles.symbolContainer}>                            
+                        <Svg width="150" height="150" viewBox="0 0 150 150">
                             <Polygon
                                 points="50,5 100,100 5,100"
                                 fill="transparent"
@@ -187,7 +188,7 @@ const styles = StyleSheet.create({
 
     idCard: {
         width: '3in',
-        height: '5in',
+        height: '4in',
         backgroundColor: '#000000',
         paddingLeft: 20,
         paddingRight: 20,
@@ -284,7 +285,8 @@ const styles = StyleSheet.create({
     columnRight: {
         flex: 0.4,
         paddingLeft: 5,
-    },    // User Type Symbols
+    },    
+    // User Type Symbols
     userTypeContainer: {
         flexDirection: 'row',
         alignItems: 'center',
@@ -293,7 +295,7 @@ const styles = StyleSheet.create({
     symbolContainer: {
         flexDirection: 'row',
         alignItems: 'center',
-        marginTop: 20,
+        marginTop: 0,
         right: -140,
     }, circleSymbol: {
         width: 100,
@@ -315,11 +317,11 @@ const styles = StyleSheet.create({
         borderBottomColor: '#e5e7eb',
         backgroundColor: 'black',
     }, squareSymbol: {
-        width: 100,
-        height: 100,
+        width: 50,
+        height: 50,
         opacity: 0.4,
         backgroundColor: 'black',
-        borderWidth: 14,
+        borderWidth: 7,
         borderColor: '#e5e7eb',
     },
     symbolText: {

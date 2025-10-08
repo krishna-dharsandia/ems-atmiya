@@ -92,7 +92,7 @@ const IDCardContent = ({
             </View>
         </View>
 
-        <View style={{ paddingBottom: 6, marginTop: 4 }}>
+        <View style={{ paddingBottom: 0, marginTop: 0 }}>
             {/* ALL-ACCESS */}
             <View style={styles.allAccessSection}>
                 <Text style={styles.allAccessText}>{userType}</Text>
@@ -115,7 +115,7 @@ const IDCardContent = ({
         </View>
 
         <View style={styles.divider} />
-        <View style={{ paddingTop: 10, rowGap: 8 }}>
+        <View style={{ paddingTop: 6, rowGap: 0 }}>
             {/* Student Name */}
             <View>
                 <Text style={styles.quantumLabel}>STUDENT NAME</Text>
@@ -146,16 +146,6 @@ const IDCardContent = ({
                     {userType === 'Participant' && (
                         <View style={styles.symbolContainer}>
                             <View style={styles.circleSymbol} />
-                        </View>
-                    )}
-                    {userType === 'Volunteer' && (
-                        <View style={styles.symbolContainer}>
-                            <View style={styles.triangleSymbol} />
-                        </View>
-                    )}
-                    {userType === 'Core Team' && (
-                        <View style={styles.symbolContainer}>
-                            <View style={styles.squareSymbol} />
                         </View>
                     )}
                 </View>
@@ -202,7 +192,8 @@ Font.register({
     src: '/fonts/game-of-squids/Game-Of-Squids.ttf'
 });
 
-const styles = StyleSheet.create({    page: {
+const styles = StyleSheet.create({
+    page: {
         width: '18in',
         height: '12in',
         backgroundColor: '#ffffff',
@@ -223,7 +214,7 @@ const styles = StyleSheet.create({    page: {
 
     idCard: {
         width: '3in',
-        height: '5in',
+        height: '4in',
         backgroundColor: '#000000',
         paddingLeft: 20,
         paddingRight: 20,
@@ -243,7 +234,7 @@ const styles = StyleSheet.create({    page: {
         flexDirection: 'row',
         justifyContent: 'space-between',
         alignItems: 'center',
-        paddingTop: 20,
+        paddingTop: 5,
         marginBottom: 5,
     },
     logoPlaceholder: {
@@ -268,8 +259,8 @@ const styles = StyleSheet.create({    page: {
 
     // ALL-ACCESS Section
     allAccessSection: {
-        marginTop: 6,
-        marginBottom: 4,
+        marginTop: 2,
+        marginBottom: 2,
     },
     allAccessText: {
         color: '#ffffff',
@@ -320,7 +311,7 @@ const styles = StyleSheet.create({    page: {
     columnRight: {
         flex: 0.4,
         paddingLeft: 5,
-    },    // User Type Symbols
+    },
     userTypeContainer: {
         flexDirection: 'row',
         alignItems: 'center',
@@ -329,7 +320,8 @@ const styles = StyleSheet.create({    page: {
     symbolContainer: {
         flexDirection: 'row',
         alignItems: 'center',
-    },    circleSymbol: {
+    },
+    circleSymbol: {
         width: 100,
         height: 100,
         borderRadius: 50,
@@ -337,6 +329,7 @@ const styles = StyleSheet.create({    page: {
         backgroundColor: 'black',
         borderWidth: 14,
         borderColor: '#e5e7eb',
+        marginTop: -10,
     },
     triangleSymbol: {
         width: 0,
@@ -390,7 +383,7 @@ const styles = StyleSheet.create({    page: {
     },
 
     // Bottom Organization Logos
-   bottomLogos: {
+    bottomLogos: {
         position: 'absolute',
         flex: 1,
         left: 20,
