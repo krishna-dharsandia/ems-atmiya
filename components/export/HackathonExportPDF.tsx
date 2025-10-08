@@ -153,7 +153,8 @@ const TeamMembersTable: React.FC<{ data: TeamExportData[] }> = ({ data }) => {
             </TD>
             <TD style={[styles.tableCell, { flex: 1.5 }]}>
               {team.teamName.substring(0, 15)}
-            </TD>              <TD style={[
+            </TD>
+            <TD style={[
               styles.tableCell,
               { flex: 1.8 },
               ...(isTeamAdmin ? [{ fontWeight: 600 }] : []) // Bold for team admin
@@ -168,7 +169,7 @@ const TeamMembersTable: React.FC<{ data: TeamExportData[] }> = ({ data }) => {
               { flex: 0.8, textAlign: 'center' },
               ...(isTeamAdmin ? [{ fontWeight: 600 }] : []) // Bold for team admin
             ]}>
-              {isTeamAdmin ? 'Admin' : 'Member'}
+              {isTeamAdmin ? 'Leader' : 'Member'}
             </TD>
             <TD style={[styles.tableCell, { flex: 0.8, textAlign: 'center', justifyContent: 'center', alignItems: 'center' }]}>
               <PDFCheckbox checked={member.attended} size={22} />
