@@ -134,7 +134,7 @@ export async function GET(
       presentCount,
       absentCount: totalMembers - presentCount,
       attendancePercentage,
-      totalTeams,
+      totalTeams, 
       presentTeams,
       absentTeams: totalTeams - presentTeams,
     };

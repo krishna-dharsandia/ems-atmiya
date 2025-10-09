@@ -6,10 +6,9 @@ export const adminSidebarLinks = [
     ],
   },
   {
-    title: "Events",
+    title: "Hackathons",
     items: [
-      { title: "All Events", url: "/events" },
-      { title: "Create Event", url: "/events/create" },
+      { title: "All Hackathons", url: "/hackathons" },
     ],
   },
   {
