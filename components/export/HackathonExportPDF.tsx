@@ -157,7 +157,7 @@ const TeamMembersTable: React.FC<{ data: TeamExportData[] }> = ({ data }) => {
             <TD style={[
               styles.tableCell,
               { flex: 1.8 },
-              ...(isTeamAdmin ? [{ fontWeight: 600 }] : []) // Bold for team admin
+              ...(isTeamAdmin ? [{ fontWeight: 600 }] : [])
             ]}>
               {member.name.substring(0, 18)}
             </TD>
@@ -167,7 +167,7 @@ const TeamMembersTable: React.FC<{ data: TeamExportData[] }> = ({ data }) => {
             <TD style={[
               styles.tableCell,
               { flex: 0.8, textAlign: 'center' },
-              ...(isTeamAdmin ? [{ fontWeight: 600 }] : []) // Bold for team admin
+              ...(isTeamAdmin ? [{ fontWeight: 600 }] : [])
             ]}>
               {isTeamAdmin ? 'Leader' : 'Member'}
             </TD>

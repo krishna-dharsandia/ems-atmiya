@@ -201,7 +201,7 @@ export default function MasterHackathonDetail({
     router.push(`/master/hackathons/edit/${hackathon.id}`);
   };
 
-  const handleExport = async (format: 'csv' | 'xlsx' | 'pdf') => {
+  const handleExport = async (format: 'csv' | 'xlsx' | 'pdf' | 'signature-sheet') => {
     if (!hackathon.teams || hackathon.teams.length === 0) {
       toast.error("No team data available to export");
       return;
@@ -231,6 +231,10 @@ export default function MasterHackathonDetail({
         case 'pdf':
           await exportToPDF(exportData, filename, 'teams', hackathon.name);
           toast.success("Team data exported to PDF successfully!");
+          break;
+        case 'signature-sheet':
+          await exportToPDF(exportData, filename, 'signature-sheet', hackathon.name);
+          toast.success("Team data exported to Signature Sheet successfully!");
           break;
         default:
           throw new Error('Unsupported export format');
@@ -906,6 +910,10 @@ export default function MasterHackathonDetail({
               <DropdownMenuItem onClick={() => handleExport('pdf')}>
                 <Download className="mr-2 h-4 w-4" />
                 Export as PDF
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => handleExport('signature-sheet')}>
+                <Download className="mr-2 h-4 w-4" />
+                Export as Signature sheet
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>

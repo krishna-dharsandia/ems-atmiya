@@ -6,6 +6,7 @@ import EventExportPDF from '@/components/export/EventExportPDF';
 import HackathonExportPDF from '@/components/export/HackathonExportPDF';
 import { HackthonICARD } from '@/components/export/HackthonICARD';
 import { HackthonICARDBunch } from '@/components/export/HacktthonICARDBunch';
+import HackathonSignatureExportPDF from '@/components/export/HackthonSignatureSheet';
 
 export interface ExportData {
   registrations?: RegistrationExportData[];
@@ -226,8 +227,6 @@ export const exportToXLSX = (data: ExportData, filename: string, type: 'registra
       const teamOverview = data.teams.map(team => ({
         'Team ID': team.teamId,
         'Team Name': team.teamName,
-        'Problem Code': team.problemCode,
-        'Problem Statement': team.problemStatement,
         'Member Count': team.memberCount,
         'Attended Members': team.attendedMembers,
         'Has Submission': team.hasSubmission,
@@ -244,12 +243,9 @@ export const exportToXLSX = (data: ExportData, filename: string, type: 'registra
             memberDetails.push({
               'Team ID': team.teamId,
               'Team Name': team.teamName,
-              'Problem Code': team.problemCode,
               'Member Name': member.name,
-              'Member Email': member.email,
-              'Department': member.department,
-              'Enrollment': member.enrollment,
-              'Role': member.isTeamAdmin ? 'Team Admin' : 'Member',
+              'Phone Number': member.phoneNumber || 'N/A',
+              'Role': member.isTeamAdmin ? 'Team Leader' : 'Member',
               'Attended': member.attended ? 'Yes' : 'No'
             });
           });
@@ -318,17 +314,25 @@ export const exportToXLSX = (data: ExportData, filename: string, type: 'registra
 export const exportToPDF = async (
   data: ExportData, 
   filename: string, 
-  type: 'registrations' | 'feedbacks' | 'teams' | 'both',
+  type: 'registrations' | 'signature-sheet' | 'feedbacks' | 'teams' | 'both',
   eventName?: string
 ) => {
   try {
     if (typeof window === 'undefined') {
       throw new Error('PDF export is only available in browser environment');
-    }
+    }    let MyDocument;   
 
-    let MyDocument;    
+    if(type === 'signature-sheet') {
+      const HackathonSignatureDocument = () => React.createElement(HackathonSignatureExportPDF, {
+        hackathonName: eventName || 'Hackathon',
+        teams: data.teams,
+        exportType: 'teams'
+      });
+      HackathonSignatureDocument.displayName = 'HackathonSignatureDocument';
+      MyDocument = HackathonSignatureDocument;
+    }
     // Choose the appropriate PDF component based on export type
-    if (type === 'teams' || (type === 'both' && data.teams && !data.registrations && !data.feedbacks)) {
+    else if (type === 'teams' || (type === 'both' && data.teams && !data.registrations && !data.feedbacks)) {
       // Use HackathonExportPDF for team data
       const HackathonDocument = () => React.createElement(HackathonExportPDF, {
         hackathonName: eventName || 'Hackathon',
