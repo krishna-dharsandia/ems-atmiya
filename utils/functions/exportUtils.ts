@@ -43,6 +43,7 @@ export interface TeamMemberData {
   phoneNumber?: string;
   attended: boolean;
   isTeamAdmin: boolean;
+  university: string;
 }
 
 export interface TeamExportData {
@@ -246,6 +247,7 @@ export const exportToXLSX = (data: ExportData, filename: string, type: 'registra
               'Member Name': member.name,
               'Phone Number': member.phoneNumber || 'N/A',
               'Role': member.isTeamAdmin ? 'Team Leader' : 'Member',
+              'University': member.university || 'N/A',
               'Attended': member.attended ? 'Yes' : 'No'
             });
           });
@@ -693,13 +695,15 @@ export const formatFeedbackData = (feedbacks: Record<string, unknown>[]): Feedba
  * Format team data for export
  */
 export const formatTeamData = (teams: Record<string, unknown>[]): TeamExportData[] => {
-  return teams.map(team => {    const teamMembers = (team.members as Array<{
+  return teams.map(team => {   
+    const teamMembers = (team.members as Array<{
       id?: string;
       student?: {
         id?: string;
         user?: { firstName?: string; lastName?: string; email?: string , phone?: string };
         department?: { name?: string };
         enrollment?: string;
+        university: string;
       };
       attended?: boolean;
     }>) || [];// Get the team leader ID from the team data
@@ -715,11 +719,14 @@ export const formatTeamData = (teams: Record<string, unknown>[]): TeamExportData
       if (!aIsLeader && bIsLeader) return 1;
       
       return (a.id || '').localeCompare(b.id || '');
-    });    // Format individual member data
+    });    
+    
+    // Format individual member data
     const members: TeamMemberData[] = sortedMembers.map((member) => ({
       name: `${member.student?.user?.firstName || ''} ${member.student?.user?.lastName || ''}`.trim() || 'N/A',
       email: member.student?.user?.email || 'N/A',
       phoneNumber: member.student?.user?.phone || 'N/A',
+      university: member.student?.university || 'N/A',
       department: member.student?.department?.name || 'N/A',
       enrollment: member.student?.enrollment || 'N/A',
       attended: member.attended || false,

@@ -202,7 +202,7 @@ export default function OnboardingForm() {
                             <PopoverTrigger asChild>
                               <HelpCircle className="h-4 w-4 text-muted-foreground" />
                             </PopoverTrigger>
-                            <PopoverContent>Enter your school or college ID card number. If you do not have a registration number, use your institution&apos;s ID card number</PopoverContent>
+                            <PopoverContent>Use your institution&apos;s registration number</PopoverContent>
                           </Popover>
                         </div>
                         <FormControl className="w-full">

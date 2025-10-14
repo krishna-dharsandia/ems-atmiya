@@ -162,7 +162,7 @@ type AttendanceScheduleFormValues = z.infer<typeof attendanceScheduleSchema>;
 export default function MasterHackathonDetail({
   hackathon,
   onTeamClick,
-  onEditTeamClick, // <-- add to props
+  onEditTeamClick, 
 }: MasterHackathonDetailProps) {
   const [activeTab, setActiveTab] = useState("details");
   const [isExporting, setIsExporting] = useState(false);
